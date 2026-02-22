@@ -386,3 +386,44 @@ export interface TenantDetail extends Tenant {
   users?: User[];
 }
 
+// ─── Bluetooth Printer ────────────────────────────────────────────────────────
+export interface BluetoothPrinterDevice {
+  id: string;
+  tenant_id: string;
+  outlet_id?: string;
+  name: string;
+  mac_address?: string;
+  is_default: boolean;
+  outlet?: Outlet;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PrinterReceiptItem {
+  name: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+export interface PrinterReceiptData {
+  store_name: string;
+  store_address: string;
+  store_phone: string;
+  invoice_number: string;
+  date: string;
+  cashier: string;
+  customer: string;
+  type?: string;
+  items: PrinterReceiptItem[];
+  subtotal: number;
+  discount: number;
+  tax: number;
+  tax_rate: number;
+  service_charge: number;
+  grand_total: number;
+  paid_amount: number;
+  change_amount: number;
+  payment_method: string;
+  status: string;
+}

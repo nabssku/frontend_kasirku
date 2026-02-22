@@ -9,6 +9,8 @@ import { useTables } from '../../../hooks/useTables';
 import { useCurrentShift } from '../../../hooks/useShifts';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { ReceiptModal } from './ReceiptModal';
+import { useTransactionReceipt } from '../../../hooks/usePrinters';
 
 interface CartSidebarProps {
     isOpen?: boolean;
@@ -36,6 +38,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
     const [showResumeModal, setShowResumeModal] = useState(false);
+    const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
+    const { data: receiptData } = useTransactionReceipt(printTransactionId);
 
     const isPending = isCreating || isUpdating;
 
@@ -73,8 +77,10 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
             status: 'completed'
         };
 
-        const onSuccess = () => {
+        const onSuccess = (data: any) => {
+            const newTxId: string = data?.data?.id ?? data?.id ?? null;
             setShowSuccess(true);
+            if (newTxId) setPrintTransactionId(newTxId);
             setTimeout(() => {
                 setShowSuccess(false);
                 clearCart();
@@ -475,6 +481,15 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     </div>
                 )}
             </div>
+
+            {/* Auto-print receipt after checkout */}
+            {printTransactionId && receiptData && (
+                <ReceiptModal
+                    receipt={receiptData}
+                    onClose={() => setPrintTransactionId(null)}
+                    autoPrint
+                />
+            )}
         </>
     );
 };

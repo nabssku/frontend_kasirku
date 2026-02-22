@@ -28,6 +28,7 @@ import SuperAdminSubscriptions from '../../pages/super-admin/SuperAdminSubscript
 import SuperAdminPlans from '../../pages/super-admin/SuperAdminPlans';
 import SuperAdminOrders from '../../pages/super-admin/SuperAdminOrders';
 import LandingPage from '../../pages/LandingPage';
+import PrinterSettingsPage from '../../pages/settings/PrinterSettingsPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import type { UserRole } from '../../types';
 
@@ -107,6 +108,7 @@ export const router = createBrowserRouter([
             { path: 'users', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><UsersPage /></ProtectedRoute> },
             { path: 'reports', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ReportsPage /></ProtectedRoute> },
             { path: 'subscription', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><TenantPage /></ProtectedRoute> },
+            { path: 'settings/printer', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><PrinterSettingsPage /></ProtectedRoute> },
         ],
     },
 ]);

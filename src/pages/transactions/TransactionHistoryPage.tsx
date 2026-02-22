@@ -6,15 +6,19 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    FileText
+    Printer
 } from 'lucide-react';
 import { useTransactionHistory } from '../../hooks/useTransactionHistory';
+import { useTransactionReceipt } from '../../hooks/usePrinters';
+import { ReceiptModal } from '../../features/transactions/components/ReceiptModal';
 import type { Transaction } from '../../types';
 
 export default function TransactionHistoryPage() {
     const [page, setPage] = useState(1);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+    const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
     const { data: historyData, isLoading } = useTransactionHistory(page);
+    const { data: receiptData } = useTransactionReceipt(printTransactionId);
 
     const fmtRp = (n: number) => new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -102,8 +106,17 @@ export default function TransactionHistoryPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end text-slate-400 group-hover:text-indigo-600 transition-colors">
-                                                <ArrowRight size={18} />
+                                            <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setPrintTransactionId(tx.id); }}
+                                                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    title="Cetak Struk"
+                                                >
+                                                    <Printer size={15} />
+                                                </button>
+                                                <div className="flex items-center text-slate-400 group-hover:text-indigo-600 transition-colors">
+                                                    <ArrowRight size={18} />
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -138,6 +151,15 @@ export default function TransactionHistoryPage() {
                 )}
             </div>
 
+            {/* Receipt Print Modal */}
+            {printTransactionId && receiptData && (
+                <ReceiptModal
+                    receipt={receiptData}
+                    onClose={() => setPrintTransactionId(null)}
+                    autoPrint={false}
+                />
+            )}
+
             {/* Modal Detail Transaksi */}
             {selectedTransaction && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -156,7 +178,6 @@ export default function TransactionHistoryPage() {
                         </div>
 
                         <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
-                            {/* Info Section */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Tanggal</p>
@@ -176,7 +197,6 @@ export default function TransactionHistoryPage() {
                                 </div>
                             </div>
 
-                            {/* Items Section */}
                             <div className="space-y-3">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-wider border-b border-slate-100 pb-2">Produk</p>
                                 <div className="space-y-3">
@@ -184,9 +204,7 @@ export default function TransactionHistoryPage() {
                                         <div key={item.id} className="flex justify-between items-start gap-4 text-sm">
                                             <div className="space-y-0.5">
                                                 <p className="font-semibold text-slate-800">{item.product_name}</p>
-                                                <p className="text-xs text-slate-500">
-                                                    {item.quantity} x {fmtRp(item.price)}
-                                                </p>
+                                                <p className="text-xs text-slate-500">{item.quantity} x {fmtRp(item.price)}</p>
                                             </div>
                                             <p className="font-bold text-slate-900">{fmtRp(item.subtotal)}</p>
                                         </div>
@@ -194,7 +212,6 @@ export default function TransactionHistoryPage() {
                                 </div>
                             </div>
 
-                            {/* Summary Section */}
                             <div className="pt-4 border-t border-slate-100 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-slate-500">Subtotal</span>
@@ -216,7 +233,6 @@ export default function TransactionHistoryPage() {
                                 </div>
                             </div>
 
-                            {/* Payment Section */}
                             <div className="bg-slate-50 rounded-xl p-4 flex justify-between items-center text-sm border border-slate-100">
                                 <div>
                                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Dibayar</p>
@@ -231,10 +247,10 @@ export default function TransactionHistoryPage() {
 
                         <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
                             <button
-                                onClick={() => window.print()}
+                                onClick={() => { setPrintTransactionId(selectedTransaction.id); setSelectedTransaction(null); }}
                                 className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-md active:scale-95"
                             >
-                                <FileText size={18} />
+                                <Printer size={18} />
                                 Cetak Struk
                             </button>
                         </div>

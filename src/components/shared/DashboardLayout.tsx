@@ -20,6 +20,7 @@ import {
     BarChart2,
     UserCog,
     ListTree,
+    Printer,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
@@ -80,6 +81,7 @@ const allNavGroups: NavGroup[] = [
         label: 'Pengaturan',
         items: [
             { name: 'Langganan', path: '/subscription', icon: CreditCard, roles: OWNER_ROLES },
+            { name: 'Printer', path: '/settings/printer', icon: Printer, roles: ADMIN_ROLES },
         ],
     },
 ];
