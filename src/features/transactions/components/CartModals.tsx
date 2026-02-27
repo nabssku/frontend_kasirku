@@ -114,7 +114,7 @@ export const OrderModal = ({
                                         ? 'bg-white text-indigo-600 shadow-md sm:shadow-lg scale-[1.02] border border-indigo-100/50'
                                         : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'} `}
                                 >
-                                    <t.icon size={18} sm:size={20} strokeWidth={orderType === t.id ? 2.5 : 2} />
+                                    <t.icon size={20} strokeWidth={orderType === t.id ? 2.5 : 2} />
                                     <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${orderType === t.id ? 'opacity-100' : 'opacity-60'} `}>{t.label}</span>
                                 </button>
                             ))}
@@ -282,7 +282,7 @@ export const PaymentModal = ({
                                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600'
                                             }`}
                                     >
-                                        <Icon size={20} sm:size={24} strokeWidth={isActive ? 2.5 : 2} />
+                                        <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
                                         <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{m.label}</span>
                                     </button>
                                 );
@@ -356,7 +356,7 @@ export const PaymentModal = ({
                                 <span className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">Rp {(paidAmount - grandTotal).toLocaleString('id-ID')}</span>
                             </div>
                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                                <CheckCircle2 size={20} sm:size={24} />
+                                <CheckCircle2 size={24} />
                             </div>
                         </div>
                     )}
@@ -368,7 +368,7 @@ export const PaymentModal = ({
                                 <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">Rp {(grandTotal - paidAmount).toLocaleString('id-ID')}</span>
                             </div>
                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
-                                <AlertCircle size={20} sm:size={24} />
+                                <AlertCircle size={24} />
                             </div>
                         </div>
                     )}
