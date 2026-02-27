@@ -4,8 +4,12 @@ import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
 import { ProductCard } from '../../features/transactions/components/ProductCard';
 import { CartSidebar } from '../../features/transactions/components/CartSidebar';
+import { useCartStore } from '../../app/store/useCartStore';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function POSPage() {
+    const { items } = useCartStore();
+    const itemsCount = items.length;
     const { data: products, isLoading, error } = useProducts();
     const { data: categories = [] } = useCategories();
     const [searchQuery, setSearchQuery] = useState('');
@@ -101,15 +105,37 @@ export default function POSPage() {
                 </div>
 
                 {/* Floating Cart Button for Mobile/Tablet */}
-                <button
+                <motion.button
+                    layout
+                    initial={false}
+                    animate={{ scale: itemsCount > 0 ? [1, 1.1, 1] : 1 }}
+                    transition={{ duration: 0.3 }}
                     onClick={() => setIsCartOpen(true)}
                     className="lg:hidden fixed bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 transition-all active:scale-90 z-30"
                 >
                     <div className="relative">
                         <ShoppingCart size={24} />
-                        {/* You could add a count badge here if you have access to total items */}
+                        <AnimatePresence>
+                            {itemsCount > 0 && (
+                                <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    className="absolute -top-3 -right-3 w-7 h-7 bg-white text-indigo-600 rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-indigo-600"
+                                >
+                                    <motion.span
+                                        key={itemsCount}
+                                        initial={{ y: 5, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        className="inline-block"
+                                    >
+                                        {itemsCount}
+                                    </motion.span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                </button>
+                </motion.button>
             </div>
 
             {/* Cart Sidebar - Pass props for responsiveness */}

@@ -80,48 +80,24 @@ export const CartFooter = ({
                             "{notes}"
                         </div>
                     )}
-                </div>
-            </div>
 
-            <div className={`p-6 bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-900 rounded-[28px] shadow-[0_20px_40px_-10px_rgba(79,70,229,0.3)] transition-all duration-500 ${showDetails ? 'pb-7' : ''}`}>
-                <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${showDetails ? 'max-h-[300px] opacity-100 mb-6 border-b border-white/10 pb-5' : 'max-h-0 opacity-0 mb-0'} `}>
-                    <div className="space-y-4">
-                        <div className="flex justify-between text-[11px] font-black text-indigo-300/80 uppercase tracking-wider">
+                    {/* Price Breakdown moved here */}
+                    <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-3">
+                        <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
                             <span>Subtotal</span>
-                            <span className="text-white font-bold">Rp {total.toLocaleString('id-ID')}</span>
+                            <span className="text-slate-700 font-bold">Rp {total.toLocaleString('id-ID')}</span>
                         </div>
                         {discount > 0 && (
-                            <div className="flex justify-between text-[11px] font-black text-rose-300 uppercase tracking-wider">
+                            <div className="flex justify-between text-[11px] font-black text-rose-400 uppercase tracking-wider">
                                 <span>Diskon</span>
-                                <span className="text-rose-300 font-bold">- Rp {discount.toLocaleString('id-ID')}</span>
+                                <span className="text-rose-500 font-bold">- Rp {discount.toLocaleString('id-ID')}</span>
                             </div>
                         )}
-                        <div className="flex justify-between text-[11px] font-black text-indigo-300/80 uppercase tracking-wider">
+                        <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
                             <span>Pajak (10%)</span>
-                            <span className="text-white font-bold">Rp {tax.toLocaleString('id-ID')}</span>
+                            <span className="text-slate-700 font-bold">Rp {tax.toLocaleString('id-ID')}</span>
                         </div>
                     </div>
-                </div>
-                <div className="flex justify-between items-center">
-                    <div className="flex flex-col text-left">
-                        <span className="text-[10px] font-black text-indigo-200/60 uppercase tracking-[0.2em] mb-1">Total Pembayaran</span>
-                        <span className="text-3xl font-black text-white tracking-tighter drop-shadow-md">
-                            <span className="text-indigo-300 text-sm font-black mr-1 tracking-normal align-top mt-1 inline-block">Rp</span>
-                            {grandTotal.toLocaleString('id-ID')}
-                        </span>
-                    </div>
-                    {!showDetails && (
-                        <div className="flex flex-col items-end">
-                            <span className="text-[9px] font-black text-indigo-200/60 uppercase tracking-widest mb-1">{items.length} ITEM</span>
-                            <div className="flex -space-x-1.5">
-                                {[...Array(Math.min(items.length, 3))].map((_, i) => (
-                                    <div key={i} className="w-5 h-5 rounded-full border-2 border-indigo-700 bg-white/20 backdrop-blur-md flex items-center justify-center text-[8px] text-white font-black">
-                                        {i === 2 && items.length > 3 ? `+${items.length - 2}` : ''}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -166,15 +142,25 @@ export const CartFooter = ({
                     <button
                         onClick={handleCheckout}
                         disabled={items.length === 0 || isPending || paidAmount < grandTotal || !currentShift}
-                        className={`flex-1 h-16 rounded-2xl font-black text-white shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 group relative overflow-hidden ${items.length === 0 || isPending || paidAmount < grandTotal || !currentShift
+                        className={`flex-1 h-16 rounded-2xl font-black text-white shadow-2xl transition-all active:scale-[0.98] flex items-center justify-between px-6 group relative overflow-hidden ${items.length === 0 || isPending || paidAmount < grandTotal || !currentShift
                             ? 'bg-slate-200 text-slate-400 shadow-none'
                             : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-indigo-200 hover:shadow-indigo-300'} `}
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                        {isPending ? <Loader2 className="animate-spin text-white" size={24} /> : <CreditCard size={24} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />}
-                        <span className="uppercase tracking-[0.15em] text-sm">
-                            {isPending ? 'Memproses...' : activeTransactionId ? 'Selesaikan Pesanan' : 'Bayar Sekarang'}
-                        </span>
+
+                        <div className="flex items-center gap-3">
+                            {isPending ? <Loader2 className="animate-spin text-white" size={24} /> : <CreditCard size={24} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />}
+                            <span className="uppercase tracking-[0.15em] text-sm whitespace-nowrap">
+                                {isPending ? 'Memproses...' : activeTransactionId ? 'Selesaikan' : 'Bayar Sekarang'}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] font-black text-indigo-200/60 uppercase tracking-widest leading-none mb-0.5">Total</span>
+                            <span className="text-lg font-black text-white tracking-tight">
+                                Rp {grandTotal.toLocaleString('id-ID')}
+                            </span>
+                        </div>
                     </button>
                 </div>
             </div>
