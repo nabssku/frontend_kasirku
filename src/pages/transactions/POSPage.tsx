@@ -23,7 +23,7 @@ export default function POSPage() {
             {/* Product Area - Flex 1 */}
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* Header Section: Search & Categories */}
-                <div className="bg-white p-6 shadow-sm border-b border-slate-200 space-y-4">
+                <div className="bg-white p-4 md:p-6 shadow-sm border-b border-slate-200 space-y-4">
                     <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-indigo-600">
                             <Search className="h-5 w-5 text-slate-400" />
@@ -65,7 +65,7 @@ export default function POSPage() {
                 </div>
 
                 {/* Product Grid Area */}
-                <div className="flex-1 overflow-y-auto p-6 scrollbar-hide no-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-hide no-scrollbar">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
                             <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
@@ -92,7 +92,7 @@ export default function POSPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 pb-24">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6 pb-24">
                             {filteredProducts?.map((product) => (
                                 <ProductCard key={product.id} product={product} />
                             ))}

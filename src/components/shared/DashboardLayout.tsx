@@ -60,7 +60,7 @@ const allNavGroups: NavGroup[] = [
                 name: 'Pengeluaran',
                 path: '/expenses',
                 icon: Receipt,
-                roles: OPERATIONAL_ROLES,
+                roles: ADMIN_ROLES,
                 children: [
                     { name: 'Daftar Pengeluaran', path: '/expenses' },
                     { name: 'Kategori Pengeluaran', path: '/expenses/categories' },
@@ -111,7 +111,8 @@ export const DashboardLayout = () => {
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const handleLogout = async () => {
@@ -176,13 +177,25 @@ export const DashboardLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
+        <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+            {/* Sidebar Backdrop (Mobile/Tablet) */}
+            {(isMobileMenuOpen || (isSidebarOpen && window.innerWidth < 1024)) && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
+                    onClick={() => {
+                        setIsSidebarOpen(false);
+                        setIsMobileMenuOpen(false);
+                    }}
+                />
+            )}
+
             {/* Sidebar */}
             <aside className={`
-        bg-white border-r border-slate-200 transition-all duration-300
-        ${isSidebarOpen ? 'w-64' : 'w-20'}
-        flex flex-col flex-shrink-0 z-50
-      `}>
+                bg-white border-r border-slate-200 transition-all duration-300
+                ${isSidebarOpen ? 'w-64' : 'w-20'}
+                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                fixed lg:relative inset-y-0 left-0 flex flex-col flex-shrink-0 z-50
+            `}>
                 {/* Logo */}
                 <div className="p-4 flex items-center justify-between h-16 border-b border-slate-100">
                     {isSidebarOpen && (
@@ -315,12 +328,18 @@ export const DashboardLayout = () => {
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center px-8 shrink-0">
-                    <h2 className="text-base font-semibold text-slate-900 capitalize">
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-8 shrink-0">
+                    <button
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="p-2 -ml-2 mr-4 rounded-lg hover:bg-slate-100 text-slate-500 lg:hidden"
+                    >
+                        <Menu size={24} />
+                    </button>
+                    <h2 className="text-sm md:text-base font-semibold text-slate-900 capitalize truncate">
                         {location.pathname.split('/').filter(Boolean).join(' / ') || 'Dashboard'}
                     </h2>
                 </header>
-                <div className="flex-1 overflow-y-auto p-8">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8">
                     <Outlet />
                 </div>
             </main>

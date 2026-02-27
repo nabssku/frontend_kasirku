@@ -50,10 +50,10 @@ export default function TransactionHistoryPage() {
                         <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
                                 <th className="px-6 py-4 text-sm font-semibold text-slate-700">Invoice</th>
-                                <th className="px-6 py-4 text-sm font-semibold text-slate-700">Tanggal</th>
-                                <th className="px-6 py-4 text-sm font-semibold text-slate-700">Pelanggan</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-slate-700 hidden sm:table-cell">Tanggal</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-slate-700 hidden md:table-cell">Pelanggan</th>
                                 <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-right">Total</th>
-                                <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-center">Metode</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-center hidden lg:table-cell">Metode</th>
                                 <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-right">Aksi</th>
                             </tr>
                         </thead>
@@ -79,17 +79,17 @@ export default function TransactionHistoryPage() {
                                 historyData?.data.map((tx) => (
                                     <tr key={tx.id} className="hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => setSelectedTransaction(tx)}>
                                         <td className="px-6 py-4">
-                                            <span className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                                            <span className="font-mono text-[10px] md:text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded whitespace-nowrap">
                                                 {tx.invoice_number}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 hidden sm:table-cell">
                                             <div className="flex items-center gap-2 text-sm text-slate-600">
                                                 <Calendar size={14} className="text-slate-400" />
                                                 {fmtDate(tx.created_at)}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 hidden md:table-cell">
                                             <div className="flex items-center gap-2 text-sm">
                                                 <User size={14} className="text-slate-400" />
                                                 <span className="text-slate-700 truncate max-w-[120px]">
@@ -97,10 +97,10 @@ export default function TransactionHistoryPage() {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-bold text-slate-800">
+                                        <td className="px-6 py-4 text-right font-bold text-slate-800 text-sm md:text-base">
                                             {fmtRp(tx.grand_total)}
                                         </td>
-                                        <td className="px-6 py-4 text-center">
+                                        <td className="px-6 py-4 text-center hidden lg:table-cell">
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 capitalize">
                                                 {tx.payment_method?.replace('_', ' ') || '-'}
                                             </span>

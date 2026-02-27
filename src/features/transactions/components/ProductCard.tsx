@@ -41,7 +41,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <>
             <div
                 className={`
-                    bg-white rounded-2xl border border-slate-100 p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group relative
+                    bg-white rounded-2xl border border-slate-100 p-3 md:p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group relative
                     ${!product.is_active || product.stock <= 0 ? 'opacity-60 grayscale' : 'hover:border-indigo-200'}
                 `}
                 onClick={() => product.is_active && product.stock > 0 && handleAddToCart()}

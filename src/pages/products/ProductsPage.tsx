@@ -85,11 +85,11 @@ export default function ProductsPage() {
                         <thead>
                             <tr className="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
                                 <th className="px-6 py-4 text-left">Produk</th>
-                                <th className="px-6 py-4 text-left">Resep / Mod</th>
-                                <th className="px-6 py-4 text-left">Kategori</th>
-                                <th className="px-6 py-4 text-right">Stok</th>
+                                <th className="px-6 py-4 text-left hidden sm:table-cell">Resep / Mod</th>
+                                <th className="px-6 py-4 text-left hidden md:table-cell">Kategori</th>
+                                <th className="px-6 py-4 text-right hidden xs:table-cell">Stok</th>
                                 <th className="px-6 py-4 text-right">Harga</th>
-                                <th className="px-6 py-4 text-center">Status</th>
+                                <th className="px-6 py-4 text-center hidden lg:table-cell">Status</th>
                                 <th className="px-6 py-4 text-right">Aksi</th>
                             </tr>
                         </thead>
@@ -97,17 +97,17 @@ export default function ProductsPage() {
                             {filtered?.map((product) => (
                                 <tr key={product.id} className="hover:bg-slate-50 transition-colors group">
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                                                {product.image ? <img src={product.image} className="w-full h-full object-cover rounded-xl" /> : <Package size={18} className="text-indigo-400" />}
+                                        <div className="flex items-center gap-2 md:gap-3">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                                {product.image ? <img src={product.image} className="w-full h-full object-cover rounded-xl" /> : <Package size={16} className="text-indigo-400" />}
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 uppercase text-xs tracking-tight">{product.name}</p>
-                                                <p className="text-[10px] text-slate-400 font-mono">{product.sku || 'N/A'}</p>
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-slate-800 uppercase text-[10px] md:text-xs tracking-tight truncate">{product.name}</p>
+                                                <p className="text-[9px] md:text-[10px] text-slate-400 font-mono truncate">{product.sku || 'N/A'}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 hidden sm:table-cell">
                                         <div className="flex items-center gap-2">
                                             {product.has_recipe && (
                                                 <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600" title="Ada Resep"><Beef size={14} /></span>
@@ -117,10 +117,10 @@ export default function ProductsPage() {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 hidden md:table-cell">
                                         <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase">{product.category?.name || '—'}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right hidden xs:table-cell">
                                         <div className="flex items-center justify-end gap-1.5">
                                             {product.stock <= product.min_stock ? (
                                                 <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Limit: {product.stock}</span>
@@ -129,24 +129,24 @@ export default function ProductsPage() {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-right font-bold text-slate-900 border-r-0">
+                                    <td className="px-6 py-4 text-right font-bold text-slate-900 border-r-0 whitespace-nowrap">
                                         Rp {Number(product.price).toLocaleString('id-ID')}
                                     </td>
-                                    <td className="px-6 py-4 text-center">
+                                    <td className="px-6 py-4 text-center hidden lg:table-cell">
                                         <div className={`w-2 h-2 rounded-full mx-auto ${product.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Link
                                                 to={`/products/${product.id}/recipe`}
-                                                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                                                 title="Kelola Resep"
                                             >
                                                 <Beef size={15} />
                                             </Link>
                                             <Link
                                                 to={`/products/${product.id}`}
-                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                                 title="Edit"
                                             >
                                                 <Edit2 size={15} />
@@ -154,7 +154,7 @@ export default function ProductsPage() {
                                             <button
                                                 onClick={() => handleDelete(product.id, product.name)}
                                                 disabled={deletingId === product.id}
-                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                className="p-1.5 md:p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                 title="Hapus"
                                             >
                                                 <Trash2 size={15} />
