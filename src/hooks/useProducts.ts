@@ -37,8 +37,12 @@ export const useProducts = (categoryId?: string, search?: string) => {
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: ProductPayload) => {
-      const { data } = await api.post('/products', payload);
+    mutationFn: async (payload: ProductPayload | FormData) => {
+      const { data } = await api.post('/products', payload, {
+        headers: {
+          'Content-Type': payload instanceof FormData ? 'multipart/form-data' : 'application/json',
+        },
+      });
       return data.data as Product;
     },
     onSuccess: () => {
@@ -51,9 +55,24 @@ export const useCreateProduct = () => {
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: Partial<ProductPayload> }) => {
-      const { data } = await api.put(`/products/${id}`, payload);
-      return data.data as Product;
+    mutationFn: async ({ id, payload }: { id: string; payload: Partial<ProductPayload> | FormData }) => {
+      // Use POST with _method: PUT for FormData to support file uploads in Laravel
+      let actualPayload = payload;
+      let config = {};
+
+      if (payload instanceof FormData) {
+        payload.append('_method', 'PUT');
+        actualPayload = payload;
+        config = {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        };
+        // Use post instead of put for FormData upload in Laravel
+        const { data } = await api.post(`/products/${id}`, actualPayload, config);
+        return data.data as Product;
+      } else {
+        const { data } = await api.put(`/products/${id}`, payload);
+        return data.data as Product;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });

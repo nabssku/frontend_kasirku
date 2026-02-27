@@ -10,7 +10,30 @@ function formatRp(n: number) {
 }
 
 export default function ReportsPage() {
-    const [dateRange, setDateRange] = useState({ start: new Date().toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] });
+    const [dateRange, setDateRange] = useState({
+        start: new Date().toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0]
+    });
+
+    const setQuickFilter = (type: 'today' | 'month' | 'year') => {
+        const now = new Date();
+        let start = new Date();
+        const end = new Date().toISOString().split('T')[0];
+
+        if (type === 'today') {
+            start = now;
+        } else if (type === 'month') {
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+        } else if (type === 'year') {
+            start = new Date(now.getFullYear(), 0, 1);
+        }
+
+        setDateRange({
+            start: start.toISOString().split('T')[0],
+            end
+        });
+    };
+
     const { data: topProducts } = useTopProducts();
     const { exportCsv } = useExportTransactions();
 
@@ -25,20 +48,34 @@ export default function ReportsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Laporan & Analitik</h1>
                     <p className="text-sm text-slate-500 mt-1">Pantau performa bisnis Anda secara real-time</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2">
-                        <Calendar size={16} className="text-slate-400" />
-                        <input type="date" value={dateRange.start} onChange={e => setDateRange(d => ({ ...d, start: e.target.value }))} className="text-sm outline-none" />
-                        <span className="text-slate-300">-</span>
-                        <input type="date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} className="text-sm outline-none" />
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setQuickFilter('today')}
+                            className="px-3 py-1.5 text-xs font-bold rounded-lg transition-colors hover:bg-white/50 active:bg-white"
+                        >Hari Ini</button>
+                        <button
+                            onClick={() => setQuickFilter('month')}
+                            className="px-3 py-1.5 text-xs font-bold rounded-lg transition-colors hover:bg-white/50 active:bg-white"
+                        >Bulan Ini</button>
+                        <button
+                            onClick={() => setQuickFilter('year')}
+                            className="px-3 py-1.5 text-xs font-bold rounded-lg transition-colors hover:bg-white/50 active:bg-white"
+                        >Tahun Ini</button>
                     </div>
-                    <button onClick={() => exportCsv(dateRange.start, dateRange.end)} className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 transition-colors">
-                        <Download size={18} /> Export CSV
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
+                        <Calendar size={16} className="text-slate-400" />
+                        <input type="date" value={dateRange.start} onChange={e => setDateRange(d => ({ ...d, start: e.target.value }))} className="text-sm outline-none bg-transparent" />
+                        <span className="text-slate-300">-</span>
+                        <input type="date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} className="text-sm outline-none bg-transparent" />
+                    </div>
+                    <button onClick={() => exportCsv(dateRange.start, dateRange.end)} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                        <Download size={18} /> Export
                     </button>
                 </div>
             </div>

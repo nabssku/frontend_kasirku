@@ -11,24 +11,26 @@ import {
     X,
     CreditCard,
     History,
-    Tag,
-    Beef,
     Table2,
     ChefHat,
     Clock,
     Store,
     BarChart2,
     UserCog,
-    ListTree,
     Printer,
+    Receipt,
+    FileText,
+    ChevronDown,
+    ChevronRight,
 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 interface NavItem {
     name: string;
     path: string;
     icon: React.ElementType;
-    roles?: UserRole[]; // If undefined, visible to all authenticated users
+    roles?: UserRole[];
+    children?: Omit<NavItem, 'icon'>[];
 }
 
 interface NavGroup {
@@ -54,23 +56,41 @@ const allNavGroups: NavGroup[] = [
         label: 'Operasional',
         items: [
             { name: 'Transaksi', path: '/transactions', icon: History, roles: OPERATIONAL_ROLES },
+            {
+                name: 'Pengeluaran',
+                path: '/expenses',
+                icon: Receipt,
+                roles: OPERATIONAL_ROLES,
+                children: [
+                    { name: 'Daftar Pengeluaran', path: '/expenses' },
+                    { name: 'Kategori Pengeluaran', path: '/expenses/categories' },
+                ]
+            },
             { name: 'Meja', path: '/tables', icon: Table2, roles: OPERATIONAL_ROLES },
             { name: 'Dapur (KDS)', path: '/kitchen', icon: ChefHat, roles: KITCHEN_ROLES },
             { name: 'Shift', path: '/shifts', icon: Clock, roles: OPERATIONAL_ROLES },
         ],
     },
     {
-        label: 'Katalog',
+        label: 'Produk & Katalog',
         items: [
-            { name: 'Produk', path: '/products', icon: Package, roles: ADMIN_ROLES },
-            { name: 'Kategori', path: '/categories', icon: Tag, roles: ADMIN_ROLES },
-            { name: 'Modifiers', path: '/modifiers', icon: ListTree, roles: ADMIN_ROLES },
-            { name: 'Bahan Baku', path: '/ingredients', icon: Beef, roles: ADMIN_ROLES },
+            {
+                name: 'Katalog',
+                path: '/products',
+                icon: Package,
+                roles: ADMIN_ROLES,
+                children: [
+                    { name: 'Data Produk', path: '/products' },
+                    { name: 'Kategori Produk', path: '/categories' },
+                    { name: 'Modifiers / Ekstra', path: '/modifiers' },
+                    { name: 'Bahan Baku', path: '/ingredients' },
+                ]
+            },
             { name: 'Pelanggan', path: '/customers', icon: Users, roles: ADMIN_ROLES },
         ],
     },
     {
-        label: 'Manajemen',
+        label: 'Manajemen & Laporan',
         items: [
             { name: 'Outlet', path: '/outlets', icon: Store, roles: OWNER_ROLES },
             { name: 'Pengguna', path: '/users', icon: UserCog, roles: ADMIN_ROLES },
@@ -82,6 +102,7 @@ const allNavGroups: NavGroup[] = [
         items: [
             { name: 'Langganan', path: '/subscription', icon: CreditCard, roles: OWNER_ROLES },
             { name: 'Printer', path: '/settings/printer', icon: Printer, roles: ADMIN_ROLES },
+            { name: 'Pengaturan Struk', path: '/settings/receipt', icon: FileText, roles: ADMIN_ROLES },
         ],
     },
 ];
@@ -91,11 +112,26 @@ export const DashboardLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const handleLogout = async () => {
         await logout();
         navigate('/login');
     };
+
+    // Auto-expand parent if child is active
+    useEffect(() => {
+        allNavGroups.forEach(group => {
+            group.items.forEach(item => {
+                if (item.children) {
+                    const hasActiveChild = item.children.some(child => location.pathname === child.path);
+                    if (hasActiveChild && !expandedItems.includes(item.name)) {
+                        setExpandedItems(prev => [...prev, item.name]);
+                    }
+                }
+            });
+        });
+    }, [location.pathname]);
 
     // Get current user's role slugs
     const userRoleSlugs = useMemo(
@@ -119,7 +155,25 @@ export const DashboardLayout = () => {
     }, [userRoleSlugs]);
 
     const isActive = (path: string) =>
-        location.pathname === path || location.pathname.startsWith(path + '/');
+        location.pathname === path;
+
+    const isParentActive = (item: NavItem) => {
+        if (isActive(item.path)) return true;
+        return item.children?.some(child => isActive(child.path)) ?? false;
+    };
+
+    const toggleExpand = (name: string) => {
+        if (!isSidebarOpen) {
+            setIsSidebarOpen(true);
+            setExpandedItems([name]);
+            return;
+        }
+        setExpandedItems(prev =>
+            prev.includes(name)
+                ? prev.filter(i => i !== name)
+                : [...prev, name]
+        );
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 flex">
@@ -127,7 +181,7 @@ export const DashboardLayout = () => {
             <aside className={`
         bg-white border-r border-slate-200 transition-all duration-300
         ${isSidebarOpen ? 'w-64' : 'w-20'}
-        flex flex-col flex-shrink-0
+        flex flex-col flex-shrink-0 z-50
       `}>
                 {/* Logo */}
                 <div className="p-4 flex items-center justify-between h-16 border-b border-slate-100">
@@ -145,36 +199,85 @@ export const DashboardLayout = () => {
                 </div>
 
                 {/* Nav Groups */}
-                <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
                     {filteredNavGroups.map((group) => (
                         <div key={group.label} className="mb-2">
                             {isSidebarOpen && (
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1 mb-1">
                                     {group.label}
                                 </p>
                             )}
-                            {group.items.map((item) => (
-                                <Link
-                                    key={item.path}
-                                    to={item.path}
-                                    title={!isSidebarOpen ? item.name : undefined}
-                                    className={`
-                    flex items-center p-2.5 rounded-xl transition-colors
-                    ${isActive(item.path)
-                                            ? 'bg-indigo-50 text-indigo-700'
-                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
-                    ${!isSidebarOpen ? 'justify-center' : ''}
-                  `}
-                                >
-                                    <item.icon
-                                        size={20}
-                                        className={isActive(item.path) ? 'text-indigo-600 shrink-0' : 'text-slate-400 shrink-0'}
-                                    />
-                                    {isSidebarOpen && (
-                                        <span className="ml-3 font-medium text-sm">{item.name}</span>
-                                    )}
-                                </Link>
-                            ))}
+                            {group.items.map((item) => {
+                                const hasChildren = item.children && item.children.length > 0;
+                                const isExpanded = expandedItems.includes(item.name);
+                                const active = isParentActive(item);
+
+                                return (
+                                    <div key={item.name} className="space-y-1">
+                                        {hasChildren ? (
+                                            <button
+                                                onClick={() => toggleExpand(item.name)}
+                                                className={`
+                                                    w-full flex items-center p-2.5 rounded-xl transition-all duration-200 group
+                                                    ${active ? 'bg-indigo-50/50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
+                                                    ${!isSidebarOpen ? 'justify-center' : ''}
+                                                `}
+                                            >
+                                                <item.icon
+                                                    size={20}
+                                                    className={active ? 'text-indigo-600 shrink-0' : 'text-slate-400 shrink-0 group-hover:text-slate-600'}
+                                                />
+                                                {isSidebarOpen && (
+                                                    <>
+                                                        <span className="ml-3 font-semibold text-sm flex-1 text-left">{item.name}</span>
+                                                        {isExpanded ? <ChevronDown size={14} className="opacity-50" /> : <ChevronRight size={14} className="opacity-50" />}
+                                                    </>
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <Link
+                                                to={item.path}
+                                                title={!isSidebarOpen ? item.name : undefined}
+                                                className={`
+                                                    flex items-center p-2.5 rounded-xl transition-all duration-200 group
+                                                    ${isActive(item.path)
+                                                        ? 'bg-indigo-50 text-indigo-700 shadow-sm'
+                                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
+                                                    ${!isSidebarOpen ? 'justify-center' : ''}
+                                                `}
+                                            >
+                                                <item.icon
+                                                    size={20}
+                                                    className={isActive(item.path) ? 'text-indigo-600 shrink-0' : 'text-slate-400 shrink-0 group-hover:text-slate-600'}
+                                                />
+                                                {isSidebarOpen && (
+                                                    <span className="ml-3 font-semibold text-sm">{item.name}</span>
+                                                )}
+                                            </Link>
+                                        )}
+
+                                        {/* Sub-items */}
+                                        {hasChildren && isExpanded && isSidebarOpen && (
+                                            <div className="ml-4 pl-4 border-l border-slate-100 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
+                                                {item.children?.map((child) => (
+                                                    <Link
+                                                        key={child.path}
+                                                        to={child.path}
+                                                        className={`
+                                                            flex items-center p-2 rounded-lg text-xs font-medium transition-all duration-200
+                                                            ${isActive(child.path)
+                                                                ? 'text-indigo-700 bg-indigo-50/50'
+                                                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}
+                                                        `}
+                                                    >
+                                                        {child.name}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     ))}
                 </nav>

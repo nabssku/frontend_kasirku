@@ -21,6 +21,8 @@ import ShiftPage from '../../pages/shifts/ShiftPage';
 import OutletsPage from '../../pages/outlets/OutletsPage';
 import UsersPage from '../../pages/users/UsersPage';
 import ReportsPage from '../../pages/reports/ReportsPage';
+import ExpensesPage from '../../pages/expenses/ExpensesPage';
+import ExpenseCategoriesPage from '../../pages/expenses/ExpenseCategoriesPage';
 import SuperAdminDashboard from '../../pages/super-admin/SuperAdminDashboard';
 import SuperAdminTenants from '../../pages/super-admin/SuperAdminTenants';
 import SuperAdminUsers from '../../pages/super-admin/SuperAdminUsers';
@@ -28,7 +30,9 @@ import SuperAdminSubscriptions from '../../pages/super-admin/SuperAdminSubscript
 import SuperAdminPlans from '../../pages/super-admin/SuperAdminPlans';
 import SuperAdminOrders from '../../pages/super-admin/SuperAdminOrders';
 import LandingPage from '../../pages/LandingPage';
-import PrinterSettingsPage from '../../pages/settings/PrinterSettingsPage';
+import { lazy } from 'react';
+const PrinterSettingsPage = lazy(() => import('../../pages/settings/PrinterSettingsPage'));
+const ReceiptSettingsPage = lazy(() => import('../../pages/settings/ReceiptSettingsPage'));
 import { ProtectedRoute } from './ProtectedRoute';
 import type { UserRole } from '../../types';
 
@@ -99,6 +103,13 @@ export const router = createBrowserRouter([
                 ],
             },
             { path: 'categories', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><CategoriesPage /></ProtectedRoute> },
+            {
+                path: 'expenses',
+                children: [
+                    { path: '', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><ExpensesPage /></ProtectedRoute> },
+                    { path: 'categories', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ExpenseCategoriesPage /></ProtectedRoute> },
+                ]
+            },
             { path: 'modifiers', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ModifiersPage /></ProtectedRoute> },
             { path: 'ingredients', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><IngredientsPage /></ProtectedRoute> },
             { path: 'customers', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><CustomersPage /></ProtectedRoute> },
@@ -109,7 +120,7 @@ export const router = createBrowserRouter([
             { path: 'reports', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ReportsPage /></ProtectedRoute> },
             { path: 'subscription', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><TenantPage /></ProtectedRoute> },
             { path: 'settings/printer', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><PrinterSettingsPage /></ProtectedRoute> },
+            { path: 'settings/receipt', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ReceiptSettingsPage /></ProtectedRoute> },
         ],
     },
 ]);
-

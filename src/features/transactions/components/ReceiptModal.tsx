@@ -86,9 +86,26 @@ export function ReceiptModal({ receipt, onClose, autoPrint = false }: ReceiptMod
                 <div className="flex-1 overflow-y-auto p-4">
                     <div className="bg-slate-50 rounded-xl p-4 font-mono text-xs space-y-1 text-slate-700 border border-slate-100">
                         {/* Store header */}
-                        <p className="text-center font-bold text-base text-slate-900">{receipt.store_name}</p>
-                        {receipt.store_address && <p className="text-center">{receipt.store_address}</p>}
-                        {receipt.store_phone && <p className="text-center">Tel: {receipt.store_phone}</p>}
+                        <div className={receipt.receipt_settings?.alignment === 'center' ? 'text-center' : 'text-left'}>
+                            {receipt.receipt_settings?.logo_url && (
+                                <div className={`mb-3 flex ${receipt.receipt_settings.alignment === 'center' ? 'justify-center' : 'justify-start'}`}>
+                                    <img
+                                        src={receipt.receipt_settings.logo_url}
+                                        alt="Logo"
+                                        style={{ width: `${receipt.receipt_settings.logo_width || 80}px` }}
+                                        className="h-auto object-contain grayscale"
+                                    />
+                                </div>
+                            )}
+                            <p className="font-bold text-base text-slate-900">
+                                {receipt.receipt_settings?.store_name || receipt.store_name}
+                            </p>
+                            {receipt.store_address && <p>{receipt.store_address}</p>}
+                            {receipt.store_phone && <p>Tel: {receipt.store_phone}</p>}
+                            {receipt.receipt_settings?.header_text && (
+                                <p className="italic text-slate-400 whitespace-pre-wrap mt-1">{receipt.receipt_settings.header_text}</p>
+                            )}
+                        </div>
 
                         <p className="text-center border-t border-dashed border-slate-300 pt-1 mt-1">
                             --------------------------------
@@ -146,8 +163,16 @@ export function ReceiptModal({ receipt, onClose, autoPrint = false }: ReceiptMod
                         </div>
 
                         <p className="border-t border-dashed border-slate-300 pt-1 mt-1">--------------------------------</p>
-                        <p className="text-center">Terima kasih!</p>
-                        <p className="text-center">Selamat datang kembali :)</p>
+                        <div className={receipt.receipt_settings?.alignment === 'center' ? 'text-center' : 'text-left'}>
+                            {receipt.receipt_settings?.footer_text ? (
+                                <p className="whitespace-pre-wrap">{receipt.receipt_settings.footer_text}</p>
+                            ) : (
+                                <>
+                                    <p>Terima kasih!</p>
+                                    <p>Selamat datang kembali :)</p>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 

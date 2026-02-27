@@ -33,16 +33,30 @@ function padLine(left: string, right: string, width = 32): string {
 function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
     const LF = new Uint8Array([0x0a]);
 
-    const init     = new Uint8Array([ESC, 0x40]);                  // Initialize
-    const centerOn = new Uint8Array([ESC, 0x61, 0x01]);            // Center align
-    const leftOn   = new Uint8Array([ESC, 0x61, 0x00]);            // Left align
-    const boldOn   = new Uint8Array([ESC, 0x45, 0x01]);            // Bold on
-    const boldOff  = new Uint8Array([ESC, 0x45, 0x00]);            // Bold off
-    const dblSzOn  = new Uint8Array([GS,  0x21, 0x11]);            // Double height+width
-    const dblSzOff = new Uint8Array([GS,  0x21, 0x00]);            // Normal size
+    const init      = new Uint8Array([ESC, 0x40]);                  // Initialize
+    const centerOn  = new Uint8Array([ESC, 0x61, 0x01]);            // Center align
+    const leftOn    = new Uint8Array([ESC, 0x61, 0x00]);            // Left align
+    
+    // Using ESC ! n (Select print mode) instead of GS ! n for better compatibility
+    // Bits: 0: font B, 3: bold, 4: double height, 5: double width
+    const sizeSmall  = new Uint8Array([ESC, 0x21, 0x00]);           // Font A, Normal
+    
+    // Combined modes for store name
+    const boldSmall  = new Uint8Array([ESC, 0x21, 0x08]);
+    const boldMedium = new Uint8Array([ESC, 0x21, 0x18]);
+    const boldLarge  = new Uint8Array([ESC, 0x21, 0x38]);
+
     const cutPaper = new Uint8Array([GS,  0x56, 0x41, 0x00]);      // Full cut
 
-    const separator = textToBytes('--------------------------------\n');
+    const settings = receipt.receipt_settings;
+    const alignCmd = settings?.alignment === 'center' ? centerOn : leftOn;
+    
+    let storeMode = boldLarge;
+    if (settings?.font_size === 'small') storeMode = boldSmall;
+    if (settings?.font_size === 'medium') storeMode = boldMedium;
+
+    const paperWidth = settings?.paper_width || 32; // Default for 58mm. Could be 48 for 80mm.
+    const separator = textToBytes('-'.repeat(paperWidth) + '\n');
 
     const paymentLabel: Record<string, string> = {
         cash: 'Tunai', bank_transfer: 'Transfer', 'e-wallet': 'E-Wallet',
@@ -52,19 +66,25 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
         dine_in: 'Dine In', takeaway: 'Bungkus', delivery: 'Delivery',
     };
 
+    console.log('Build print data with settings:', settings);
+
     const lines: Uint8Array[] = [
         init,
-        // Store name
-        centerOn, boldOn, dblSzOn,
-        textToBytes(receipt.store_name + '\n'),
-        dblSzOff, boldOff,
-        // Address & phone
-        receipt.store_address ? concat(textToBytes(receipt.store_address + '\n')) : new Uint8Array(0),
-        receipt.store_phone   ? concat(textToBytes('Tel: ' + receipt.store_phone + '\n')) : new Uint8Array(0),
+        // Header/Store Identity
+        alignCmd, storeMode,
+        textToBytes((settings?.store_name || receipt.store_name) + '\n'),
+        
+        sizeSmall, // Reset to normal size for secondary info
+        receipt.store_address ? textToBytes(receipt.store_address + '\n') : new Uint8Array(0),
+        receipt.store_phone ? textToBytes('Tel: ' + receipt.store_phone + '\n') : new Uint8Array(0),
+        
+        // Header Text
+        settings?.header_text ? concat(LF, textToBytes(settings.header_text + '\n')) : new Uint8Array(0),
+        
         separator,
 
         // Invoice header
-        leftOn,
+        leftOn, sizeSmall,
         textToBytes(`No: ${receipt.invoice_number}\n`),
         textToBytes(`Tgl: ${receipt.date}\n`),
         textToBytes(`Kasir: ${receipt.cashier}\n`),
@@ -75,34 +95,36 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
         // Items
         ...receipt.items.flatMap(item => [
             textToBytes(`${item.name}\n`),
-            textToBytes(padLine(`  ${item.quantity} x ${formatCurrency(item.price)}`, formatCurrency(item.subtotal)) + '\n'),
+            textToBytes(padLine(`  ${item.quantity} x ${formatCurrency(item.price)}`, formatCurrency(item.subtotal), paperWidth) + '\n'),
         ] as Uint8Array[]),
         separator,
 
         // Totals
-        textToBytes(padLine('Subtotal', formatCurrency(receipt.subtotal)) + '\n'),
+        textToBytes(padLine('Subtotal', formatCurrency(receipt.subtotal), paperWidth) + '\n'),
         receipt.discount > 0
-            ? textToBytes(padLine('Diskon', `-${formatCurrency(receipt.discount)}`) + '\n')
+            ? textToBytes(padLine('Diskon', `-${formatCurrency(receipt.discount)}`, paperWidth) + '\n')
             : new Uint8Array(0),
         receipt.service_charge > 0
-            ? textToBytes(padLine('Service', formatCurrency(receipt.service_charge)) + '\n')
+            ? textToBytes(padLine('Service', formatCurrency(receipt.service_charge), paperWidth) + '\n')
             : new Uint8Array(0),
-        textToBytes(padLine(`Pajak (${receipt.tax_rate}%)`, formatCurrency(receipt.tax)) + '\n'),
+        textToBytes(padLine(`Pajak (${receipt.tax_rate}%)`, formatCurrency(receipt.tax), paperWidth) + '\n'),
         separator,
 
-        boldOn, dblSzOn,
-        textToBytes(padLine('TOTAL', formatCurrency(receipt.grand_total)) + '\n'),
-        dblSzOff, boldOff,
+        boldMedium,
+        textToBytes(padLine('TOTAL', formatCurrency(receipt.grand_total), paperWidth) + '\n'),
+        sizeSmall,
 
-        textToBytes(padLine('Bayar', formatCurrency(receipt.paid_amount)) + '\n'),
-        textToBytes(padLine('Kembali', formatCurrency(receipt.change_amount)) + '\n'),
-        textToBytes(padLine('Metode', paymentLabel[receipt.payment_method] ?? receipt.payment_method) + '\n'),
+        textToBytes(padLine('Bayar', formatCurrency(receipt.paid_amount), paperWidth) + '\n'),
+        textToBytes(padLine('Kembali', formatCurrency(receipt.change_amount), paperWidth) + '\n'),
+        textToBytes(padLine('Metode', paymentLabel[receipt.payment_method] ?? receipt.payment_method, paperWidth) + '\n'),
         separator,
 
         // Footer
-        centerOn,
-        textToBytes('Terima kasih!\n'),
-        textToBytes('Selamat datang kembali :)\n'),
+        alignCmd, sizeSmall,
+        settings?.footer_text 
+            ? textToBytes(settings.footer_text + '\n') 
+            : textToBytes('Terima kasih!\nSelamat datang kembali :)\n'),
+        
         LF, LF, LF,
         cutPaper,
     ];

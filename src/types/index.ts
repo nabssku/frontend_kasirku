@@ -57,6 +57,17 @@ export interface AuthResponse {
 
 export type UserRole = 'owner' | 'admin' | 'cashier' | 'kitchen' | 'super_admin';
 
+export interface ReceiptSettings {
+  store_name: string;
+  font_size: 'small' | 'medium' | 'large';
+  alignment: 'left' | 'center';
+  header_text?: string;
+  footer_text?: string;
+  logo_url?: string;
+  logo_width?: number;
+  paper_width?: number;
+}
+
 // ─── Outlet ───────────────────────────────────────────────────────────────────
 export interface Outlet {
   id: string;
@@ -68,6 +79,7 @@ export interface Outlet {
   tax_rate: number;
   service_charge: number;
   is_active: boolean;
+  receipt_settings?: ReceiptSettings;
   created_at: string;
   updated_at: string;
 }
@@ -91,7 +103,7 @@ export interface Product {
   cost_price?: number;
   stock: number;
   min_stock: number;
-  image?: string;
+  image?: string | null;
   is_active: boolean;
   has_recipe?: boolean;
   prep_time?: number;
@@ -414,7 +426,7 @@ export interface PrinterReceiptData {
   date: string;
   cashier: string;
   customer: string;
-  type?: string;
+  type?: 'dine_in' | 'takeaway' | 'delivery';
   items: PrinterReceiptItem[];
   subtotal: number;
   discount: number;
@@ -426,4 +438,29 @@ export interface PrinterReceiptData {
   change_amount: number;
   payment_method: string;
   status: string;
+  receipt_settings?: ReceiptSettings;
+}
+
+// ─── Expense ──────────────────────────────────────────────────────────────────
+export interface ExpenseCategory {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface Expense {
+  id: string;
+  category_id: string;
+  outlet_id: string;
+  user_id: string;
+  shift_id?: string;
+  amount: number;
+  payment_method: 'cash' | 'bank_transfer' | 'other';
+  reference_number?: string;
+  notes?: string;
+  date: string;
+  attachment?: string;
+  category?: ExpenseCategory;
+  user?: { id: string; name: string };
+  outlet?: Outlet;
 }
