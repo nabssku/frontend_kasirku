@@ -93,7 +93,7 @@ export const OrderModal = ({
                         <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 sm:mt-1">Sesuaikan detail transaksi Anda</p>
                     </div>
                     <button onClick={onClose} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all">
-                        <X size={18} sm:size={20} strokeWidth={2.5} />
+                        <X size={18} strokeWidth={2.5} />
                     </button>
                 </div>
 
@@ -255,7 +255,7 @@ export const PaymentModal = ({
                         </div>
                     </div>
                     <button onClick={onClose} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all">
-                        <X size={18} sm:size={20} strokeWidth={2.5} />
+                        <X size={20} strokeWidth={2.5} />
                     </button>
                 </div>
 
