@@ -19,6 +19,7 @@ export const useCartActions = () => {
     const [paidAmount, setPaidAmount] = useState<number>(0);
     const [customerId, setCustomerId] = useState<string>('');
     const [discount, setDiscount] = useState<number>(0);
+    const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('fixed');
     const [notes, setNotes] = useState<string>('');
     const [showSuccess, setShowSuccess] = useState(false);
     const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
@@ -27,8 +28,9 @@ export const useCartActions = () => {
     const isPending = isCreating || isUpdating;
 
     const total = getTotal();
-    const tax = (total - discount) * 0.1;
-    const grandTotal = (total - discount) + tax;
+    const calculatedDiscount = discountType === 'percent' ? (total * (discount / 100)) : discount;
+    const tax = (total - calculatedDiscount) * 0.1;
+    const grandTotal = (total - calculatedDiscount) + tax;
     const changeAmount = paidAmount > grandTotal ? paidAmount - grandTotal : 0;
 
     const handleResetAll = () => {
@@ -36,6 +38,7 @@ export const useCartActions = () => {
         setPaidAmount(0);
         setCustomerId('');
         setDiscount(0);
+        setDiscountType('fixed');
         setNotes('');
         setActiveTransactionId(null);
     };
@@ -61,7 +64,7 @@ export const useCartActions = () => {
             paid_amount: paidAmount,
             payment_method: paymentMethod,
             customer_id: customerId || undefined,
-            discount: discount || 0,
+            discount: calculatedDiscount || 0,
             notes: notes || undefined,
             table_id: tableId || undefined,
             type: orderType,
@@ -106,7 +109,7 @@ export const useCartActions = () => {
                 modifiers: item.modifiers,
             })),
             customer_id: customerId || undefined,
-            discount: discount || 0,
+            discount: calculatedDiscount || 0,
             notes: notes || undefined,
             table_id: tableId || undefined,
             type: orderType,
@@ -142,6 +145,7 @@ export const useCartActions = () => {
         });
         setCustomerId(tx.customer_id || '');
         setDiscount(parseFloat(tx.discount) || 0);
+        setDiscountType('fixed'); // Recalled discounts are stored as final values
         setNotes(tx.notes || '');
         setActiveTransactionId(tx.id);
     };
@@ -151,6 +155,8 @@ export const useCartActions = () => {
         paidAmount, setPaidAmount,
         customerId, setCustomerId,
         discount, setDiscount,
+        discountType, setDiscountType,
+        calculatedDiscount,
         notes, setNotes,
         showSuccess, setShowSuccess,
         activeTransactionId, setActiveTransactionId,

@@ -32,7 +32,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
 
     const {
         paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
-        customerId, setCustomerId, discount, setDiscount, notes, setNotes,
+        customerId, setCustomerId, discount, setDiscount, discountType, setDiscountType,
+        calculatedDiscount, notes, setNotes,
         showSuccess, activeTransactionId, printTransactionId, setPrintTransactionId,
         isPending, total, tax, grandTotal, changeAmount,
         handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, currentShift
@@ -85,15 +86,32 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 </div>
 
                 <CartFooter
-                    isDragging={isDragging} dragOffset={dragOffset} handleDragStart={handleDragStart}
-                    handleDragMove={handleDragMove} handleDragEnd={handleDragEnd}
-                    showDetails={showDetails} setShowDetails={setShowDetails}
-                    setShowOrderModal={setShowOrderModal} customersData={customersData}
-                    customerId={customerId} notes={notes} total={total} discount={discount}
-                    tax={tax} grandTotal={grandTotal} items={items} paymentMethod={paymentMethod}
-                    paidAmount={paidAmount} setShowPaymentModal={setShowPaymentModal}
-                    handleSaveOrder={handleSaveOrder} handleCheckout={handleCheckout}
-                    isPending={isPending} currentShift={currentShift} activeTransactionId={activeTransactionId}
+                    isDragging={isDragging}
+                    dragOffset={dragOffset}
+                    handleDragStart={handleDragStart}
+                    handleDragMove={handleDragMove}
+                    handleDragEnd={handleDragEnd}
+                    showDetails={showDetails}
+                    setShowDetails={setShowDetails}
+                    setShowOrderModal={setShowOrderModal}
+                    customersData={customersData}
+                    customerId={customerId}
+                    notes={notes}
+                    total={total}
+                    discount={discount}
+                    discountType={discountType}
+                    calculatedDiscount={calculatedDiscount}
+                    tax={tax}
+                    grandTotal={grandTotal}
+                    items={items}
+                    paymentMethod={paymentMethod}
+                    paidAmount={paidAmount}
+                    setShowPaymentModal={setShowPaymentModal}
+                    handleSaveOrder={handleSaveOrder}
+                    handleCheckout={handleCheckout}
+                    isPending={isPending}
+                    currentShift={currentShift}
+                    activeTransactionId={activeTransactionId}
                 />
             </div>
 
@@ -110,6 +128,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 orderType={orderType} setOrderType={setOrderType} tableId={tableId} setTable={setTable}
                 tables={tables} customerId={customerId} setCustomerId={setCustomerId}
                 customersData={customersData} discount={discount} setDiscount={setDiscount}
+                discountType={discountType} setDiscountType={setDiscountType}
                 notes={notes} setNotes={setNotes}
             />
 

@@ -15,6 +15,8 @@ interface CartFooterProps {
     notes: string;
     total: number;
     discount: number;
+    discountType: 'fixed' | 'percent';
+    calculatedDiscount: number;
     tax: number;
     grandTotal: number;
     items: CartItem[];
@@ -31,7 +33,7 @@ interface CartFooterProps {
 export const CartFooter = ({
     isDragging, dragOffset, handleDragStart, handleDragMove, handleDragEnd,
     showDetails, setShowDetails, setShowOrderModal, customersData, customerId, notes,
-    total, discount, tax, grandTotal, items, paymentMethod, paidAmount,
+    total, discount, discountType, calculatedDiscount, tax, grandTotal, items, paymentMethod, paidAmount,
     setShowPaymentModal, handleSaveOrder, handleCheckout, isPending,
     currentShift, activeTransactionId
 }: CartFooterProps) => {
@@ -87,10 +89,10 @@ export const CartFooter = ({
                             <span>Subtotal</span>
                             <span className="text-slate-700 font-bold">Rp {total.toLocaleString('id-ID')}</span>
                         </div>
-                        {discount > 0 && (
+                        {calculatedDiscount > 0 && (
                             <div className="flex justify-between text-[11px] font-black text-rose-400 uppercase tracking-wider">
-                                <span>Diskon</span>
-                                <span className="text-rose-500 font-bold">- Rp {discount.toLocaleString('id-ID')}</span>
+                                <span>Diskon {discountType === 'percent' && `(${discount}%)`}</span>
+                                <span className="text-rose-500 font-bold">- Rp {calculatedDiscount.toLocaleString('id-ID')}</span>
                             </div>
                         )}
                         <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
@@ -151,7 +153,7 @@ export const CartFooter = ({
                         <div className="flex items-center gap-3">
                             {isPending ? <Loader2 className="animate-spin text-white" size={24} /> : <CreditCard size={24} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />}
                             <span className="uppercase tracking-[0.15em] text-sm whitespace-nowrap">
-                                {isPending ? 'Memproses...' : activeTransactionId ? 'Selesaikan' : 'Bayar Sekarang'}
+                                {isPending ? 'Memproses...' : activeTransactionId ? 'Selesaikan' : 'Bayar'}
                             </span>
                         </div>
 
