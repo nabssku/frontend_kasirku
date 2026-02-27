@@ -25,7 +25,7 @@ export const AuthLayout = () => {
                             <span className="text-white font-black text-xl italic">K</span>
                         </div>
                         <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                            KasirKu <span className="text-indigo-600 italic">POS</span>
+                            JagoKasir <span className="text-indigo-600 italic">POS</span>
                         </h1>
                     </div>
                     <p className="text-slate-400 text-sm font-medium">Sistem Kasir Modern untuk Bisnis Anda</p>
@@ -38,7 +38,7 @@ export const AuthLayout = () => {
 
                 {/* Footer */}
                 <p className="text-center text-xs text-slate-400 mt-6">
-                    &copy; {new Date().getFullYear()} KasirKu. All rights reserved.
+                    &copy; {new Date().getFullYear()} JagoKasir. All rights reserved.
                 </p>
             </div>
         </div>

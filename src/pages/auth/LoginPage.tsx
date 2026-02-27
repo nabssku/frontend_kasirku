@@ -8,6 +8,7 @@ import api from '../../lib/axios';
 import { useAuthStore } from '../../app/store/useAuthStore';
 import type { AuthResponse } from '../../types';
 import { getDefaultPage } from '../../lib/auth';
+import { SEO } from '../../components/SEO';
 
 const loginSchema = z.object({
     email: z.string().email('Email tidak valid'),
@@ -47,6 +48,7 @@ export default function LoginPage() {
 
     return (
         <div>
+            <SEO title="Masuk ke Akun Anda" />
             <h2 className="text-xl font-bold mb-2 text-slate-800">Masuk ke akun Anda</h2>
             <p className="text-slate-500 mb-6 text-sm">
                 Masukkan kredensial untuk mengakses terminal POS

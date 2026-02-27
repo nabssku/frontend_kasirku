@@ -19,6 +19,7 @@ import { useAuthStore } from '../app/store/useAuthStore';
 import { getDefaultPage } from '../lib/auth';
 import type { Plan } from '../types';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { SEO } from '../components/SEO';
 
 const features = [
     {
@@ -88,6 +89,10 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
+            <SEO
+                title="Solusi Kasir Pintar #1 di Indonesia"
+                description="Jagokasir adalah aplikasi POS cloud terbaik untuk UMKM. Kelola transaksi, stok, dan outlet dengan mudah."
+            />
             {/* ─── Navigation ─────────────────────────────────────────────────── */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/60 transition-all">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,7 +102,7 @@ export default function LandingPage() {
                                 <Zap className="text-white fill-white" size={24} />
                             </div>
                             <span className="text-2xl font-black text-slate-900 tracking-tight">
-                                KasirKu <span className="text-indigo-600 italic">POS</span>
+                                JagoKasir <span className="text-indigo-600 italic">POS</span>
                             </span>
                         </div>
 
@@ -367,7 +372,7 @@ export default function LandingPage() {
                                     <Zap className="text-white fill-white" size={18} />
                                 </div>
                                 <span className="text-xl font-black text-white tracking-tight">
-                                    KasirKu <span className="text-indigo-500 italic">POS</span>
+                                    JagoKasir <span className="text-indigo-500 italic">POS</span>
                                 </span>
                             </div>
                             <p className="text-sm leading-relaxed max-w-sm">
@@ -394,7 +399,7 @@ export default function LandingPage() {
                         </div>
                     </div>
                     <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold uppercase tracking-widest">
-                        <p>&copy; 2026 KasirKu POS. Dibuat dengan &hearts; oleh Nabil.</p>
+                        <p>&copy; 2026 JagoKasir POS. Dibuat dengan &hearts; oleh Nabil.</p>
                         <div className="flex gap-6">
                             <a href="#" className="hover:text-white transition-colors">Instagram</a>
                             <a href="#" className="hover:text-white transition-colors">YouTube</a>
