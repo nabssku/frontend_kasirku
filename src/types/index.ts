@@ -346,6 +346,7 @@ export interface Transaction {
   notes?: string;
   cashier?: { id: string; name: string };
   customer?: { id: string; name: string; phone?: string } | null;
+  table?: { id: string; name: string } | null;
   items?: TransactionItem[];
   created_at: string;
 }

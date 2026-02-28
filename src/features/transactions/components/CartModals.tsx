@@ -1,4 +1,4 @@
-import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle, LogIn } from 'lucide-react';
+import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle, LogIn, Clock, Receipt } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // --- No Active Shift Modal ---
@@ -45,11 +45,10 @@ interface ResumeOrderModalProps {
     isOpen: boolean;
     onClose: () => void;
     pendingTransactions: any[];
-    tables: any[];
     onResume: (tx: any) => void;
 }
 
-export const ResumeOrderModal = ({ isOpen, onClose, pendingTransactions, tables, onResume }: ResumeOrderModalProps) => {
+export const ResumeOrderModal = ({ isOpen, onClose, pendingTransactions, onResume }: ResumeOrderModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -63,30 +62,61 @@ export const ResumeOrderModal = ({ isOpen, onClose, pendingTransactions, tables,
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
                     {pendingTransactions.length === 0 ? (
-                        <div className="text-center py-10 text-slate-400 uppercase text-[10px] font-bold tracking-widest">
-                            Tidak ada pesanan tersimpan
+                        <div className="text-center py-20">
+                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                <Receipt size={24} className="text-slate-300" />
+                            </div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tidak Ada Pesanan Tersimpan</p>
                         </div>
                     ) : (
                         pendingTransactions.map((tx) => (
                             <button
                                 key={tx.id}
                                 onClick={() => onResume(tx)}
-                                className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all group"
+                                className="w-full text-left p-5 rounded-2xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/20 transition-all group relative overflow-hidden bg-white shadow-sm hover:shadow-md"
                             >
-                                <div className="flex justify-between items-start mb-1">
-                                    <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{tx.invoice_number}</span>
-                                    <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">{tx.type}</span>
-                                </div>
-                                <div className="flex justify-between items-end">
-                                    <div className="text-[11px] text-slate-500">
-                                        {tx.table_id ? `Meja: ${tables.find(t => t.id === tx.table_id)?.name || '?'} ` : 'No Table'} • {tx.items?.length || 0} item
-                                    </div>
-                                    <div className="text-sm font-bold text-indigo-600">
-                                        Rp {parseFloat(tx.grand_total.toString()).toLocaleString('id-ID')}
+                                <div className="absolute top-0 right-0 p-3">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-[9px] font-black text-slate-500 uppercase tracking-widest border border-slate-200 group-hover:bg-indigo-100 group-hover:text-indigo-600 group-hover:border-indigo-200 transition-colors">
+                                        <Clock size={10} strokeWidth={3} />
+                                        {new Date(tx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>
-                                <div className="text-[9px] text-slate-400 mt-2 font-medium">
-                                    {new Date(tx.created_at).toLocaleString('id-ID')}
+
+                                <div className="mb-4">
+                                    <span className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Invoice Number</span>
+                                    <span className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{tx.invoice_number}</span>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100/50">
+                                                <Table2 size={16} strokeWidth={2.5} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Lokasi / Meja</p>
+                                                <p className="text-xs font-black text-slate-800">
+                                                    {tx.type === 'dine_in' ? (tx.table?.name || 'Meja ?') : tx.type?.replace('_', ' ').toUpperCase()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                                                <Store size={16} strokeWidth={2.5} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Detail Item</p>
+                                                <p className="text-xs font-black text-slate-800">{tx.items?.length || 0} Produk</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-right">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Tagihan</p>
+                                        <div className="text-lg font-black text-indigo-600 bg-indigo-50/50 px-3 py-1 rounded-xl border border-indigo-100/50">
+                                            Rp {parseFloat(tx.grand_total.toString()).toLocaleString('id-ID')}
+                                        </div>
+                                    </div>
                                 </div>
                             </button>
                         ))

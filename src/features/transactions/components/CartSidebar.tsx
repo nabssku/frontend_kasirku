@@ -109,7 +109,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
 
             <ResumeOrderModal
                 isOpen={showResumeModal} onClose={() => setShowResumeModal(false)}
-                pendingTransactions={pendingTransactions} tables={tables} onResume={(tx) => {
+                pendingTransactions={pendingTransactions} onResume={(tx) => {
                     handleResumeOrder(tx);
                     setShowResumeModal(false);
                 }}
