@@ -3,9 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Image as ImageIcon, Upload, X } from 'lucide-react';
+import { ArrowLeft, Save, Image as ImageIcon, Upload, X, Check } from 'lucide-react';
 import { useCategories } from '../../hooks/useCategories';
 import { useProduct, useCreateProduct, useUpdateProduct } from '../../hooks/useProducts';
+import { useModifierGroups } from '../../hooks/useModifiers';
 
 const productSchema = z.object({
     name: z.string().min(1, 'Nama produk wajib diisi'),
@@ -18,6 +19,7 @@ const productSchema = z.object({
     min_stock: z.coerce.number().int().min(0).optional(),
     is_active: z.boolean().optional().default(true),
     image: z.any().optional(),
+    modifier_group_ids: z.array(z.string()).optional().default([]),
 });
 
 interface ProductForm {
@@ -31,6 +33,7 @@ interface ProductForm {
     min_stock?: number;
     is_active: boolean;
     image?: File | string | null;
+    modifier_group_ids?: string[];
 }
 
 export default function ProductFormPage() {
@@ -43,6 +46,7 @@ export default function ProductFormPage() {
     const { data: existingProduct, isLoading: loadingProduct } = useProduct(id || '');
     const { mutate: createProduct, isPending: creating } = useCreateProduct();
     const { mutate: updateProduct, isPending: updating } = useUpdateProduct();
+    const { data: modifierGroups } = useModifierGroups();
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -52,12 +56,15 @@ export default function ProductFormPage() {
         handleSubmit,
         reset,
         setValue,
+        watch,
         formState: { errors },
     } = useForm<ProductForm>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(productSchema) as any,
         defaultValues: { is_active: true, stock: 0, price: 0 },
     });
+
+    const selectedModifierGroups = watch('modifier_group_ids') || [];
 
     useEffect(() => {
         if (isEdit && existingProduct) {
@@ -71,6 +78,7 @@ export default function ProductFormPage() {
                 stock: existingProduct.stock,
                 min_stock: existingProduct.min_stock,
                 is_active: existingProduct.is_active,
+                modifier_group_ids: existingProduct.modifier_groups?.map(g => g.id) || [],
             });
             if (existingProduct.image) {
                 setImagePreview(existingProduct.image);
@@ -108,6 +116,14 @@ export default function ProductFormPage() {
         formData.append('stock', values.stock.toString());
         if (values.min_stock !== undefined) formData.append('min_stock', values.min_stock.toString());
         formData.append('is_active', values.is_active ? '1' : '0');
+
+        if (selectedModifierGroups && selectedModifierGroups.length > 0) {
+            selectedModifierGroups.forEach(id => {
+                formData.append('modifier_group_ids[]', id);
+            });
+        } else if (isEdit) {
+            formData.append('clear_modifier_groups', '1');
+        }
 
         if (selectedFile) {
             formData.append('image', selectedFile);
@@ -253,6 +269,67 @@ export default function ProductFormPage() {
                                     placeholder="5"
                                 />
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Modifier Groups Section */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-5">
+                        <div className="flex items-center justify-between">
+                            <h2 className="font-semibold text-slate-700 text-sm uppercase tracking-wider">Modifier / Tambahan</h2>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                                {selectedModifierGroups.length} Grup Terpilih
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {modifierGroups?.map((group) => {
+                                const isSelected = selectedModifierGroups.includes(group.id);
+                                return (
+                                    <button
+                                        key={group.id}
+                                        type="button"
+                                        onClick={() => {
+                                            const current = selectedModifierGroups;
+                                            const updated = isSelected
+                                                ? current.filter(id => id !== group.id)
+                                                : [...current, group.id];
+                                            setValue('modifier_group_ids', updated);
+                                        }}
+                                        className={`
+                                            flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left
+                                            ${isSelected
+                                                ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-500/5'
+                                                : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'
+                                            }
+                                        `}
+                                    >
+                                        <div className={`
+                                            w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all
+                                            ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'}
+                                        `}>
+                                            {isSelected && <Check size={12} className="text-white" />}
+                                        </div>
+                                        <div>
+                                            <p className={`text-sm font-bold ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>{group.name}</p>
+                                            <p className="text-[10px] text-slate-400 font-medium">
+                                                {group.modifiers?.length || 0} Opsi • {group.required ? 'Wajib' : 'Opsional'}
+                                            </p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                            {(!modifierGroups || modifierGroups.length === 0) && (
+                                <div className="col-span-full py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                    <p className="text-sm text-slate-400 italic">Belum ada grup modifier yang dibuat.</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/products/modifiers')}
+                                        className="mt-2 text-xs font-bold text-indigo-600 hover:underline"
+                                    >
+                                        Buat Modifier Sekarang →
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -12,13 +12,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'pwa-logo.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'KasirKu Smart POS',
-        short_name: 'KasirKu',
+        name: 'JagoKasir Smart POS',
+        short_name: 'JagoKasir',
         description: 'Solusi kasir pintar untuk bisnis Anda',
         theme_color: '#4f46e5',
         background_color: '#ffffff',
         display: 'standalone',
-        orientation: 'portrait-primary',
+        orientation: 'portrait',
         icons: [
           {
             src: 'pwa-logo.svg',
