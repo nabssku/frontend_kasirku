@@ -24,6 +24,7 @@ export const useCartActions = () => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
     const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
+    const [showNoShiftModal, setShowNoShiftModal] = useState(false);
 
     const isPending = isCreating || isUpdating;
 
@@ -46,7 +47,7 @@ export const useCartActions = () => {
     const handleCheckout = () => {
         if (items.length === 0) return;
         if (!currentShift) {
-            toast.error('Shift belum dibuka!');
+            setShowNoShiftModal(true);
             return;
         }
         if (paidAmount < grandTotal) {
@@ -97,7 +98,7 @@ export const useCartActions = () => {
     const handleSaveOrder = () => {
         if (items.length === 0) return;
         if (!currentShift) {
-            toast.error('Shift belum dibuka!');
+            setShowNoShiftModal(true);
             return;
         }
 
@@ -164,6 +165,7 @@ export const useCartActions = () => {
         isPending,
         total, tax, grandTotal, changeAmount,
         handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll,
-        currentShift
+        currentShift,
+        showNoShiftModal, setShowNoShiftModal
     };
 };

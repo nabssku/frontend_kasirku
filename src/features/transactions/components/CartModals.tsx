@@ -1,4 +1,44 @@
-import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle, LogIn } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+// --- No Active Shift Modal ---
+export const NoShiftModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[120] p-4 text-left">
+            <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="p-8 text-center space-y-6">
+                    <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto ring-8 ring-amber-50/50">
+                        <AlertCircle size={40} className="text-amber-500" strokeWidth={2.5} />
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Shift Belum Dibuka</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                            Anda harus membuka shift kasir terlebih dahulu sebelum melayani pelanggan.
+                        </p>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        <Link
+                            to="/shifts"
+                            onClick={onClose}
+                            className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[11px] shadow-xl shadow-indigo-200 transition-all active:scale-95"
+                        >
+                            <LogIn size={18} strokeWidth={3} />
+                            Buka Shift Sekarang
+                        </Link>
+                        <button
+                            onClick={onClose}
+                            className="w-full h-12 text-slate-400 hover:text-slate-600 font-bold text-[10px] uppercase tracking-widest transition-all"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // --- Resume Order Modal ---
 interface ResumeOrderModalProps {

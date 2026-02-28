@@ -230,6 +230,20 @@ export interface Shift {
   openedBy?: { id: string; name: string };
   closedBy?: { id: string; name: string };
   cash_drawer_logs?: CashDrawerLog[];
+  report?: {
+    gross_sales: number;
+    refund_total: number;
+    net_sales: number;
+    payment_breakdown: Record<string, number>;
+    cash_in: number;
+    cash_out: number;
+    expected_cash: number;
+    actual_cash: number;
+    difference: number;
+    discrepancy_status: 'OK' | 'Shortage' | 'Over' | 'Requires Approval';
+    opened_by_name?: string;
+    closed_by_name?: string;
+  };
 }
 
 // ─── Subscription & Plans ─────────────────────────────────────────────────────
@@ -328,7 +342,7 @@ export interface Transaction {
   paid_amount: number;
   change_amount: number;
   payment_method?: string;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'completed' | 'cancelled' | 'refunded';
   notes?: string;
   cashier?: { id: string; name: string };
   customer?: { id: string; name: string; phone?: string } | null;

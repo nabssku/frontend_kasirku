@@ -11,11 +11,11 @@ export const useCurrentShift = (outletId?: string) =>
     },
   });
 
-export const useShifts = (outletId?: string) =>
+export const useShifts = (params?: { outlet_id?: string; start_date?: string; end_date?: string; cashier_id?: string; page?: number }) =>
   useQuery({
-    queryKey: ['shifts', outletId],
+    queryKey: ['shifts', params],
     queryFn: async () => {
-      const { data } = await api.get('/shifts', { params: { outlet_id: outletId } });
+      const { data } = await api.get('/shifts', { params });
       return data.data as { data: Shift[]; current_page: number; last_page: number; total: number };
     },
   });

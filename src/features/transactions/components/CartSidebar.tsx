@@ -1,4 +1,3 @@
-import { AlertCircle } from 'lucide-react';
 import { useCartStore } from '../../../app/store/useCartStore';
 import { usePendingTransactions } from '../../../hooks/useTransactions';
 import { useCustomers } from '../../../hooks/useCustomers';
@@ -9,7 +8,7 @@ import { useTransactionReceipt } from '../../../hooks/usePrinters';
 import { useCartDraggable } from '../hooks/useCartDraggable';
 import { CartItemList } from './CartItemList';
 import { CartFooter } from './CartFooter';
-import { ResumeOrderModal, OrderModal, PaymentModal } from './CartModals';
+import { ResumeOrderModal, OrderModal, PaymentModal, NoShiftModal } from './CartModals';
 import { useCartActions } from '../hooks/useCartActions';
 import { CartHeader } from './CartHeader';
 import { CartSuccessView } from './CartSuccessView';
@@ -36,7 +35,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
         calculatedDiscount, notes, setNotes,
         showSuccess, activeTransactionId, printTransactionId, setPrintTransactionId,
         isPending, total, tax, grandTotal, changeAmount,
-        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, currentShift
+        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, currentShift,
+        showNoShiftModal, setShowNoShiftModal
     } = useCartActions();
 
     const { data: receiptData } = useTransactionReceipt(printTransactionId);
@@ -74,14 +74,6 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 />
 
                 <div className="flex-1 overflow-y-auto flex flex-col no-scrollbar">
-                    {!currentShift && (
-                        <div className="m-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2 text-amber-800 animate-pulse">
-                            <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-left">
-                                Shift belum dibuka. Buka shift di Dashboard untuk memulai transaksi.
-                            </div>
-                        </div>
-                    )}
                     <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
                 </div>
 
@@ -141,6 +133,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
             {printTransactionId && receiptData && (
                 <ReceiptModal receipt={receiptData} onClose={() => setPrintTransactionId(null)} autoPrint />
             )}
+
+            <NoShiftModal isOpen={showNoShiftModal} onClose={() => setShowNoShiftModal(false)} />
         </>
     );
 };

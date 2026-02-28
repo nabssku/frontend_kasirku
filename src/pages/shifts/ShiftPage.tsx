@@ -1,69 +1,259 @@
 import { useState } from 'react';
-import { Clock, DollarSign, ChevronDown, ChevronUp, Loader2, LogIn, LogOut, X, AlertCircle } from 'lucide-react';
+import {
+    Clock, DollarSign, ChevronDown, ChevronUp, Loader2, LogIn, LogOut,
+    X, AlertCircle, Printer, Calendar, User as UserIcon,
+    ArrowDownRight, ArrowUpRight, AlertTriangle
+} from 'lucide-react';
 import { useCurrentShift, useOpenShift, useCloseShift, useShifts, useAddCashLog } from '../../hooks/useShifts';
 import { useAuthStore } from '../../app/store/useAuthStore';
+import { useUsers } from '../../hooks/useUsers';
 import type { Shift } from '../../types';
 
 function formatRp(n: number) {
-    return 'Rp ' + (n ?? 0).toLocaleString('id-ID');
+    return 'Rp ' + Math.floor(n ?? 0).toLocaleString('id-ID');
+}
+
+function DiscrepancyBadge({ status }: { status?: string }) {
+    if (!status || status === 'OK') return null;
+
+    const colors = {
+        'Shortage': 'bg-amber-100 text-amber-700 border-amber-200',
+        'Over': 'bg-blue-100 text-blue-700 border-blue-200',
+        'Requires Approval': 'bg-red-100 text-red-700 border-red-200 animate-pulse'
+    };
+
+    return (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${colors[status as keyof typeof colors] || 'bg-slate-100'}`}>
+            {status}
+        </span>
+    );
 }
 
 function ShiftSummaryCard({ shift }: { shift: Shift }) {
-    const [showLogs, setShowLogs] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
+    const report = shift.report;
+
+    if (!report) return null;
+
+    const isNegative = report.difference < 0;
+
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Shift Dibuka</p>
-                    <p className="text-sm text-slate-700 mt-0.5">{new Date(shift.opened_at).toLocaleString('id-ID')}</p>
-                    {shift.closed_at && <p className="text-xs text-slate-400 mt-0.5">Ditutup: {new Date(shift.closed_at).toLocaleString('id-ID')}</p>}
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${shift.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                    {shift.status === 'open' ? 'Buka' : 'Tutup'}
-                </span>
-            </div>
-            <div className="grid grid-cols-3 gap-4 mt-4">
-                <div className="bg-slate-50 rounded-xl p-3">
-                    <p className="text-xs text-slate-400">Kas Awal</p>
-                    <p className="font-bold text-slate-900">{formatRp(shift.opening_cash)}</p>
-                </div>
-                {shift.closing_cash !== undefined && (
-                    <div className="bg-slate-50 rounded-xl p-3">
-                        <p className="text-xs text-slate-400">Kas Akhir</p>
-                        <p className="font-bold text-slate-900">{formatRp(shift.closing_cash)}</p>
-                    </div>
-                )}
-                {shift.cash_difference !== undefined && (
-                    <div className={`rounded-xl p-3 ${shift.cash_difference >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-                        <p className={`text-xs ${shift.cash_difference >= 0 ? 'text-green-600' : 'text-red-500'}`}>Selisih</p>
-                        <p className={`font-bold ${shift.cash_difference >= 0 ? 'text-green-700' : 'text-red-700'}`}>{formatRp(shift.cash_difference)}</p>
-                    </div>
-                )}
-            </div>
-            {shift.cash_drawer_logs && shift.cash_drawer_logs.length > 0 && (
-                <div className="mt-4">
-                    <button onClick={() => setShowLogs(!showLogs)} className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors">
-                        {showLogs ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {shift.cash_drawer_logs.length} log laci kas
-                    </button>
-                    {showLogs && (
-                        <div className="mt-2 space-y-1">
-                            {shift.cash_drawer_logs.map(log => (
-                                <div key={log.id} className="flex justify-between text-xs py-1.5 border-b border-slate-100 last:border-0">
-                                    <span className={`font-semibold ${log.type === 'in' ? 'text-green-600' : 'text-red-500'}`}>{log.type === 'in' ? '+' : '-'} {formatRp(log.amount)}</span>
-                                    <span className="text-slate-400">{log.reason}</span>
-                                </div>
-                            ))}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="p-6">
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Shift #{shift.id.slice(0, 8)}</p>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${shift.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                                {shift.status === 'open' ? 'AKTIF' : 'SELESAI'}
+                            </span>
+                            <DiscrepancyBadge status={report.discrepancy_status} />
                         </div>
-                    )}
+                        <div className="flex items-center gap-4 text-sm text-slate-600 mt-1">
+                            <div className="flex items-center gap-1.5">
+                                <Clock size={14} className="text-slate-400" />
+                                <span>{new Date(shift.opened_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="text-slate-300">-</span>
+                                <span>{shift.closed_at ? new Date(shift.closed_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Sekarang'}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <UserIcon size={14} className="text-slate-400" />
+                                <span>{report.opened_by_name ?? 'Kasir'}</span>
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-slate-400">{new Date(shift.opened_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                    <button
+                        onClick={() => window.print()}
+                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100 print:hidden"
+                        title="Cetak Laporan"
+                    >
+                        <Printer size={18} />
+                    </button>
                 </div>
-            )}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100/50">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Kas Awal</p>
+                        <p className="font-bold text-slate-900 mt-0.5">{formatRp(shift.opening_cash)}</p>
+                    </div>
+                    <div className="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100/50">
+                        <p className="text-[10px] font-bold text-indigo-400 uppercase">Penjualan (Net)</p>
+                        <p className="font-bold text-indigo-700 mt-0.5">{formatRp(report.net_sales)}</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100/50">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Total Kas Masuk</p>
+                        <p className="font-bold text-slate-900 mt-0.5">{formatRp(report.expected_cash)}</p>
+                    </div>
+                    <div className={`${isNegative ? 'bg-red-50 text-red-700 border-red-100' : 'bg-green-50 text-green-700 border-green-100'} rounded-xl p-3 border`}>
+                        <p className="text-[10px] font-bold uppercase opacity-70">Selisih Kas</p>
+                        <p className="font-bold mt-0.5">{formatRp(report.difference)}</p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => setShowDetails(!showDetails)}
+                    className="w-full mt-4 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-600 py-2 border-t border-slate-50 transition-colors print:hidden"
+                >
+                    {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    {showDetails ? 'Tutup Detail' : 'Lihat Detail Laporan'}
+                </button>
+
+                {showDetails && (
+                    <div className="mt-4 space-y-6 animate-in slide-in-from-top-2 duration-300">
+                        {/* Sales Breakdown */}
+                        <div className="space-y-3">
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">Penjualan & Refund</h4>
+                            <div className="grid grid-cols-3 gap-2 text-sm">
+                                <div className="p-2 rounded-lg bg-slate-50">
+                                    <p className="text-[10px] text-slate-400 uppercase">Gross Sales</p>
+                                    <p className="font-semibold text-slate-900">{formatRp(report.gross_sales)}</p>
+                                </div>
+                                <div className="p-2 rounded-lg bg-red-50">
+                                    <p className="text-[10px] text-red-400 uppercase">Total Refund</p>
+                                    <p className="font-semibold text-red-600">{formatRp(report.refund_total)}</p>
+                                </div>
+                                <div className="p-2 rounded-lg bg-indigo-50">
+                                    <p className="text-[10px] text-indigo-400 uppercase">Net Sales</p>
+                                    <p className="font-semibold text-indigo-600">{formatRp(report.net_sales)}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Payment Methods */}
+                        <div className="space-y-3">
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">Metode Pembayaran (Net)</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {Object.entries(report.payment_breakdown).map(([method, amount]) => (
+                                    <div key={method} className="flex justify-between items-center p-2 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors">
+                                        <span className="text-xs font-medium text-slate-600 capitalize">{method.replace('_', ' ')}</span>
+                                        <span className="text-sm font-bold text-slate-900">{formatRp(amount)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Cash Movement */}
+                        <div className="space-y-3">
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">Pergerakan Laci Kas</h4>
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-xs py-1 text-slate-500">
+                                    <span>Kas Awal</span>
+                                    <span className="font-bold">{formatRp(shift.opening_cash)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs py-1 text-green-600 bg-green-50/30 px-2 rounded">
+                                    <span className="flex items-center gap-1"><ArrowDownRight size={14} /> Total Kas Masuk (+)</span>
+                                    <span className="font-bold">{formatRp(report.expected_cash - shift.opening_cash + report.cash_out)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs py-1 text-red-500 bg-red-50/30 px-2 rounded">
+                                    <span className="flex items-center gap-1"><ArrowUpRight size={14} /> Total Kas Keluar (-)</span>
+                                    <span className="font-bold">{formatRp(report.cash_out)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm py-2 border-t border-dashed border-slate-200 mt-2">
+                                    <span className="font-bold text-slate-600">Ekspektasi Kas Laci</span>
+                                    <span className="font-bold text-slate-900 underline decoration-slate-300">{formatRp(report.expected_cash)}</span>
+                                </div>
+                                {shift.status === 'closed' && (
+                                    <div className="flex justify-between text-sm py-2 bg-slate-900 text-white px-3 rounded-xl mt-1">
+                                        <span className="font-medium">Kas Aktual Terhitung</span>
+                                        <span className="font-black text-white">{formatRp(report.actual_cash)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Recent Logs toggle */}
+                        {shift.cash_drawer_logs && shift.cash_drawer_logs.length > 0 && (
+                            <div className="space-y-2">
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Detail Log Laci</h4>
+                                <div className="max-h-40 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+                                    {shift.cash_drawer_logs.map(log => (
+                                        <div key={log.id} className="flex justify-between text-xs py-2 px-3 border border-slate-50 rounded-lg bg-slate-50/30">
+                                            <div className="space-y-0.5">
+                                                <span className={`font-bold ${log.type === 'in' ? 'text-green-600' : 'text-red-500'}`}>
+                                                    {log.type === 'in' ? '+' : '-'} {formatRp(log.amount)}
+                                                </span>
+                                                <p className="text-[9px] text-slate-400 italic">{log.reason || 'Tanpa keterangan'}</p>
+                                            </div>
+                                            <span className="text-slate-400 text-[10px]">{new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Print Only View */}
+            <div className="hidden print:block p-8 space-y-6 text-black bg-white">
+                <div className="text-center space-y-2 border-b-2 border-black pb-4">
+                    <h1 className="text-2xl font-black uppercase">LAPORAN SUMMARY SHIFT</h1>
+                    <p className="text-sm font-bold">OUTLET: {shift.outlet_id}</p>
+                    <p className="text-ls font-bold">Petugas: {report.opened_by_name}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8 py-4 border-b border-slate-300">
+                    <div>
+                        <p className="text-xs font-bold text-slate-500">WAKTU BUKA</p>
+                        <p className="text-lg font-black">{new Date(shift.opened_at).toLocaleString('id-ID')}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500">WAKTU TUTUP</p>
+                        <p className="text-lg font-black">{shift.closed_at ? new Date(shift.closed_at).toLocaleString('id-ID') : '-'}</p>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    <h2 className="text-sm font-bold border-l-4 border-black pl-2">RINGKASAN PENJUALAN</h2>
+                    <table className="w-full text-sm">
+                        <tbody className="divide-y divide-slate-100">
+                            <tr><td className="py-2">Gross Sales</td><td className="py-2 text-right font-bold">{formatRp(report.gross_sales)}</td></tr>
+                            <tr><td className="py-2">Total Refund</td><td className="py-2 text-right font-bold text-red-600">({formatRp(report.refund_total)})</td></tr>
+                            <tr className="bg-slate-50"><td className="py-2 font-bold">NET SALES</td><td className="py-2 text-right font-black">{formatRp(report.net_sales)}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="space-y-2">
+                    <h2 className="text-sm font-bold border-l-4 border-black pl-2">BREAKDOWN PEMBAYARAN</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                        {Object.entries(report.payment_breakdown).map(([m, a]) => (
+                            <div key={m} className="flex justify-between border-b pb-1 text-sm border-slate-100">
+                                <span className="capitalize">{m}</span>
+                                <span className="font-bold">{formatRp(a)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-2 pt-4 border-t-2 border-black">
+                    <div className="flex justify-between text-sm"><span>EKSPEKTASI KAS LACI</span><span className="font-bold">{formatRp(report.expected_cash)}</span></div>
+                    <div className="flex justify-between text-lg font-black bg-slate-100 p-2"><span>KAS AKTUAL</span><span>{formatRp(report.actual_cash)}</span></div>
+                    <div className="flex justify-between text-sm font-bold italic pt-2"><span>SELISIH</span><span className={report.difference < 0 ? 'text-red-600' : ''}>{formatRp(report.difference)}</span></div>
+                </div>
+
+                <div className="pt-20 grid grid-cols-2 gap-20 text-center">
+                    <div>
+                        <div className="h-20 border-b border-slate-300"></div>
+                        <p className="text-sm font-bold mt-2">KASIR / PETUGAS</p>
+                    </div>
+                    <div>
+                        <div className="h-20 border-b border-slate-300"></div>
+                        <p className="text-sm font-bold mt-2">OWNER / MANAGER</p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
 
 export default function ShiftPage() {
+    const [filters, setFilters] = useState({ start_date: '', end_date: '', cashier_id: '' });
     const { data: currentShift, isLoading } = useCurrentShift();
-    const { data: historyData } = useShifts();
+    const { data: historyData, isLoading: isLoadingHistory } = useShifts(filters);
+    const { data: users } = useUsers();
+
     const openShift = useOpenShift();
     const closeShift = useCloseShift();
     const addCashLog = useAddCashLog();
@@ -77,6 +267,7 @@ export default function ShiftPage() {
 
     const { user } = useAuthStore();
     const outletId = user?.outlet_id;
+    const isOwner = user?.roles?.some(r => r.slug === 'owner' || r.slug === 'admin');
     const history = historyData?.data ?? [];
 
     const handleOpen = async () => {
@@ -98,77 +289,147 @@ export default function ShiftPage() {
     };
 
     return (
-        <div className="space-y-6 max-w-3xl">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900">Manajemen Shift</h1>
-                <p className="text-sm text-slate-500 mt-1">Kelola buka dan tutup shift kasir</p>
-            </div>
+        <div className="space-y-8 max-w-5xl mx-auto pb-20">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Shift & Cash</h1>
+                    <p className="text-sm font-medium text-slate-500">Kelola operasional kas dan laci harian Anda.</p>
+                </div>
+                <div className="flex gap-3">
+                    {currentShift ? (
+                        <div className="flex gap-2">
+                            <button onClick={() => { setShowCashLog(true); setCashLogForm({ type: 'in', amount: '0', reason: '' }); }} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-100 transition-all active:scale-95">
+                                <DollarSign size={18} /> Catat Kas
+                            </button>
+                            <button onClick={() => setShowCloseForm(true)} className="flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-red-700 shadow-sm shadow-red-100 transition-all active:scale-95">
+                                <LogOut size={18} /> Tutup Shift
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => setShowOpenForm(true)}
+                            disabled={!outletId}
+                            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            <LogIn size={18} /> Buka Shift Baru
+                        </button>
+                    )}
+                </div>
+            </header>
 
             {isLoading ? (
-                <div className="flex items-center justify-center py-16 text-slate-400"><Loader2 className="animate-spin mr-2" /> Memuat...</div>
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
+                    <Loader2 className="animate-spin text-indigo-500 mb-3" size={32} />
+                    <p className="text-slate-400 font-medium">Sinkronisasi data shift...</p>
+                </div>
             ) : currentShift ? (
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <p className="text-green-800 font-semibold text-sm">Shift sedang berjalan</p>
+                <div className="space-y-4 print:p-0">
+                    <div className="flex items-center gap-2 bg-green-50/50 border border-green-200/50 rounded-2xl px-5 py-3 print:hidden">
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </span>
+                        <p className="text-green-800 font-bold text-xs uppercase tracking-widest">Shift Aktif Berjalan</p>
                     </div>
                     <ShiftSummaryCard shift={currentShift} />
-                    <div className="flex gap-3">
-                        <button onClick={() => { setShowCashLog(true); setCashLogForm({ type: 'in', amount: '0', reason: '' }); }} className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 transition-colors">
-                            <DollarSign size={16} /> Catat Kas
-                        </button>
-                        <button onClick={() => setShowCloseForm(true)} className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors">
-                            <LogOut size={16} /> Tutup Shift
-                        </button>
-                    </div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center mx-auto">
-                        <Clock size={32} className="text-indigo-400" />
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center space-y-6 print:hidden">
+                    <div className="w-24 h-24 rounded-full bg-indigo-50 flex items-center justify-center mx-auto ring-8 ring-indigo-50/50">
+                        <Clock size={48} className="text-indigo-500" />
                     </div>
-                    <div>
-                        <p className="text-lg font-bold text-slate-900">Tidak ada shift aktif</p>
-                        <p className="text-sm text-slate-500 mt-1">Buka shift baru untuk mulai bertransaksi</p>
+                    <div className="max-w-xs mx-auto space-y-2">
+                        <p className="text-xl font-black text-slate-900">Operasional Terhenti</p>
+                        <p className="text-sm text-slate-500 font-medium leading-relaxed">Belum ada shift yang dibuka untuk outlet ini. Kasir tidak dapat memproses transaksi.</p>
                     </div>
                     {!outletId && (
-                        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                            <AlertCircle size={16} className="text-amber-600 shrink-0" />
-                            <p className="text-amber-800 font-semibold text-sm">Akun Anda belum terhubung ke outlet. Hubungi administrator.</p>
+                        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 max-w-sm mx-auto text-left">
+                            <AlertTriangle size={24} className="text-amber-500 shrink-0" />
+                            <p className="text-amber-900 text-xs font-semibold leading-normal">
+                                Akun Anda belum terhubung ke outlet manapun. Transaksi dibatasi.
+                            </p>
                         </div>
                     )}
-                    <button onClick={() => setShowOpenForm(true)} disabled={!outletId} className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        <LogIn size={16} /> Buka Shift Baru
-                    </button>
                 </div>
             )}
 
-            {/* History */}
-            {history.length > 0 && (
-                <div>
-                    <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Riwayat Shift</h2>
-                    <div className="space-y-3">
-                        {history.filter((s: Shift) => s.status === 'closed').slice(0, 5).map((shift: Shift) => (
+            {/* History Section */}
+            <div className="space-y-6 print:hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                        <ArrowDownRight className="text-indigo-500" size={24} />
+                        Riwayat Operasional
+                    </h2>
+
+                    {/* Filters */}
+                    {isOwner && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="relative group">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={14} />
+                                <input
+                                    type="date"
+                                    onChange={(e) => setFilters(f => ({ ...f, start_date: e.target.value }))}
+                                    className="pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all font-medium text-slate-600"
+                                />
+                            </div>
+                            <div className="relative group">
+                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={14} />
+                                <select
+                                    onChange={(e) => setFilters(f => ({ ...f, cashier_id: e.target.value }))}
+                                    className="pl-9 pr-8 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all font-medium text-slate-600 appearance-none bg-no-repeat bg-[right_0.5rem_center] bg-[length:1em_1em]"
+                                >
+                                    <option value="">Semua Kasir</option>
+                                    {users?.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {isLoadingHistory ? (
+                    <div className="space-y-4">
+                        {[1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-50 rounded-2xl animate-pulse" />)}
+                    </div>
+                ) : history.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-6">
+                        {history.filter(s => s.status === 'closed' || s.id !== currentShift?.id).map((shift: Shift) => (
                             <ShiftSummaryCard key={shift.id} shift={shift} />
                         ))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div className="py-12 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+                        <p className="text-slate-400 font-bold text-sm">Tidak ada riwayat ditemukan.</p>
+                    </div>
+                )}
+            </div>
 
-            {/* Open Shift Modal */}
+            {/* Modals remained same but updated styles slightly */}
             {showOpenForm && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm p-8 space-y-6">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-slate-900">Buka Shift Baru</h2>
-                            <button onClick={() => setShowOpenForm(false)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+                            <div className="space-y-1">
+                                <h2 className="text-xl font-black text-slate-900 leading-tight">Mulai Shift</h2>
+                                <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Persiapan Laci Kas</p>
+                            </div>
+                            <button onClick={() => setShowOpenForm(false)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={20} /></button>
                         </div>
-                        <div>
-                            <label className="text-xs font-semibold text-slate-500 uppercase">Uang Kas Awal (Rp)</label>
-                            <input type="number" value={openingCash} onChange={e => setOpeningCash(e.target.value)} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none" />
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Modal Kas Awal (Rp)</label>
+                                <input
+                                    type="number"
+                                    autoFocus
+                                    value={openingCash}
+                                    onChange={e => setOpeningCash(e.target.value)}
+                                    className="w-full border-2 border-slate-100 rounded-2xl px-5 py-4 text-lg font-black bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+                                    placeholder="0"
+                                />
+                            </div>
                         </div>
-                        <button onClick={handleOpen} disabled={openShift.isPending} className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors disabled:opacity-60">
-                            {openShift.isPending ? 'Membuka...' : 'Buka Shift'}
+                        <button onClick={handleOpen} disabled={openShift.isPending} className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none">
+                            {openShift.isPending ? 'Menginisialisasi...' : 'BUKA SHIFT SEKARANG'}
                         </button>
                     </div>
                 </div>
@@ -176,18 +437,38 @@ export default function ShiftPage() {
 
             {/* Close Shift Modal */}
             {showCloseForm && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm p-8 space-y-6">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-slate-900">Tutup Shift</h2>
-                            <button onClick={() => setShowCloseForm(false)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+                            <div className="space-y-1">
+                                <h2 className="text-xl font-black text-slate-900 leading-tight">Akhiri Shift</h2>
+                                <p className="text-xs font-bold text-red-500 uppercase tracking-widest">Penghitungan Kas Terakhir</p>
+                            </div>
+                            <button onClick={() => setShowCloseForm(false)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={20} /></button>
                         </div>
-                        <div>
-                            <label className="text-xs font-semibold text-slate-500 uppercase">Hitung Kas Saat Ini (Rp)</label>
-                            <input type="number" value={closingCash} onChange={e => setClosingCash(e.target.value)} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none" />
+                        <div className="space-y-4">
+                            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                                <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+                                    <AlertCircle size={14} />
+                                    <span>Peringatan</span>
+                                </div>
+                                <p className="text-[10px] text-amber-700 mt-1 font-medium leading-relaxed">
+                                    Pastikan Anda sudah menghitung uang fisik dalam laci secara manual sebelum menutup shift ini.
+                                </p>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Total Uang Fisik Terhitung (Rp)</label>
+                                <input
+                                    type="number"
+                                    autoFocus
+                                    value={closingCash}
+                                    onChange={e => setClosingCash(e.target.value)}
+                                    className="w-full border-2 border-slate-100 rounded-2xl px-5 py-4 text-lg font-black bg-slate-50 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-50 outline-none transition-all"
+                                />
+                            </div>
                         </div>
-                        <button onClick={handleClose} disabled={closeShift.isPending} className="w-full bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60">
-                            {closeShift.isPending ? 'Menutup...' : 'Tutup Shift'}
+                        <button onClick={handleClose} disabled={closeShift.isPending} className="w-full bg-red-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-red-700 shadow-xl shadow-red-100 transition-all active:scale-[0.98] disabled:opacity-60">
+                            {closeShift.isPending ? 'Memproses Penutupan...' : 'KONFIRMASI TUTUP SHIFT'}
                         </button>
                     </div>
                 </div>
@@ -195,31 +476,52 @@ export default function ShiftPage() {
 
             {/* Cash Log Modal */}
             {showCashLog && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm p-8 space-y-6">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-slate-900">Catat Kas Laci</h2>
-                            <button onClick={() => setShowCashLog(false)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+                            <div className="space-y-1">
+                                <h2 className="text-xl font-black text-slate-900 leading-tight">Pergerakan Kas</h2>
+                                <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Input Penambahan / Pengeluaran</p>
+                            </div>
+                            <button onClick={() => setShowCashLog(false)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={20} /></button>
                         </div>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase">Tipe</label>
-                                <select value={cashLogForm.type} onChange={e => setCashLogForm(f => ({ ...f, type: e.target.value as 'in' | 'out' }))} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none bg-white">
-                                    <option value="in">Masuk (+)</option>
-                                    <option value="out">Keluar (-)</option>
-                                </select>
+                        <div className="space-y-4">
+                            <div className="flex p-1 bg-slate-100 rounded-2xl">
+                                <button
+                                    onClick={() => setCashLogForm(f => ({ ...f, type: 'in' }))}
+                                    className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${cashLogForm.type === 'in' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    KAS MASUK (+)
+                                </button>
+                                <button
+                                    onClick={() => setCashLogForm(f => ({ ...f, type: 'out' }))}
+                                    className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${cashLogForm.type === 'out' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    KAS KELUAR (-)
+                                </button>
                             </div>
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase">Jumlah (Rp)</label>
-                                <input type="number" value={cashLogForm.amount} onChange={e => setCashLogForm(f => ({ ...f, amount: e.target.value }))} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none" />
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Nominal (Rp)</label>
+                                <input
+                                    type="number"
+                                    autoFocus
+                                    value={cashLogForm.amount}
+                                    onChange={e => setCashLogForm(f => ({ ...f, amount: e.target.value }))}
+                                    className="w-full border-2 border-slate-100 rounded-xl px-4 py-3 text-lg font-black bg-slate-50 outline-none focus:bg-white focus:border-indigo-500 transition-all"
+                                />
                             </div>
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase">Keterangan</label>
-                                <input value={cashLogForm.reason} onChange={e => setCashLogForm(f => ({ ...f, reason: e.target.value }))} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none" placeholder="Contoh: Bayar supplier" />
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Keterangan / Alasan</label>
+                                <input
+                                    value={cashLogForm.reason}
+                                    onChange={e => setCashLogForm(f => ({ ...f, reason: e.target.value }))}
+                                    className="w-full border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium bg-slate-50 outline-none focus:bg-white focus:border-indigo-500 transition-all"
+                                    placeholder="Contoh: Bayar Gas / Parkir"
+                                />
                             </div>
                         </div>
-                        <button onClick={handleCashLog} disabled={addCashLog.isPending} className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors disabled:opacity-60">
-                            {addCashLog.isPending ? 'Menyimpan...' : 'Simpan'}
+                        <button onClick={handleCashLog} disabled={addCashLog.isPending} className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-60">
+                            {addCashLog.isPending ? 'Menyimpan...' : 'SIMPAN PERUBAHAN'}
                         </button>
                     </div>
                 </div>
