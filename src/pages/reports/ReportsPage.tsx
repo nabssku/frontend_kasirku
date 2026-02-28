@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Calendar, TrendingUp, DollarSign, Package, Download, BarChart2 } from 'lucide-react';
+import { Calendar, TrendingUp, DollarSign, Package, Download, BarChart2, Store } from 'lucide-react';
 import { useTopProducts, useExportTransactions } from '../../hooks/useReports';
+import { useAuthStore } from '../../app/store/useAuthStore';
+import { useOutlets } from '../../hooks/useOutlets';
 import api from '../../lib/axios';
 import { useQuery } from '@tanstack/react-query';
 import type { ProfitReport } from '../../types';
@@ -34,14 +36,25 @@ export default function ReportsPage() {
         });
     };
 
-    const { data: topProducts } = useTopProducts();
+    const { user } = useAuthStore();
+    const isOwner = user?.roles?.some(r => r.slug === 'owner' || r.slug === 'super_admin');
+    const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(undefined);
+
+    const { data: outlets } = useOutlets();
+    const { data: topProducts } = useTopProducts(selectedOutletId);
     const { exportCsv } = useExportTransactions();
 
     // Advanced Profit Report
     const { data: profit, isLoading: loadingProfit } = useQuery({
-        queryKey: ['reports', 'profit', dateRange],
+        queryKey: ['reports', 'profit', dateRange, selectedOutletId],
         queryFn: async () => {
-            const { data } = await api.get('/reports/profit', { params: { start_date: dateRange.start, end_date: dateRange.end } });
+            const { data } = await api.get('/reports/profit', {
+                params: {
+                    start_date: dateRange.start,
+                    end_date: dateRange.end,
+                    outlet_id: selectedOutletId
+                }
+            });
             return data.data as ProfitReport;
         }
     });
@@ -74,7 +87,26 @@ export default function ReportsPage() {
                         <span className="text-slate-300">-</span>
                         <input type="date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} className="text-sm outline-none bg-transparent" />
                     </div>
-                    <button onClick={() => exportCsv(dateRange.start, dateRange.end)} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+
+                    {isOwner && (
+                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm min-w-[200px]">
+                            <Store size={18} className="text-slate-400" />
+                            <select
+                                value={selectedOutletId || ''}
+                                onChange={(e) => setSelectedOutletId(e.target.value || undefined)}
+                                className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none w-full"
+                            >
+                                <option value="">Semua Outlet</option>
+                                {outlets?.map((outlet) => (
+                                    <option key={outlet.id} value={outlet.id}>
+                                        {outlet.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    <button onClick={() => exportCsv(dateRange.start, dateRange.end, selectedOutletId)} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
                         <Download size={18} /> Export
                     </button>
                 </div>

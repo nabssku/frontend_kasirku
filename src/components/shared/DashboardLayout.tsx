@@ -24,6 +24,7 @@ import {
     ChevronRight,
     Wifi,
     WifiOff,
+    ShieldAlert,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Network } from '@capacitor/network';
@@ -109,6 +110,7 @@ const allNavGroups: NavGroup[] = [
             { name: 'Langganan', path: '/subscription', icon: CreditCard, roles: OWNER_ROLES },
             { name: 'Printer', path: '/settings/printer', icon: Printer, roles: CONFIG_ROLES },
             { name: 'Pengaturan Struk', path: '/settings/receipt', icon: FileText, roles: CONFIG_ROLES },
+            { name: 'Audit Log', path: '/settings/audit-log', icon: ShieldAlert, roles: OWNER_ROLES },
         ],
     },
 ];
@@ -225,7 +227,7 @@ export const DashboardLayout = () => {
                 <div className="p-4 flex items-center justify-between h-16 border-b border-slate-100">
                     {isSidebarOpen && (
                         <span className="text-xl font-bold text-slate-900 tracking-tight">
-                            KasirKu <span className="text-indigo-600">POS</span>
+                            JagoKasir <span className="text-indigo-600">POS</span>
                         </span>
                     )}
                     <button
@@ -289,7 +291,12 @@ export const DashboardLayout = () => {
                                                     className={isActive(item.path) ? 'text-indigo-600 shrink-0' : 'text-slate-400 shrink-0 group-hover:text-slate-600'}
                                                 />
                                                 {isSidebarOpen && (
-                                                    <span className="ml-3 font-semibold text-sm">{item.name}</span>
+                                                    <div className="ml-3 flex-1 flex items-center justify-between">
+                                                        <span className="font-semibold text-sm">{item.name}</span>
+                                                        {item.name === 'Audit Log' && (
+                                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">PREMIUM</span>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </Link>
                                         )}

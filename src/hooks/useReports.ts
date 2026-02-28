@@ -2,45 +2,50 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../lib/axios';
 import type { DailyReport, MonthlyReport, TopProduct } from '../types';
 
-export const useDailyReport = (date?: string) => {
+export const useDailyReport = (date?: string, outletId?: string) => {
   return useQuery({
-    queryKey: ['reports', 'daily', date],
+    queryKey: ['reports', 'daily', date, outletId],
     queryFn: async () => {
       const { data } = await api.get<{ data: DailyReport }>('/reports/daily', {
-        params: { date },
+        params: { date, outlet_id: outletId },
       });
       return data.data;
     },
   });
 };
 
-export const useMonthlyReport = () => {
+export const useMonthlyReport = (outletId?: string) => {
   return useQuery({
-    queryKey: ['reports', 'monthly'],
+    queryKey: ['reports', 'monthly', outletId],
     queryFn: async () => {
-      const { data } = await api.get<{ data: MonthlyReport }>('/reports/monthly');
+      const { data } = await api.get<{ data: MonthlyReport }>('/reports/monthly', {
+        params: { outlet_id: outletId },
+      });
       return data.data;
     },
   });
 };
 
-export const useTopProducts = () => {
+export const useTopProducts = (outletId?: string) => {
   return useQuery({
-    queryKey: ['reports', 'top-products'],
+    queryKey: ['reports', 'top-products', outletId],
     queryFn: async () => {
-      const { data } = await api.get<{ data: TopProduct[] }>('/reports/top-products');
+      const { data } = await api.get<{ data: TopProduct[] }>('/reports/top-products', {
+        params: { outlet_id: outletId },
+      });
       return data.data;
     },
   });
 };
 
 export const useExportTransactions = () => {
-  const exportCsv = async (startDate?: string, endDate?: string) => {
+  const exportCsv = async (startDate?: string, endDate?: string, outletId?: string) => {
     try {
       const response = await api.get('/reports/export-csv', {
         params: {
           start_date: startDate,
           end_date: endDate,
+          outlet_id: outletId,
         },
         responseType: 'blob',
       });

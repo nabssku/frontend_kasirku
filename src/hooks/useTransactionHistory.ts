@@ -13,12 +13,12 @@ interface TransactionHistoryResponse {
   };
 }
 
-export const useTransactionHistory = (page = 1) => {
+export const useTransactionHistory = (page = 1, outletId?: string) => {
   return useQuery({
-    queryKey: ['transactions', page],
+    queryKey: ['transactions', page, outletId],
     queryFn: async () => {
       const { data } = await api.get<TransactionHistoryResponse>('/transactions', {
-        params: { page, per_page: 15 },
+        params: { page, per_page: 15, outlet_id: outletId },
       });
       return data;
     },

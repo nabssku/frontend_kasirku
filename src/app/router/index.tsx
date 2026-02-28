@@ -30,6 +30,7 @@ import SuperAdminSubscriptions from '../../pages/super-admin/SuperAdminSubscript
 import SuperAdminPlans from '../../pages/super-admin/SuperAdminPlans';
 import SuperAdminOrders from '../../pages/super-admin/SuperAdminOrders';
 import LandingPage from '../../pages/LandingPage';
+import AuditLogPage from '../../pages/settings/AuditLogPage';
 import { lazy } from 'react';
 const PrinterSettingsPage = lazy(() => import('../../pages/settings/PrinterSettingsPage'));
 const ReceiptSettingsPage = lazy(() => import('../../pages/settings/ReceiptSettingsPage'));
@@ -121,6 +122,7 @@ export const router = createBrowserRouter([
             { path: 'subscription', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><TenantPage /></ProtectedRoute> },
             { path: 'settings/printer', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><PrinterSettingsPage /></ProtectedRoute> },
             { path: 'settings/receipt', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ReceiptSettingsPage /></ProtectedRoute> },
+            { path: 'settings/audit-log', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><AuditLogPage /></ProtectedRoute> },
         ],
     },
 ]);

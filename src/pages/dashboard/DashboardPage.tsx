@@ -1,5 +1,8 @@
-import { TrendingUp, ShoppingCart, DollarSign, BarChart2, Package } from 'lucide-react';
+import { TrendingUp, ShoppingCart, DollarSign, BarChart2, Package, Store } from 'lucide-react';
 import { useDailyReport, useTopProducts } from '../../hooks/useReports';
+import { useAuthStore } from '../../app/store/useAuthStore';
+import { useOutlets } from '../../hooks/useOutlets';
+import { useState } from 'react';
 
 function StatCard({
     icon: Icon,
@@ -32,8 +35,13 @@ function StatCard({
 }
 
 export default function DashboardPage() {
-    const { data: daily, isLoading: loadingDaily } = useDailyReport();
-    const { data: topProducts, isLoading: loadingTop } = useTopProducts();
+    const { user } = useAuthStore();
+    const isOwner = user?.roles?.some(r => r.slug === 'owner' || r.slug === 'super_admin');
+    const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(undefined);
+
+    const { data: outlets } = useOutlets();
+    const { data: daily, isLoading: loadingDaily } = useDailyReport(undefined, selectedOutletId);
+    const { data: topProducts, isLoading: loadingTop } = useTopProducts(selectedOutletId);
 
     const fmtRp = (n?: number) =>
         n !== undefined
@@ -42,9 +50,29 @@ export default function DashboardPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-                <p className="text-slate-500 text-sm mt-1">Ringkasan penjualan hari ini</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+                    <p className="text-slate-500 text-sm mt-1">Ringkasan penjualan hari ini</p>
+                </div>
+
+                {isOwner && (
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm min-w-[200px]">
+                        <Store size={18} className="text-slate-400" />
+                        <select
+                            value={selectedOutletId || ''}
+                            onChange={(e) => setSelectedOutletId(e.target.value || undefined)}
+                            className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none w-full"
+                        >
+                            <option value="">Semua Outlet</option>
+                            {outlets?.map((outlet) => (
+                                <option key={outlet.id} value={outlet.id}>
+                                    {outlet.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
 
             {/* Stat Cards */}

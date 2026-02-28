@@ -6,9 +6,12 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    Printer
+    Printer,
+    Store
 } from 'lucide-react';
 import { useTransactionHistory } from '../../hooks/useTransactionHistory';
+import { useAuthStore } from '../../app/store/useAuthStore';
+import { useOutlets } from '../../hooks/useOutlets';
 import { useTransactionReceipt } from '../../hooks/usePrinters';
 import { ReceiptModal } from '../../features/transactions/components/ReceiptModal';
 import type { Transaction } from '../../types';
@@ -17,7 +20,13 @@ export default function TransactionHistoryPage() {
     const [page, setPage] = useState(1);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
-    const { data: historyData, isLoading } = useTransactionHistory(page);
+    const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(undefined);
+
+    const { user } = useAuthStore();
+    const isOwner = user?.roles?.some(r => r.slug === 'owner' || r.slug === 'super_admin');
+
+    const { data: outlets } = useOutlets();
+    const { data: historyData, isLoading } = useTransactionHistory(page, selectedOutletId);
     const { data: receiptData } = useTransactionReceipt(printTransactionId);
 
     const fmtRp = (n: number) => new Intl.NumberFormat('id-ID', {
@@ -39,9 +48,32 @@ export default function TransactionHistoryPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800">Riwayat Transaksi</h1>
-                <p className="text-slate-500">Lihat semua transaksi yang telah dilakukan di toko Anda</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800">Riwayat Transaksi</h1>
+                    <p className="text-slate-500">Lihat semua transaksi yang telah dilakukan di toko Anda</p>
+                </div>
+
+                {isOwner && (
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm min-w-[200px]">
+                        <Store size={18} className="text-slate-400" />
+                        <select
+                            value={selectedOutletId || ''}
+                            onChange={(e) => {
+                                setSelectedOutletId(e.target.value || undefined);
+                                setPage(1); // Reset page when changing outlet
+                            }}
+                            className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none w-full"
+                        >
+                            <option value="">Semua Outlet</option>
+                            {outlets?.map((outlet) => (
+                                <option key={outlet.id} value={outlet.id}>
+                                    {outlet.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

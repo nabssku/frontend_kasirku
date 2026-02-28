@@ -480,3 +480,35 @@ export interface Expense {
   user?: { id: string; name: string };
   outlet?: Outlet;
 }
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+export interface AuditLog {
+  id: string;
+  tenant_id: string;
+  user_id?: number;
+  outlet_id?: string;
+  action: string;
+  model_type?: string;
+  model_id?: string;
+  old_values?: any;
+  new_values?: any;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+  updated_at: string;
+  user?: { id: number; name: string };
+  outlet?: { id: string; name: string };
+}
+
+export interface AuditLogResponse {
+  success: boolean;
+  data: AuditLog[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    has_plan_access: boolean;
+    message?: string;
+  };
+}

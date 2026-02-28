@@ -32,7 +32,76 @@ function padLine(left: string, right: string, width = 32): string {
     return left + ' '.repeat(Math.max(spaces, 1)) + right;
 }
 
-function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
+/**
+ * Converts an image from URL to ESC/POS Raster data (GS v 0)
+ */
+async function imageToEscPosRaster(url: string, maxWidth: number = 200): Promise<Uint8Array> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return reject('No canvas context');
+
+            // Maintain aspect ratio, but cap at maxWidth
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth) {
+                height = (maxWidth / width) * height;
+                width = maxWidth;
+            }
+
+            // ESC/POS raster width must be a multiple of 8 bits
+            const rasterWidth = Math.ceil(width / 8) * 8;
+            canvas.width = rasterWidth;
+            canvas.height = height;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, rasterWidth, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const imageData = ctx.getImageData(0, 0, rasterWidth, height);
+            const { data } = imageData;
+
+            // Convert to 1-bit per pixel (black and white)
+            const bytesPerRow = rasterWidth / 8;
+            const rasterData = new Uint8Array(bytesPerRow * height);
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < rasterWidth; x++) {
+                    const offset = (y * rasterWidth + x) * 4;
+                    // Grayscale conversion
+                    const r = data[offset];
+                    const g = data[offset + 1];
+                    const b = data[offset + 2];
+                    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                    
+                    // Threshold (128 is midpoint)
+                    if (gray < 128) {
+                        const byteIdx = y * bytesPerRow + Math.floor(x / 8);
+                        const bitIdx = 7 - (x % 8);
+                        rasterData[byteIdx] |= (1 << bitIdx);
+                    }
+                }
+            }
+
+            // GS v 0 m xL xH yL yH d1...dk
+            // m=0 (normal), xL xH = width in bytes, yL yH = height in pixels
+            const xL = bytesPerRow % 256;
+            const xH = Math.floor(bytesPerRow / 256);
+            const yL = Math.floor(height) % 256;
+            const yH = Math.floor(Math.floor(height) / 256);
+
+            const header = new Uint8Array([GS, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
+            resolve(concat(header, rasterData));
+        };
+        img.onerror = (e) => reject('Failed to load image for print: ' + JSON.stringify(e));
+        img.src = url;
+    });
+}
+
+async function buildEscPosData(receipt: PrinterReceiptData): Promise<Uint8Array> {
     const LF = new Uint8Array([0x0a]);
 
     const init      = new Uint8Array([ESC, 0x40]);                  // Initialize
@@ -64,9 +133,23 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
         dine_in: 'Dine In', takeaway: 'Bungkus', delivery: 'Delivery',
     };
 
-    const lines: Uint8Array[] = [
+    const lines: (Uint8Array | Uint8Array[])[] = [
         init,
         alignCmd, storeMode,
+    ];
+
+    // Add Logo if exists
+    if (settings?.logo_url) {
+        try {
+            const logoRaster = await imageToEscPosRaster(settings.logo_url, settings.logo_width || 160);
+            lines.push(logoRaster);
+            lines.push(LF);
+        } catch (e) {
+            console.warn('Logo print failed:', e);
+        }
+    }
+
+    lines.push(...([
         textToBytes((settings?.store_name || receipt.store_name) + '\n'),
         sizeSmall,
         receipt.store_address ? textToBytes(receipt.store_address + '\n') : new Uint8Array(0),
@@ -107,9 +190,9 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
             : textToBytes('Terima kasih!\nSelamat datang kembali :)\n'),
         LF, LF, LF,
         cutPaper,
-    ];
+    ] as Uint8Array[]));
 
-    return concat(...lines.filter(a => a.length > 0));
+    return concat(...(lines.flat().filter(a => a.length > 0) as Uint8Array[]));
 }
 
 function buildShiftEscPosData(shift: Shift): Uint8Array {
@@ -379,19 +462,22 @@ export function useBluetoothPrint() {
     const printReceipt = useCallback(async (receipt: PrinterReceiptData): Promise<boolean> => {
         const target = cashierDevice || kitchenDevice; // Fallback to whatever is connected
         if (!target) { if (!isNative) window.print(); return false; }
-        return printRaw(buildEscPosData(receipt), target);
+        const data = await buildEscPosData(receipt);
+        return printRaw(data, target);
     }, [cashierDevice, kitchenDevice]);
 
     const printShiftReport = useCallback(async (shift: Shift): Promise<boolean> => {
         const target = cashierDevice || kitchenDevice;
         if (!target) return false;
-        return printRaw(buildShiftEscPosData(shift), target);
+        const data = buildShiftEscPosData(shift);
+        return printRaw(data, target);
     }, [cashierDevice, kitchenDevice]);
 
     const printKitchenOrder = useCallback(async (order: any): Promise<boolean> => {
         const target = kitchenDevice || cashierDevice;
         if (!target) return false;
-        return printRaw(buildKitchenEscPosData(order), target);
+        const data = buildKitchenEscPosData(order);
+        return printRaw(data, target);
     }, [kitchenDevice, cashierDevice]);
 
     return { 

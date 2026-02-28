@@ -143,7 +143,7 @@ export const SuperAdminLayout = () => {
                 {/* Return to Site Shortcut */}
                 <div className="pt-4 mt-4 border-t border-slate-800/50">
                     <Link
-                        to="/dashboard"
+                        to="/"
                         className={`
                             flex items-center p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all duration-200
                             ${!isSidebarOpen ? 'justify-center mx-1' : ''}
@@ -236,7 +236,7 @@ export const SuperAdminLayout = () => {
 
                     <div className="ml-auto flex items-center gap-4">
                         <div className="hidden sm:flex flex-col items-end">
-                            <span className="text-xs text-slate-500 font-medium">KasirKu Platform</span>
+                            <span className="text-xs text-slate-500 font-medium">JagoKasir Platform</span>
                             <span className="text-[10px] text-emerald-500 font-bold px-1.5 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20 mt-0.5">
                                 Systems Active
                             </span>
