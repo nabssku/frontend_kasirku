@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { Search, LayoutGrid, ShoppingCart, AlertCircle, Scan } from 'lucide-react';
-import { BarcodeScannerModal } from '../../features/transactions/components/BarcodeScanner';
-import { triggerHaptic } from '../../utils/capacitor';
+import { Search, LayoutGrid, ShoppingCart, AlertCircle } from 'lucide-react';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
 import { ProductCard } from '../../features/transactions/components/ProductCard';
@@ -17,8 +15,6 @@ export default function POSPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [isScannerOpen, setIsScannerOpen] = useState(false);
-    const { addItem } = useCartStore();
 
     const filteredProducts = products?.filter((product) => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -27,27 +23,6 @@ export default function POSPage() {
         return matchesSearch && matchesCategory;
     });
 
-    const handleScan = (code: string) => {
-        const product = products?.find(p => p.sku === code || p.name.toLowerCase() === code.toLowerCase());
-
-        if (product) {
-            triggerHaptic();
-            if (product.modifier_groups && product.modifier_groups.length > 0) {
-                // If has modifiers, just set search query so it's highlighted/visible
-                setSearchQuery(code);
-            } else {
-                addItem({
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    modifiers: [],
-                });
-            }
-        } else {
-            setSearchQuery(code);
-        }
-        setIsScannerOpen(false);
-    };
 
     return (
         <div className="h-full flex overflow-hidden bg-slate-50">
@@ -66,13 +41,6 @@ export default function POSPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <button
-                            onClick={() => setIsScannerOpen(true)}
-                            className="absolute inset-y-2 right-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl flex items-center gap-2 transition-all active:scale-95 border border-indigo-100"
-                        >
-                            <Scan size={18} strokeWidth={2.5} />
-                            <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">Scan</span>
-                        </button>
                     </div>
 
                     {/* Category Selection Tabs */}
@@ -175,13 +143,6 @@ export default function POSPage() {
             {/* Cart Sidebar - Pass props for responsiveness */}
             <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
-            {/* Barcode Scanner Overlay */}
-            {isScannerOpen && (
-                <BarcodeScannerModal
-                    onScan={handleScan}
-                    onClose={() => setIsScannerOpen(false)}
-                />
-            )}
         </div>
     );
 }

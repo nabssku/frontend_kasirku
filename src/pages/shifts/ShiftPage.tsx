@@ -7,6 +7,7 @@ import {
 import { useCurrentShift, useOpenShift, useCloseShift, useShifts, useAddCashLog } from '../../hooks/useShifts';
 import { useAuthStore } from '../../app/store/useAuthStore';
 import { useUsers } from '../../hooks/useUsers';
+import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
 import type { Shift } from '../../types';
 
 function formatRp(n: number) {
@@ -31,6 +32,7 @@ function DiscrepancyBadge({ status }: { status?: string }) {
 
 function ShiftSummaryCard({ shift }: { shift: Shift }) {
     const [showDetails, setShowDetails] = useState(false);
+    const { printShiftReport } = useBluetoothPrint();
     const report = shift.report;
 
     if (!report) return null;
@@ -64,7 +66,7 @@ function ShiftSummaryCard({ shift }: { shift: Shift }) {
                         <p className="text-[10px] text-slate-400">{new Date(shift.opened_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
                     <button
-                        onClick={() => window.print()}
+                        onClick={() => printShiftReport(shift)}
                         className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100 print:hidden"
                         title="Cetak Laporan"
                     >

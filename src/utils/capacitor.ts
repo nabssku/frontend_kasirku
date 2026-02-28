@@ -4,8 +4,41 @@ import { Share } from '@capacitor/share';
 import { Network } from '@capacitor/network';
 import { Device } from '@capacitor/device';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { BleClient } from '@capacitor-community/bluetooth-le';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 export const isNative = Capacitor.isNativePlatform();
+
+/**
+ * Lock screen orientation to portrait
+ */
+export const lockOrientationPortrait = async () => {
+    if (isNative) {
+        try {
+            await ScreenOrientation.lock({ orientation: 'portrait' });
+            console.log('Screen orientation locked to portrait');
+        } catch (e) {
+            console.warn('Screen orientation lock failed', e);
+        }
+    }
+};
+
+/**
+ * Initialize Bluetooth and request permissions
+ */
+export const initializeBluetooth = async () => {
+    if (isNative) {
+        try {
+            await BleClient.initialize();
+            // In @capacitor-community/bluetooth-le, requestDevice or similar might handle permissions.
+            // Some versions don't have a direct requestPermissions() if it's handled within other calls.
+            // Leaving just initialize for now if requestPermissions truly doesn't exist.
+            console.log('Bluetooth initialized');
+        } catch (e) {
+            console.warn('Bluetooth initialization failed', e);
+        }
+    }
+};
 
 /**
  * Haptic Feedback

@@ -15,7 +15,7 @@ export const usePrinters = () => {
 export const useAddPrinter = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (payload: { name: string; mac_address?: string; outlet_id?: string; is_default?: boolean }) => {
+        mutationFn: async (payload: { name: string; mac_address?: string; outlet_id?: string; is_default?: boolean; type?: 'cashier' | 'kitchen' | 'both' }) => {
             const { data } = await api.post<{ success: boolean; data: BluetoothPrinterDevice }>('/bluetooth-printers', payload);
             return data.data;
         },
@@ -26,7 +26,7 @@ export const useAddPrinter = () => {
 export const useUpdatePrinter = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ id, payload }: { id: string; payload: { name?: string; mac_address?: string; outlet_id?: string } }) => {
+        mutationFn: async ({ id, payload }: { id: string; payload: { name?: string; mac_address?: string; outlet_id?: string; type?: 'cashier' | 'kitchen' | 'both' } }) => {
             const { data } = await api.put<{ success: boolean; data: BluetoothPrinterDevice }>(`/bluetooth-printers/${id}`, payload);
             return data.data;
         },

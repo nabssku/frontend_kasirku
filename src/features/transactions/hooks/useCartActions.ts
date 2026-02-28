@@ -3,6 +3,9 @@ import { useCartStore } from '../../../app/store/useCartStore';
 import type { CartItem } from '../../../app/store/useCartStore';
 import { useCreateTransaction, useUpdateTransaction, usePendingTransactions } from '../../../hooks/useTransactions';
 import { useCurrentShift } from '../../../hooks/useShifts';
+import { useAuthStore } from '../../../app/store/useAuthStore';
+import { useReceiptSettings } from '../../../hooks/useReceiptSettings';
+import { useBluetoothPrint } from '../../../hooks/useBluetoothPrint';
 import { toast } from 'sonner';
 
 export const useCartActions = () => {
@@ -14,6 +17,9 @@ export const useCartActions = () => {
     const { mutate: updateTransaction, isPending: isUpdating } = useUpdateTransaction();
     const { refetch: refetchPending } = usePendingTransactions();
     const { data: currentShift } = useCurrentShift();
+    const { user } = useAuthStore();
+    const { outlet } = useReceiptSettings(user?.outlet_id);
+    const { printKitchenOrder } = useBluetoothPrint();
 
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [paidAmount, setPaidAmount] = useState<number>(0);
@@ -30,8 +36,13 @@ export const useCartActions = () => {
 
     const total = getTotal();
     const calculatedDiscount = discountType === 'percent' ? (total * (discount / 100)) : discount;
-    const tax = (total - calculatedDiscount) * 0.1;
-    const grandTotal = (total - calculatedDiscount) + tax;
+    const subtotalAfterDiscount = total - calculatedDiscount;
+    const serviceChargeRate = Number(outlet?.service_charge || 0) / 100;
+    const taxRate = Number(outlet?.tax_rate || 0) / 100;
+    
+    const service_charge = subtotalAfterDiscount * serviceChargeRate;
+    const tax = (subtotalAfterDiscount + service_charge) * taxRate;
+    const grandTotal = subtotalAfterDiscount + service_charge + tax;
     const changeAmount = paidAmount > grandTotal ? paidAmount - grandTotal : 0;
 
     const handleResetAll = () => {
@@ -70,12 +81,24 @@ export const useCartActions = () => {
             table_id: tableId || undefined,
             type: orderType,
             shift_id: currentShift.id,
-            status: 'completed'
+            status: 'completed',
+            service_charge: service_charge,
+            tax: tax,
+            tax_rate: (outlet?.tax_rate || 0).toString()
         };
 
         const onSuccess = (data: any) => {
             const newTxId: string = data?.data?.id ?? data?.id ?? null;
             setShowSuccess(true);
+            
+            // Print to kitchen
+            printKitchenOrder({
+                type: orderType,
+                table_id: tableId,
+                items: items,
+                notes: notes
+            });
+
             if (newTxId) setPrintTransactionId(newTxId);
             setTimeout(() => {
                 setShowSuccess(false);
@@ -115,11 +138,23 @@ export const useCartActions = () => {
             table_id: tableId || undefined,
             type: orderType,
             shift_id: currentShift.id,
-            status: 'pending'
+            status: 'pending',
+            service_charge: service_charge,
+            tax: tax,
+            tax_rate: (outlet?.tax_rate || 0).toString()
         };
 
         const onSuccess = () => {
             toast.success('Pesanan disimpan sementara');
+            
+            // Print to kitchen
+            printKitchenOrder({
+                type: orderType,
+                table_id: tableId,
+                items: items,
+                notes: notes
+            });
+
             handleResetAll();
             refetchPending();
         };
@@ -163,7 +198,7 @@ export const useCartActions = () => {
         activeTransactionId, setActiveTransactionId,
         printTransactionId, setPrintTransactionId,
         isPending,
-        total, tax, grandTotal, changeAmount,
+        total, tax, service_charge, grandTotal, changeAmount,
         handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll,
         currentShift,
         showNoShiftModal, setShowNoShiftModal

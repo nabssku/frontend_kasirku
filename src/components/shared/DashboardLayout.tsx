@@ -44,27 +44,29 @@ interface NavGroup {
 
 // ─── Role groups ──────────────────────────────────────────────────────────────
 const ADMIN_ROLES: UserRole[] = ['super_admin', 'owner', 'admin'];
-const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'owner', 'admin', 'cashier'];
-const KITCHEN_ROLES: UserRole[] = ['super_admin', 'owner', 'admin', 'kitchen', 'cashier'];
+const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier']; // Owner focus on reports
+const KITCHEN_ROLES: UserRole[] = ['super_admin', 'admin', 'kitchen', 'cashier'];
 const OWNER_ROLES: UserRole[] = ['super_admin', 'owner'];
+const POS_ROLES: UserRole[] = ['super_admin', 'cashier']; // Terminal POS focus on cashiers
+const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin']; // Operational config
 
 const allNavGroups: NavGroup[] = [
     {
         label: 'Utama',
         items: [
             { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ADMIN_ROLES },
-            { name: 'Terminal POS', path: '/pos', icon: ShoppingCart, roles: OPERATIONAL_ROLES },
+            { name: 'Terminal POS', path: '/pos', icon: ShoppingCart, roles: POS_ROLES },
         ],
     },
     {
         label: 'Operasional',
         items: [
-            { name: 'Transaksi', path: '/transactions', icon: History, roles: OPERATIONAL_ROLES },
+            { name: 'Transaksi', path: '/transactions', icon: History, roles: ADMIN_ROLES },
             {
                 name: 'Pengeluaran',
                 path: '/expenses',
                 icon: Receipt,
-                roles: ADMIN_ROLES,
+                roles: OWNER_ROLES,
                 children: [
                     { name: 'Daftar Pengeluaran', path: '/expenses' },
                     { name: 'Kategori Pengeluaran', path: '/expenses/categories' },
@@ -97,7 +99,7 @@ const allNavGroups: NavGroup[] = [
         label: 'Manajemen & Laporan',
         items: [
             { name: 'Outlet', path: '/outlets', icon: Store, roles: OWNER_ROLES },
-            { name: 'Pengguna', path: '/users', icon: UserCog, roles: ADMIN_ROLES },
+            { name: 'Pengguna', path: '/users', icon: UserCog, roles: OWNER_ROLES },
             { name: 'Laporan', path: '/reports', icon: BarChart2, roles: ADMIN_ROLES },
         ],
     },
@@ -105,8 +107,8 @@ const allNavGroups: NavGroup[] = [
         label: 'Pengaturan',
         items: [
             { name: 'Langganan', path: '/subscription', icon: CreditCard, roles: OWNER_ROLES },
-            { name: 'Printer', path: '/settings/printer', icon: Printer, roles: ADMIN_ROLES },
-            { name: 'Pengaturan Struk', path: '/settings/receipt', icon: FileText, roles: ADMIN_ROLES },
+            { name: 'Printer', path: '/settings/printer', icon: Printer, roles: CONFIG_ROLES },
+            { name: 'Pengaturan Struk', path: '/settings/receipt', icon: FileText, roles: CONFIG_ROLES },
         ],
     },
 ];

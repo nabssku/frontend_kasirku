@@ -22,6 +22,7 @@ import type { ReceiptSettings } from '../../types';
 
 export default function ReceiptSettingsPage() {
     const { user } = useAuthStore();
+    const isOwnerOnly = user?.roles?.some(r => r.slug === 'owner') && !user?.roles?.some(r => r.slug === 'admin' || r.slug === 'super_admin');
     const outletId = user?.outlet_id;
     const { outlet, isLoading, isUpdating, updateSettings } = useReceiptSettings(outletId);
     const { printReceipt } = useBluetoothPrint();
@@ -157,14 +158,16 @@ export default function ReceiptSettingsPage() {
                         {isTestPrinting ? <Loader2 className="animate-spin" size={16} /> : <Printer size={16} />}
                         Test Print
                     </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={isUpdating || isTestPrinting}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50"
-                    >
-                        {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                        Simpan Pengaturan
-                    </button>
+                    {!isOwnerOnly && (
+                        <button
+                            onClick={handleSave}
+                            disabled={isUpdating || isTestPrinting}
+                            className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                            Simpan Pengaturan
+                        </button>
+                    )}
                 </div>
             </div>
 

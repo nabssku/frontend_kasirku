@@ -5,6 +5,7 @@ import { useOutlets, useCreateOutlet, useUpdateOutlet, useDeleteOutlet } from '.
 import type { Outlet } from '../../types';
 
 export default function OutletsPage() {
+
     const { data: outlets = [], isLoading } = useOutlets();
     const createOutlet = useCreateOutlet();
     const updateOutlet = useUpdateOutlet();

@@ -2,12 +2,15 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface PrinterState {
-    activeDevice: any | null;
-    lastUsedPrinterId: string | null;
+    cashierDevice: any | null;
+    kitchenDevice: any | null;
+    lastCashierPrinterId: string | null;
+    lastKitchenPrinterId: string | null;
     isConnecting: boolean;
-    isConnected: boolean;
+    isConnected: boolean; // General connection status
     lastError: string | null;
-    setActiveDevice: (device: any | null) => void;
+    setCashierDevice: (device: any | null) => void;
+    setKitchenDevice: (device: any | null) => void;
     setIsConnecting: (status: boolean) => void;
     setIsConnected: (status: boolean) => void;
     setLastError: (error: string | null) => void;
@@ -15,16 +18,23 @@ interface PrinterState {
 
 export const usePrinterStore = create<PrinterState>()(
     persist(
-        (set) => ({
-            activeDevice: null,
-            lastUsedPrinterId: null,
+        (set, get) => ({
+            cashierDevice: null,
+            kitchenDevice: null,
+            lastCashierPrinterId: null,
+            lastKitchenPrinterId: null,
             isConnecting: false,
             isConnected: false,
             lastError: null,
-            setActiveDevice: (activeDevice) => set({ 
-                activeDevice, 
-                isConnected: !!activeDevice?.gatt?.connected,
-                lastUsedPrinterId: activeDevice?.id || null 
+            setCashierDevice: (device) => set({ 
+                cashierDevice: device, 
+                isConnected: !!device?.gatt?.connected || !!device?.native,
+                lastCashierPrinterId: device?.id || null 
+            }),
+            setKitchenDevice: (device) => set({ 
+                kitchenDevice: device, 
+                isConnected: !!device?.gatt?.connected || !!device?.native || !!get().cashierDevice?.gatt?.connected,
+                lastKitchenPrinterId: device?.id || null 
             }),
             setIsConnecting: (isConnecting) => set({ isConnecting }),
             setIsConnected: (isConnected) => set({ isConnected }),
@@ -32,7 +42,10 @@ export const usePrinterStore = create<PrinterState>()(
         }),
         {
             name: 'kasirku-printer-storage',
-            partialize: (state) => ({ lastUsedPrinterId: state.lastUsedPrinterId }),
+            partialize: (state) => ({ 
+                lastCashierPrinterId: state.lastCashierPrinterId,
+                lastKitchenPrinterId: state.lastKitchenPrinterId 
+            }),
         }
     )
 );

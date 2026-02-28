@@ -7,7 +7,7 @@ interface InvitePayload {
   email: string;
   password: string;
   role_slug: string;
-  outlet_id?: string;
+  outlet_id?: string | null;
 }
 
 export const useUsers = () =>

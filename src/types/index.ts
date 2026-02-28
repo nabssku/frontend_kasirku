@@ -421,6 +421,7 @@ export interface BluetoothPrinterDevice {
   name: string;
   mac_address?: string;
   is_default: boolean;
+  type: 'cashier' | 'kitchen' | 'both';
   outlet?: Outlet;
   created_at: string;
   updated_at: string;

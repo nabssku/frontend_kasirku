@@ -37,9 +37,21 @@ export default function UsersPage() {
 
     const handleSubmit = async () => {
         if (editItem) {
-            await updateUser.mutateAsync({ id: editItem.id, payload: { name: form.name, email: form.email, role_slug: form.role_slug, outlet_id: form.outlet_id || undefined, is_active: form.is_active } });
+            await updateUser.mutateAsync({
+                id: editItem.id,
+                payload: {
+                    name: form.name,
+                    email: form.email,
+                    role_slug: form.role_slug,
+                    outlet_id: form.outlet_id || null,
+                    is_active: form.is_active
+                }
+            });
         } else {
-            await inviteUser.mutateAsync(form);
+            await inviteUser.mutateAsync({
+                ...form,
+                outlet_id: form.outlet_id || undefined
+            });
         }
         resetForm();
         setShowForm(false);
@@ -142,14 +154,30 @@ export default function UsersPage() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-semibold text-slate-500 uppercase">Peran</label>
-                                    <select value={form.role_slug} onChange={e => setForm(f => ({ ...f, role_slug: e.target.value }))} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none bg-white">
+                                    <select
+                                        value={form.role_slug}
+                                        onChange={e => {
+                                            const role = e.target.value;
+                                            setForm(f => ({
+                                                ...f,
+                                                role_slug: role,
+                                                outlet_id: role === 'owner' ? '' : f.outlet_id
+                                            }));
+                                        }}
+                                        className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none bg-white"
+                                    >
                                         {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-slate-500 uppercase">Outlet</label>
-                                    <select value={form.outlet_id} onChange={e => setForm(f => ({ ...f, outlet_id: e.target.value }))} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none bg-white">
-                                        <option value="">Semua Outlet</option>
+                                    <select
+                                        value={form.outlet_id}
+                                        onChange={e => setForm(f => ({ ...f, outlet_id: e.target.value }))}
+                                        disabled={form.role_slug === 'owner'}
+                                        className={`w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none ${form.role_slug === 'owner' ? 'bg-slate-50 text-slate-400' : 'bg-white'}`}
+                                    >
+                                        <option value="">{form.role_slug === 'owner' ? 'Akses Semua Outlet' : 'Semua Outlet'}</option>
                                         {outlets.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                                     </select>
                                 </div>
