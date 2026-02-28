@@ -7,6 +7,7 @@ import { usePrinters, useAddPrinter, useDeletePrinter, useUpdatePrinter, useSetD
 import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
 import { usePrinterStore } from '../../app/store/usePrinterStore';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 import type { BluetoothPrinterDevice } from '../../types';
 
 export default function PrinterSettingsPage() {
@@ -16,11 +17,17 @@ export default function PrinterSettingsPage() {
     const deletePrinter = useDeletePrinter();
     const setDefault = useSetDefaultPrinter();
 
-    const { isSupported, connectPrinter } = useBluetoothPrint();
+    const { isSupported, connectPrinter, autoConnect, isConnected } = useBluetoothPrint();
 
     const [editItem, setEditItem] = useState<BluetoothPrinterDevice | null>(null);
     const [editName, setEditName] = useState('');
     const { isConnecting, activeDevice } = usePrinterStore();
+
+    useEffect(() => {
+        if (!activeDevice && printers.some(p => p.is_default)) {
+            autoConnect();
+        }
+    }, [printers, activeDevice, autoConnect]);
 
     const handleAddPrinter = async () => {
         if (!isSupported) {
@@ -155,12 +162,18 @@ export default function PrinterSettingsPage() {
                                                 <div className="flex items-center gap-2">
                                                     <p className="font-medium text-slate-900">{printer.name}</p>
                                                     {activeDevice?.id === printer.mac_address && (
-                                                        <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Connected" />
+                                                        <span className={`flex h-2 w-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} title={isConnected ? 'Connected' : 'Disconnected'} />
                                                     )}
                                                 </div>
-                                                {printer.outlet && (
-                                                    <p className="text-xs text-slate-400">{printer.outlet.name}</p>
-                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    {activeDevice?.id === printer.mac_address ? (
+                                                        <p className={`text-[10px] font-bold ${isConnected ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                                            {isConnected ? 'TERHUBUNG' : 'TERPUTUS'}
+                                                        </p>
+                                                    ) : printer.outlet && (
+                                                        <p className="text-xs text-slate-400">{printer.outlet.name}</p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -169,9 +182,20 @@ export default function PrinterSettingsPage() {
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         {printer.is_default ? (
-                                            <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                                                <CheckCircle2 size={11} /> DEFAULT
-                                            </span>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                                                    <CheckCircle2 size={11} /> DEFAULT
+                                                </span>
+                                                {(!isConnected || activeDevice?.id !== printer.mac_address) && (
+                                                    <button
+                                                        onClick={() => autoConnect()}
+                                                        disabled={isConnecting}
+                                                        className="text-[9px] font-black text-indigo-500 hover:text-indigo-700 uppercase tracking-tighter"
+                                                    >
+                                                        {isConnecting ? 'Menghubungkan...' : 'Hubungkan Kembali'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         ) : (
                                             <button
                                                 onClick={() => handleSetDefault(printer.id)}

@@ -26,7 +26,7 @@ const TypeLabel: Record<string, string> = {
 export function ReceiptModal({ receipt, onClose, autoPrint = false }: ReceiptModalProps) {
     const { isSupported, printReceipt } = useBluetoothPrint();
     const { data: printers = [] } = usePrinters();
-    const { isConnecting, lastError } = usePrinterStore();
+    const { isConnecting, lastError, isConnected } = usePrinterStore();
     const defaultPrinter = printers.find(p => p.is_default);
 
     const [status, setStatus] = useState<'idle' | 'printing' | 'done' | 'error'>('idle');
@@ -183,7 +183,14 @@ export function ReceiptModal({ receipt, onClose, autoPrint = false }: ReceiptMod
                         defaultPrinter ? (
                             <div className="flex items-center gap-2 text-xs text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2">
                                 <Bluetooth size={13} />
-                                <span>Printer default: <strong>{defaultPrinter.name}</strong></span>
+                                <span className="flex-1">Printer default: <strong>{defaultPrinter.name}</strong></span>
+                                {isConnected ? (
+                                    <span className="flex items-center gap-1.5 font-bold text-[9px] text-emerald-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> TERHUBUNG
+                                    </span>
+                                ) : (
+                                    <span className="text-[9px] font-bold text-slate-400">TERPUTUS</span>
+                                )}
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">

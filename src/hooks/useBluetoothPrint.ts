@@ -137,30 +137,61 @@ const PRINT_SERVICE_UUID       = '000018f0-0000-1000-8000-00805f9b34fb';
 const PRINT_CHARACTERISTIC_UUID = '00002af1-0000-1000-8000-00805f9b34fb';
 
 
+// Module-level cache for characteristic to speed up subsequent prints
+let characteristicCache: BluetoothRemoteGATTCharacteristic | null = null;
+
 export function useBluetoothPrint() {
     const { 
         activeDevice, setActiveDevice, 
-        setIsConnecting, setLastError 
+        isConnecting, setIsConnecting,
+        isConnected, setIsConnected,
+        lastUsedPrinterId,
+        setLastError 
     } = usePrinterStore();
 
     const isSupported = !!navigator.bluetooth;
+
+    // Handle sudden disconnections
+    const onDisconnected = useCallback((event: Event) => {
+        const device = event.target as BluetoothDevice;
+        console.warn(`Printer ${device.name || 'Unknown'} disconnected.`);
+        setIsConnected(false);
+        characteristicCache = null;
+    }, [setIsConnected]);
 
     const autoConnect = useCallback(async (): Promise<BluetoothDevice | null> => {
         if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return null;
         
         try {
             const devices = await navigator.bluetooth.getDevices();
-            // We'll take the first device that supports our print service
-            // In a better version, we'd match against the "default" printer Mac Address from API
-            const printer = devices.find(d => d.name?.toLowerCase().includes('printer') || d.name?.toLowerCase().includes('pos'));
+            console.log(`Auto-connect: Found ${devices.length} paired devices.`);
+            
+            // Prioritize the last used device ID if available
+            let printer = devices.find(d => d.id === lastUsedPrinterId);
+            
+            // Fallback to name-based heuristic
+            if (!printer) {
+                printer = devices.find(d => 
+                    d.name?.toLowerCase().includes('printer') || 
+                    d.name?.toLowerCase().includes('pos') ||
+                    d.name?.toLowerCase().includes('blue')
+                );
+            }
             
             if (printer) {
+                console.log(`Attempting to auto-connect to: ${printer.name}`);
                 if (!printer.gatt?.connected) {
                     setIsConnecting(true);
                     await printer.gatt?.connect();
                     setIsConnecting(false);
                 }
+                
+                // Ensure listener is only added once
+                printer.removeEventListener('gattserverdisconnected', onDisconnected);
+                printer.addEventListener('gattserverdisconnected', onDisconnected);
+                
                 setActiveDevice(printer);
+                setIsConnected(true);
                 return printer;
             }
             return null;
@@ -169,7 +200,7 @@ export function useBluetoothPrint() {
             setIsConnecting(false);
             return null;
         }
-    }, [setActiveDevice, setIsConnecting]);
+    }, [lastUsedPrinterId, setActiveDevice, setIsConnecting, setIsConnected, onDisconnected]);
 
     const connectPrinter = useCallback(async (): Promise<{ name: string; device: BluetoothDevice } | null> => {
         if (!navigator.bluetooth) return null;
@@ -190,7 +221,12 @@ export function useBluetoothPrint() {
                 await device.gatt?.connect();
             }
 
+            // Setup disconnection listener
+            device.removeEventListener('gattserverdisconnected', onDisconnected);
+            device.addEventListener('gattserverdisconnected', onDisconnected);
+
             setActiveDevice(device);
+            setIsConnected(true);
             setIsConnecting(false);
             return { name: device.name ?? 'Bluetooth Printer', device };
         } catch (err: any) {
@@ -199,19 +235,19 @@ export function useBluetoothPrint() {
             setLastError(err.message);
             throw err;
         }
-    }, [setActiveDevice, setIsConnecting, setLastError]);
+    }, [setActiveDevice, setIsConnecting, setIsConnected, onDisconnected, setLastError]);
 
     const printReceipt = useCallback(async (receipt: PrinterReceiptData, device?: BluetoothDevice): Promise<boolean> => {
         let target = device ?? activeDevice;
 
-        // Try auto-connect if no active device and we're starting a print job
+        // Auto-reconnect flow
         if (!target && isSupported) {
             console.log('No active device, attempting auto-reconnect...');
             target = await autoConnect();
         }
 
-        // If still no Bluetooth device, fallback to browser print
-        if (!target || !navigator.bluetooth) {
+        // Final fallback if still no device
+        if (!target) {
             console.log('No Bluetooth device found, falling back to window.print()');
             window.print();
             return false;
@@ -220,82 +256,103 @@ export function useBluetoothPrint() {
         try {
             setLastError(null);
             
-            // Reconnect if disconnected
+            // Force reconnection if GATT link is dead
             if (!target.gatt?.connected) {
-                console.log('Device disconnected, attempting GATT connect...');
+                console.log('Device disconnected, re-establishing GATT session...');
                 setIsConnecting(true);
                 await target.gatt!.connect();
                 setIsConnecting(false);
+                setIsConnected(true);
+                
+                // Re-attach listener
+                target.removeEventListener('gattserverdisconnected', onDisconnected);
+                target.addEventListener('gattserverdisconnected', onDisconnected);
             }
 
-            console.log('Discovering services...');
-            const server = target.gatt!;
             let characteristic: BluetoothRemoteGATTCharacteristic | null = null;
 
-            try {
-                const service = await server.getPrimaryService(PRINT_SERVICE_UUID);
-                characteristic = await service.getCharacteristic(PRINT_CHARACTERISTIC_UUID);
-            } catch (err) {
-                console.warn('Primary service/char not found, searching all services...', err);
-                const services = await server.getPrimaryServices();
-                for (const svc of services) {
-                    try {
-                        const chars = await svc.getCharacteristics();
-                        for (const c of chars) {
-                            if (c.properties.write || c.properties.writeWithoutResponse) {
-                                characteristic = c;
-                                console.log(`Found alternate characteristic in service: ${svc.uuid}`);
-                                break;
+            // Use cached characteristic if it's still valid for the current connection
+            if (characteristicCache && characteristicCache.service.device.id === target.id && target.gatt?.connected) {
+                console.log('Re-using cached characteristic');
+                characteristic = characteristicCache;
+            } else {
+                console.log('Discovering printer services...');
+                const server = target.gatt!;
+                
+                try {
+                    const service = await server.getPrimaryService(PRINT_SERVICE_UUID);
+                    characteristic = await service.getCharacteristic(PRINT_CHARACTERISTIC_UUID);
+                } catch (err) {
+                    console.warn('Initial service discovery failed, scanning all services...', err);
+                    const services = await server.getPrimaryServices();
+                    for (const svc of services) {
+                        try {
+                            const chars = await svc.getCharacteristics();
+                            for (const c of chars) {
+                                if (c.properties.write || c.properties.writeWithoutResponse) {
+                                    characteristic = c;
+                                    break;
+                                }
                             }
-                        }
-                    } catch (e) {
-                        console.warn(`Failed to get characteristics for service ${svc.uuid}`, e);
+                        } catch (e) {}
+                        if (characteristic) break;
                     }
-                    if (characteristic) break;
+                }
+                
+                if (characteristic) {
+                    characteristicCache = characteristic;
                 }
             }
 
             if (!characteristic) {
-                throw new Error('Printer ditukar atau tidak mendukung protokol ESC/POS via Bluetooth Low Energy.');
+                throw new Error('Printer tidak mendukung protokol ESC/POS atau servis tidak ditemukan.');
             }
 
-            console.log('Building ESC/POS data...');
+            console.log('Generating ESC/POS commands...');
             const data = buildEscPosData(receipt);
             
-            /**
-             * BLE Reliability Fix:
-             * 1. Small chunk size (20 bytes is the standard BLE MTU payload limit)
-             * 2. Small delay between chunks to prevent buffer overflow on the printer
-             */
+            // BLE Transmission parameters
             const CHUNK_SIZE = 20; 
-            const DELAY_MS = 30;
+            const DELAY_MS = 25; // Sightly faster but still safe
 
-            console.log(`Starting print job: ${data.length} bytes in ${Math.ceil(data.length / CHUNK_SIZE)} chunks`);
+            console.log(`Printing: ${data.length} bytes / ${Math.ceil(data.length / CHUNK_SIZE)} chunks`);
 
             for (let i = 0; i < data.length; i += CHUNK_SIZE) {
                 const chunk = data.slice(i, i + CHUNK_SIZE);
                 
-                if (characteristic.properties.writeWithoutResponse) {
-                    await characteristic.writeValueWithoutResponse(chunk);
-                } else {
-                    await characteristic.writeValue(chunk);
+                try {
+                    if (characteristic.properties.writeWithoutResponse) {
+                        await characteristic.writeValueWithoutResponse(chunk);
+                    } else {
+                        await characteristic.writeValue(chunk);
+                    }
+                } catch (writeErr: any) {
+                    // If write fails, clear cache and re-throw
+                    characteristicCache = null;
+                    throw writeErr;
                 }
 
-                // Wait a bit before next chunk
                 if (i + CHUNK_SIZE < data.length) {
                     await new Promise(resolve => setTimeout(resolve, DELAY_MS));
                 }
             }
 
-            console.log('Print job sent successfully.');
+            console.log('Print success.');
             return true;
         } catch (err: any) {
-            console.error('Print error details:', err);
-            setLastError(err.message || 'GATT Error.');
+            console.error('Bluetooth Print Error:', err);
+            
+            // If it's a "GATT Operation failed", it usually means a stale connection
+            if (err.message?.includes('GATT')) {
+                setIsConnected(false);
+                characteristicCache = null;
+            }
+            
+            setLastError(err.message || 'Bluetooth Error.');
             setIsConnecting(false);
             throw err;
         }
-    }, [activeDevice, isSupported, autoConnect, setIsConnecting, setLastError]);
+    }, [activeDevice, isSupported, autoConnect, setIsConnecting, setIsConnected, onDisconnected, setLastError]);
 
-    return { isSupported, connectPrinter, printReceipt, autoConnect };
+    return { isSupported, connectPrinter, printReceipt, autoConnect, isConnecting, isConnected };
 }
