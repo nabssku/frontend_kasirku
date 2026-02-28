@@ -22,8 +22,12 @@ import {
     FileText,
     ChevronDown,
     ChevronRight,
+    Wifi,
+    WifiOff,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
+import { Network } from '@capacitor/network';
+import type { ConnectionStatus } from '@capacitor/network';
 
 interface NavItem {
     name: string;
@@ -114,6 +118,25 @@ export const DashboardLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
+    const [networkStatus, setNetworkStatus] = useState<ConnectionStatus | null>(null);
+
+    // Network status listener
+    useEffect(() => {
+        const initNetwork = async () => {
+            const status = await Network.getStatus();
+            setNetworkStatus(status);
+        };
+
+        initNetwork();
+
+        const listener = Network.addListener('networkStatusChange', (status) => {
+            setNetworkStatus(status);
+        });
+
+        return () => {
+            listener.then(l => l.remove());
+        };
+    }, []);
 
     const handleLogout = async () => {
         await logout();
@@ -338,6 +361,30 @@ export const DashboardLayout = () => {
                     <h2 className="text-sm md:text-base font-semibold text-slate-900 capitalize truncate">
                         {location.pathname.split('/').filter(Boolean).join(' / ') || 'Dashboard'}
                     </h2>
+
+                    <div className="ml-auto flex items-center gap-4">
+                        {networkStatus && (
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${networkStatus.connected
+                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                : 'bg-red-50 text-red-600 border-red-100 animate-pulse'
+                                }`}>
+                                {networkStatus.connected ? <Wifi size={14} /> : <WifiOff size={14} />}
+                                <span className="hidden sm:inline">
+                                    {networkStatus.connected ? 'Online' : 'Offline'}
+                                </span>
+                            </div>
+                        )}
+
+                        <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-100">
+                            <div className="text-right">
+                                <p className="text-xs font-bold text-slate-900 leading-none">{user?.name}</p>
+                                <p className="text-[10px] text-slate-400 font-medium mt-1">{user?.roles?.[0]?.name}</p>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                {user?.name?.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                    </div>
                 </header>
                 <div className="flex-1 overflow-y-auto p-4 md:p-8">
                     <Outlet />

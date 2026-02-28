@@ -3,6 +3,7 @@ import { useCartStore } from '../../../app/store/useCartStore';
 import type { Product, Modifier } from '../../../types';
 import { useState } from 'react';
 import { ModifierPicker } from './ModifierPicker';
+import { triggerHaptic } from '../../../utils/capacitor';
 
 interface ProductCardProps {
     product: Product;
@@ -16,6 +17,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         if (product.modifier_groups && product.modifier_groups.length > 0) {
             setShowModifiers(true);
         } else {
+            triggerHaptic();
             addItem({
                 id: product.id,
                 name: product.name,
@@ -26,6 +28,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     };
 
     const onModifierConfirm = (mods: Modifier[]) => {
+        triggerHaptic();
         addItem({
             id: product.id,
             name: product.name,

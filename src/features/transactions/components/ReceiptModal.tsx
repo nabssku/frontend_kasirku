@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, Printer, Bluetooth, BluetoothOff, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, Printer, Bluetooth, BluetoothOff, Loader2, CheckCircle2, Share2 } from 'lucide-react';
 import type { PrinterReceiptData } from '../../../types';
 import { useBluetoothPrint } from '../../../hooks/useBluetoothPrint';
 import { usePrinters } from '../../../hooks/usePrinters';
 import { usePrinterStore } from '../../../app/store/usePrinterStore';
+import { shareContent } from '../../../utils/capacitor';
 
 interface ReceiptModalProps {
     receipt: PrinterReceiptData | null;
@@ -42,13 +43,41 @@ export function ReceiptModal({ receipt, onClose, autoPrint = false }: ReceiptMod
             if (success) {
                 setStatus('done');
             } else {
-                // Fallback used (window.print)
                 setStatus('idle');
             }
         } catch (err: any) {
             setErrorMsg(err.message ?? 'Print gagal.');
             setStatus('error');
         }
+    };
+
+    const handleShare = async () => {
+        if (!receipt) return;
+
+        const storeName = receipt.receipt_settings?.store_name || receipt.store_name;
+        const itemsText = receipt.items.map(item =>
+            `${item.name}\n${item.quantity} x ${fmt(item.price)} = ${fmt(item.subtotal)}`
+        ).join('\n');
+
+        const shareText = `
+*${storeName}*
+${receipt.store_address || ''}
+${receipt.store_phone ? 'Tel: ' + receipt.store_phone : ''}
+--------------------------------
+No: ${receipt.invoice_number}
+Tgl: ${receipt.date}
+--------------------------------
+${itemsText}
+--------------------------------
+Subtotal: ${fmt(receipt.subtotal)}
+Diskon: -${fmt(receipt.discount)}
+Pajak: ${fmt(receipt.tax)}
+*TOTAL: ${fmt(receipt.grand_total)}*
+--------------------------------
+Terima kasih!
+`.trim();
+
+        await shareContent(`Struk ${receipt.invoice_number}`, shareText);
     };
 
     // Auto-print via browser window.print() or Bluetooth when modal opens
@@ -232,13 +261,19 @@ export function ReceiptModal({ receipt, onClose, autoPrint = false }: ReceiptMod
                         <button
                             onClick={handlePrint}
                             disabled={status === 'printing'}
-                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-60 flex-1"
                         >
                             {status === 'printing' ? (
                                 <><Loader2 size={15} className="animate-spin" /> Mencetak...</>
                             ) : (
-                                <><Printer size={15} /> Print Struk</>
+                                <><Printer size={15} /> Print</>
                             )}
+                        </button>
+                        <button
+                            onClick={handleShare}
+                            className="border border-indigo-200 text-indigo-600 p-2.5 rounded-xl text-sm font-bold hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Share2 size={15} /> Bagikan
                         </button>
                     </div>
                 </div>

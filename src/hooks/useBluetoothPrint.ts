@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import type { PrinterReceiptData } from '../types';
 import { usePrinterStore } from '../app/store/usePrinterStore';
+import { BleClient, numbersToDataView } from '@capacitor-community/bluetooth-le';
+import { isNative } from '../utils/capacitor';
 
 // ESC/POS commands
 const ESC = 0x1b;
@@ -37,11 +39,7 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
     const centerOn  = new Uint8Array([ESC, 0x61, 0x01]);            // Center align
     const leftOn    = new Uint8Array([ESC, 0x61, 0x00]);            // Left align
     
-    // Using ESC ! n (Select print mode) instead of GS ! n for better compatibility
-    // Bits: 0: font B, 3: bold, 4: double height, 5: double width
     const sizeSmall  = new Uint8Array([ESC, 0x21, 0x00]);           // Font A, Normal
-    
-    // Combined modes for store name
     const boldSmall  = new Uint8Array([ESC, 0x21, 0x08]);
     const boldMedium = new Uint8Array([ESC, 0x21, 0x18]);
     const boldLarge  = new Uint8Array([ESC, 0x21, 0x38]);
@@ -55,7 +53,7 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
     if (settings?.font_size === 'small') storeMode = boldSmall;
     if (settings?.font_size === 'medium') storeMode = boldMedium;
 
-    const paperWidth = settings?.paper_width || 32; // Default for 58mm. Could be 48 for 80mm.
+    const paperWidth = settings?.paper_width || 32;
     const separator = textToBytes('-'.repeat(paperWidth) + '\n');
 
     const paymentLabel: Record<string, string> = {
@@ -66,24 +64,15 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
         dine_in: 'Dine In', takeaway: 'Bungkus', delivery: 'Delivery',
     };
 
-    console.log('Build print data with settings:', settings);
-
     const lines: Uint8Array[] = [
         init,
-        // Header/Store Identity
         alignCmd, storeMode,
         textToBytes((settings?.store_name || receipt.store_name) + '\n'),
-        
-        sizeSmall, // Reset to normal size for secondary info
+        sizeSmall,
         receipt.store_address ? textToBytes(receipt.store_address + '\n') : new Uint8Array(0),
         receipt.store_phone ? textToBytes('Tel: ' + receipt.store_phone + '\n') : new Uint8Array(0),
-        
-        // Header Text
         settings?.header_text ? concat(LF, textToBytes(settings.header_text + '\n')) : new Uint8Array(0),
-        
         separator,
-
-        // Invoice header
         leftOn, sizeSmall,
         textToBytes(`No: ${receipt.invoice_number}\n`),
         textToBytes(`Tgl: ${receipt.date}\n`),
@@ -91,15 +80,11 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
         textToBytes(`Pelanggan: ${receipt.customer}\n`),
         receipt.type ? textToBytes(`Tipe: ${typeLabel[receipt.type] ?? receipt.type}\n`) : new Uint8Array(0),
         separator,
-
-        // Items
         ...receipt.items.flatMap(item => [
             textToBytes(`${item.name}\n`),
             textToBytes(padLine(`  ${item.quantity} x ${formatCurrency(item.price)}`, formatCurrency(item.subtotal), paperWidth) + '\n'),
         ] as Uint8Array[]),
         separator,
-
-        // Totals
         textToBytes(padLine('Subtotal', formatCurrency(receipt.subtotal), paperWidth) + '\n'),
         receipt.discount > 0
             ? textToBytes(padLine('Diskon', `-${formatCurrency(receipt.discount)}`, paperWidth) + '\n')
@@ -109,22 +94,17 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
             : new Uint8Array(0),
         textToBytes(padLine(`Pajak (${receipt.tax_rate}%)`, formatCurrency(receipt.tax), paperWidth) + '\n'),
         separator,
-
         boldMedium,
         textToBytes(padLine('TOTAL', formatCurrency(receipt.grand_total), paperWidth) + '\n'),
         sizeSmall,
-
         textToBytes(padLine('Bayar', formatCurrency(receipt.paid_amount), paperWidth) + '\n'),
         textToBytes(padLine('Kembali', formatCurrency(receipt.change_amount), paperWidth) + '\n'),
         textToBytes(padLine('Metode', paymentLabel[receipt.payment_method] ?? receipt.payment_method, paperWidth) + '\n'),
         separator,
-
-        // Footer
         alignCmd, sizeSmall,
         settings?.footer_text 
             ? textToBytes(settings.footer_text + '\n') 
             : textToBytes('Terima kasih!\nSelamat datang kembali :)\n'),
-        
         LF, LF, LF,
         cutPaper,
     ];
@@ -132,12 +112,9 @@ function buildEscPosData(receipt: PrinterReceiptData): Uint8Array {
     return concat(...lines.filter(a => a.length > 0));
 }
 
-// Service UUID for generic Bluetooth serial printers (Epson, ZJ-58, etc.)
 const PRINT_SERVICE_UUID       = '000018f0-0000-1000-8000-00805f9b34fb';
 const PRINT_CHARACTERISTIC_UUID = '00002af1-0000-1000-8000-00805f9b34fb';
 
-
-// Module-level cache for characteristic to speed up subsequent prints
 let characteristicCache: BluetoothRemoteGATTCharacteristic | null = null;
 
 export function useBluetoothPrint() {
@@ -149,62 +126,89 @@ export function useBluetoothPrint() {
         setLastError 
     } = usePrinterStore();
 
-    const isSupported = !!navigator.bluetooth;
+    const isSupported = isNative ? true : !!navigator.bluetooth;
 
-    // Handle sudden disconnections
-    const onDisconnected = useCallback((event: Event) => {
-        const device = event.target as BluetoothDevice;
-        console.warn(`Printer ${device.name || 'Unknown'} disconnected.`);
+    const onDisconnected = useCallback(() => {
+        console.warn(`Printer disconnected.`);
         setIsConnected(false);
         characteristicCache = null;
     }, [setIsConnected]);
 
-    const autoConnect = useCallback(async (): Promise<BluetoothDevice | null> => {
+    const autoConnect = useCallback(async (): Promise<any | null> => {
+        if (isNative) {
+            try {
+                await BleClient.initialize();
+                if (lastUsedPrinterId) {
+                    await BleClient.connect(lastUsedPrinterId, onDisconnected);
+                    const device = { id: lastUsedPrinterId, name: 'Saved Printer' };
+                    setActiveDevice(device);
+                    setIsConnected(true);
+                    return device;
+                }
+            } catch (e) {
+                console.warn('Capacitor Auto-connect failed', e);
+            }
+            return null;
+        }
+
         if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return null;
-        
         try {
             const devices = await navigator.bluetooth.getDevices();
-            console.log(`Auto-connect: Found ${devices.length} paired devices.`);
-            
-            // Prioritize the last used device ID if available
             let printer = devices.find(d => d.id === lastUsedPrinterId);
-            
-            // Fallback to name-based heuristic
             if (!printer) {
                 printer = devices.find(d => 
                     d.name?.toLowerCase().includes('printer') || 
-                    d.name?.toLowerCase().includes('pos') ||
-                    d.name?.toLowerCase().includes('blue')
+                    d.name?.toLowerCase().includes('pos')
                 );
             }
-            
             if (printer) {
-                console.log(`Attempting to auto-connect to: ${printer.name}`);
                 if (!printer.gatt?.connected) {
                     setIsConnecting(true);
                     await printer.gatt?.connect();
                     setIsConnecting(false);
                 }
-                
-                // Ensure listener is only added once
                 printer.removeEventListener('gattserverdisconnected', onDisconnected);
                 printer.addEventListener('gattserverdisconnected', onDisconnected);
-                
                 setActiveDevice(printer);
                 setIsConnected(true);
                 return printer;
             }
             return null;
         } catch (err) {
-            console.error('Auto-connect error:', err);
             setIsConnecting(false);
             return null;
         }
     }, [lastUsedPrinterId, setActiveDevice, setIsConnecting, setIsConnected, onDisconnected]);
 
-    const connectPrinter = useCallback(async (): Promise<{ name: string; device: BluetoothDevice } | null> => {
-        if (!navigator.bluetooth) return null;
+    const connectPrinter = useCallback(async (): Promise<any | null> => {
         setLastError(null);
+        if (isNative) {
+            try {
+                setIsConnecting(true);
+                await BleClient.initialize();
+                const device = await BleClient.requestDevice({
+                    services: [PRINT_SERVICE_UUID],
+                    optionalServices: [PRINT_SERVICE_UUID],
+                }).catch(async () => {
+                    return await BleClient.requestDevice({
+                        // No filters fallback
+                    });
+                });
+
+                await BleClient.connect(device.deviceId, onDisconnected);
+                const devObj = { id: device.deviceId, name: device.name || 'BT Printer', native: true };
+                setActiveDevice(devObj);
+                setIsConnected(true);
+                setIsConnecting(false);
+                return { name: devObj.name, device: devObj };
+            } catch (err: any) {
+                setIsConnecting(false);
+                setLastError(err.message);
+                throw err;
+            }
+        }
+
+        if (!navigator.bluetooth) return null;
         try {
             setIsConnecting(true);
             const device = await navigator.bluetooth.requestDevice({
@@ -220,8 +224,6 @@ export function useBluetoothPrint() {
             if (!device.gatt?.connected) {
                 await device.gatt?.connect();
             }
-
-            // Setup disconnection listener
             device.removeEventListener('gattserverdisconnected', onDisconnected);
             device.addEventListener('gattserverdisconnected', onDisconnected);
 
@@ -237,53 +239,79 @@ export function useBluetoothPrint() {
         }
     }, [setActiveDevice, setIsConnecting, setIsConnected, onDisconnected, setLastError]);
 
-    const printReceipt = useCallback(async (receipt: PrinterReceiptData, device?: BluetoothDevice): Promise<boolean> => {
+    const printReceipt = useCallback(async (receipt: PrinterReceiptData, device?: any): Promise<boolean> => {
         let target = device ?? activeDevice;
 
-        // Auto-reconnect flow
         if (!target && isSupported) {
-            console.log('No active device, attempting auto-reconnect...');
             target = await autoConnect();
         }
 
-        // Final fallback if still no device
         if (!target) {
-            console.log('No Bluetooth device found, falling back to window.print()');
-            window.print();
+            if (!isNative) window.print();
             return false;
         }
 
         try {
             setLastError(null);
-            
-            // Force reconnection if GATT link is dead
+            const data = buildEscPosData(receipt);
+
+            if (isNative || target.native) {
+                const deviceId = target.id;
+                await BleClient.initialize();
+                
+                // Ensure connected
+                try {
+                    await BleClient.connect(deviceId, onDisconnected);
+                } catch (e) {}
+
+                const services = await BleClient.getServices(deviceId);
+                let characteristicId = PRINT_CHARACTERISTIC_UUID;
+                let serviceId = PRINT_SERVICE_UUID;
+
+                // Heuristic for characteristic if default UUIDs fail
+                const printService = services.find(s => s.uuid === PRINT_SERVICE_UUID);
+                if (!printService) {
+                    for (const s of services) {
+                        const char = s.characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
+                        if (char) {
+                            serviceId = s.uuid;
+                            characteristicId = char.uuid;
+                            break;
+                        }
+                    }
+                }
+
+                // Capacitor LE handles MTU/batching better, but small chunks are safer
+                const CHUNK_SIZE = 20;
+                for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+                    const chunk = data.slice(i, i + CHUNK_SIZE);
+                    await BleClient.writeWithoutResponse(deviceId, serviceId, characteristicId, numbersToDataView(Array.from(chunk)));
+                    if (i + CHUNK_SIZE < data.length) {
+                        await new Promise(r => setTimeout(r, 15));
+                    }
+                }
+                return true;
+            }
+
+            // Web Bluetooth logic
             if (!target.gatt?.connected) {
-                console.log('Device disconnected, re-establishing GATT session...');
                 setIsConnecting(true);
                 await target.gatt!.connect();
                 setIsConnecting(false);
                 setIsConnected(true);
-                
-                // Re-attach listener
                 target.removeEventListener('gattserverdisconnected', onDisconnected);
                 target.addEventListener('gattserverdisconnected', onDisconnected);
             }
 
             let characteristic: BluetoothRemoteGATTCharacteristic | null = null;
-
-            // Use cached characteristic if it's still valid for the current connection
             if (characteristicCache && characteristicCache.service.device.id === target.id && target.gatt?.connected) {
-                console.log('Re-using cached characteristic');
                 characteristic = characteristicCache;
             } else {
-                console.log('Discovering printer services...');
                 const server = target.gatt!;
-                
                 try {
                     const service = await server.getPrimaryService(PRINT_SERVICE_UUID);
                     characteristic = await service.getCharacteristic(PRINT_CHARACTERISTIC_UUID);
                 } catch (err) {
-                    console.warn('Initial service discovery failed, scanning all services...', err);
                     const services = await server.getPrimaryServices();
                     for (const svc of services) {
                         try {
@@ -298,56 +326,26 @@ export function useBluetoothPrint() {
                         if (characteristic) break;
                     }
                 }
-                
-                if (characteristic) {
-                    characteristicCache = characteristic;
-                }
+                if (characteristic) characteristicCache = characteristic;
             }
 
-            if (!characteristic) {
-                throw new Error('Printer tidak mendukung protokol ESC/POS atau servis tidak ditemukan.');
-            }
+            if (!characteristic) throw new Error('Characteristic not found');
 
-            console.log('Generating ESC/POS commands...');
-            const data = buildEscPosData(receipt);
-            
-            // BLE Transmission parameters
-            const CHUNK_SIZE = 20; 
-            const DELAY_MS = 25; // Sightly faster but still safe
-
-            console.log(`Printing: ${data.length} bytes / ${Math.ceil(data.length / CHUNK_SIZE)} chunks`);
-
+            const CHUNK_SIZE = 20;
+            const DELAY_MS = 25;
             for (let i = 0; i < data.length; i += CHUNK_SIZE) {
                 const chunk = data.slice(i, i + CHUNK_SIZE);
-                
-                try {
-                    if (characteristic.properties.writeWithoutResponse) {
-                        await characteristic.writeValueWithoutResponse(chunk);
-                    } else {
-                        await characteristic.writeValue(chunk);
-                    }
-                } catch (writeErr: any) {
-                    // If write fails, clear cache and re-throw
-                    characteristicCache = null;
-                    throw writeErr;
+                if (characteristic.properties.writeWithoutResponse) {
+                    await characteristic.writeValueWithoutResponse(chunk);
+                } else {
+                    await characteristic.writeValue(chunk);
                 }
-
-                if (i + CHUNK_SIZE < data.length) {
-                    await new Promise(resolve => setTimeout(resolve, DELAY_MS));
-                }
+                if (i + CHUNK_SIZE < data.length) await new Promise(r => setTimeout(r, DELAY_MS));
             }
 
-            console.log('Print success.');
             return true;
         } catch (err: any) {
             console.error('Bluetooth Print Error:', err);
-            
-            // If it's a "GATT Operation failed", it usually means a stale connection
-            if (err.message?.includes('GATT')) {
-                setIsConnected(false);
-                characteristicCache = null;
-            }
-            
             setLastError(err.message || 'Bluetooth Error.');
             setIsConnecting(false);
             throw err;

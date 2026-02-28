@@ -2,12 +2,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface PrinterState {
-    activeDevice: BluetoothDevice | null;
+    activeDevice: any | null;
     lastUsedPrinterId: string | null;
     isConnecting: boolean;
     isConnected: boolean;
     lastError: string | null;
-    setActiveDevice: (device: BluetoothDevice | null) => void;
+    setActiveDevice: (device: any | null) => void;
     setIsConnecting: (status: boolean) => void;
     setIsConnected: (status: boolean) => void;
     setLastError: (error: string | null) => void;
