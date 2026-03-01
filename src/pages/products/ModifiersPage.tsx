@@ -3,8 +3,24 @@ import { Plus, Pencil, Trash2, ListTree } from 'lucide-react';
 
 import { useModifierGroups, useCreateModifierGroup, useUpdateModifierGroup, useDeleteModifierGroup, useCreateModifier, useUpdateModifier, useDeleteModifier } from '../../hooks/useModifiers';
 import type { ModifierGroup, Modifier } from '../../types';
+import { useBusinessType } from '../../hooks/useBusinessType';
+import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 export default function ModifiersPage() {
+    const { isFnb } = useBusinessType();
+
+    useEffect(() => {
+        if (!isFnb) {
+            toast.error('Halaman Modifiers tidak tersedia untuk outlet Retail.');
+        }
+    }, [isFnb]);
+
+    if (!isFnb) {
+        return <Navigate to="/products" replace />;
+    }
+
     const { data: groups = [], isLoading } = useModifierGroups();
     const createGroup = useCreateModifierGroup();
     const updateGroup = useUpdateModifierGroup();

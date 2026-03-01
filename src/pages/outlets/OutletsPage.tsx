@@ -15,17 +15,17 @@ export default function OutletsPage() {
     const [editItem, setEditItem] = useState<Outlet | null>(null);
     const [form, setForm] = useState({
         name: '', address: '', phone: '', email: '',
-        tax_rate: 11, service_charge: 0, is_active: true,
+        tax_rate: 11, service_charge: 0, is_active: true, business_type: 'fnb' as 'fnb' | 'retail',
     });
 
     const resetForm = () => {
-        setForm({ name: '', address: '', phone: '', email: '', tax_rate: 11, service_charge: 0, is_active: true });
+        setForm({ name: '', address: '', phone: '', email: '', tax_rate: 11, service_charge: 0, is_active: true, business_type: 'fnb' });
         setEditItem(null);
     };
 
     const openEdit = (item: Outlet) => {
         setEditItem(item);
-        setForm({ name: item.name, address: item.address ?? '', phone: item.phone ?? '', email: item.email ?? '', tax_rate: item.tax_rate, service_charge: item.service_charge, is_active: item.is_active });
+        setForm({ name: item.name, address: item.address ?? '', phone: item.phone ?? '', email: item.email ?? '', tax_rate: item.tax_rate, service_charge: item.service_charge, is_active: item.is_active, business_type: item.business_type ?? 'fnb' });
         setShowForm(true);
     };
 
@@ -74,9 +74,15 @@ export default function OutletsPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-slate-900">{outlet.name}</h3>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${outlet.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                                        {outlet.is_active ? 'Aktif' : 'Nonaktif'}
-                                    </span>
+                                    <div className="flex items-center gap-2 flex-wrap mt-1">
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${outlet.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                                            {outlet.is_active ? 'Aktif' : 'Nonaktif'}
+                                        </span>
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${outlet.business_type === 'retail' ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-700'
+                                            }`}>
+                                            {outlet.business_type === 'retail' ? '🛍️ Retail' : '🍽️ FNB'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div className="space-y-1.5 text-sm text-slate-600">
@@ -125,6 +131,36 @@ export default function OutletsPage() {
                                     <input value={(form as Record<string, unknown>)[key] as string} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none" placeholder={placeholder} />
                                 </div>
                             ))}
+                            <div className="space-y-3">
+                                <label className="block text-xs font-semibold text-slate-500 uppercase">Tipe Bisnis</label>
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setForm(f => ({ ...f, business_type: 'fnb' }))}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${form.business_type === 'fnb'
+                                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                            : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                            }`}
+                                    >
+                                        🍽️ FNB
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setForm(f => ({ ...f, business_type: 'retail' }))}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${form.business_type === 'retail'
+                                            ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                            : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                            }`}
+                                    >
+                                        🛍️ Retail
+                                    </button>
+                                </div>
+                                <p className="text-xs text-slate-400">
+                                    {form.business_type === 'fnb'
+                                        ? 'Aktifkan fitur Dine In, Meja, Kitchen Display, dan Modifier'
+                                        : 'Tampilan POS disederhanakan, tanpa meja & kitchen display'}
+                                </p>
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-semibold text-slate-500 uppercase">Pajak (%)</label>
@@ -152,3 +188,4 @@ export default function OutletsPage() {
         </div>
     );
 }
+

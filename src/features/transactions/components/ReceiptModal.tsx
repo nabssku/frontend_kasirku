@@ -73,6 +73,7 @@ Subtotal: ${fmt(receipt.subtotal)}
 Diskon: -${fmt(receipt.discount)}
 Pajak: ${fmt(receipt.tax)}
 *TOTAL: ${fmt(receipt.grand_total)}*
+${receipt.notes ? `\nCatatan: ${receipt.notes}` : ''}
 --------------------------------
 Terima kasih!
 `.trim();
@@ -194,6 +195,9 @@ Terima kasih!
 
                         <p className="border-t border-dashed border-slate-300 pt-1 mt-1">--------------------------------</p>
                         <div className={receipt.receipt_settings?.alignment === 'center' ? 'text-center' : 'text-left'}>
+                            {receipt.notes && (
+                                <p className="mb-2 italic text-slate-500">Note: {receipt.notes}</p>
+                            )}
                             {receipt.receipt_settings?.footer_text ? (
                                 <p className="whitespace-pre-wrap">{receipt.receipt_settings.footer_text}</p>
                             ) : (

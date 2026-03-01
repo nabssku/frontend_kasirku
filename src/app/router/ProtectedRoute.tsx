@@ -9,8 +9,17 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-    const { isAuthenticated, user } = useAuthStore();
+    const { isAuthenticated, user, isInitializing } = useAuthStore();
     const location = useLocation();
+
+    // While verifying auth status, don't redirect yet
+    if (isInitializing) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     if (!isAuthenticated) {
         return <Navigate to="/login" state={{ from: location }} replace />;

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Table2, Users, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Table2, Users, Loader2, ShoppingBag } from 'lucide-react';
 import { useTables, useCreateTable, useUpdateTable, useDeleteTable, useUpdateTableStatus } from '../../hooks/useTables';
 import type { RestaurantTable } from '../../types';
+import { useBusinessType } from '../../hooks/useBusinessType';
 
 const STATUS_COLORS = {
     available: { bg: 'bg-green-100', text: 'text-green-700', label: 'Tersedia' },
@@ -11,6 +12,7 @@ const STATUS_COLORS = {
 } as const;
 
 export default function TablesPage() {
+    const { isRetail } = useBusinessType();
     const { data: tables = [], isLoading } = useTables();
     const createTable = useCreateTable();
     const updateTable = useUpdateTable();
@@ -48,6 +50,24 @@ export default function TablesPage() {
 
     // Group by floor
     const floors = [...new Set(tables.map(t => t.floor ?? 'Other'))];
+
+    // Retail guard
+    if (isRetail) {
+        return (
+            <div className="flex flex-col items-center justify-center py-24 text-center gap-6">
+                <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center ring-8 ring-purple-50/50">
+                    <ShoppingBag size={44} className="text-purple-400" />
+                </div>
+                <div className="space-y-2">
+                    <h2 className="text-xl font-black text-slate-800">Fitur Tidak Tersedia</h2>
+                    <p className="text-sm text-slate-500 max-w-sm">
+                        Manajemen meja hanya tersedia untuk bisnis tipe <span className="font-bold text-indigo-600">FNB</span>.
+                        Ubah tipe bisnis outlet Anda di halaman <span className="font-bold">Outlet</span> untuk mengaktifkan fitur ini.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

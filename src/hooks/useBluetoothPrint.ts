@@ -186,6 +186,7 @@ async function buildEscPosData(receipt: PrinterReceiptData): Promise<Uint8Array>
         textToBytes(padLine('Metode', paymentLabel[receipt.payment_method] ?? receipt.payment_method, paperWidth) + '\n'),
         separator,
         alignCmd, sizeSmall,
+        receipt.notes ? textToBytes(`Note: ${receipt.notes}\n\n`) : new Uint8Array(0),
         settings?.footer_text 
             ? textToBytes(settings.footer_text + '\n') 
             : textToBytes('Terima kasih!\nSelamat datang kembali :)\n'),

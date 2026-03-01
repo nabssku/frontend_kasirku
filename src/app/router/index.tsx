@@ -39,9 +39,12 @@ import type { UserRole } from '../../types';
 
 // ─── Role groups ──────────────────────────────────────────────────────────────
 const ADMIN_ROLES: UserRole[] = ['super_admin', 'owner', 'admin'];
-const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'owner', 'admin', 'cashier'];
-const KITCHEN_ROLES: UserRole[] = ['super_admin', 'owner', 'admin', 'kitchen', 'cashier'];
+const ADMIN_ONLY_ROLES: UserRole[] = ['super_admin', 'admin']; // Explicitly excludes owner
+const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier']; // Non-owner operational staff
+const KITCHEN_ROLES: UserRole[] = ['super_admin', 'admin', 'kitchen', 'cashier'];
 const OWNER_ROLES: UserRole[] = ['super_admin', 'owner'];
+const POS_ROLES: UserRole[] = ['super_admin', 'cashier']; // Terminal POS focus on cashiers
+const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin']; // Operational config
 const SUPER_ADMIN_ROLES: UserRole[] = ['super_admin'];
 
 export const router = createBrowserRouter([
@@ -85,10 +88,10 @@ export const router = createBrowserRouter([
         children: [
             // Accessible to all authenticated users
             { path: 'dashboard', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardPage /></ProtectedRoute> },
-            { path: 'pos', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><POSPage /></ProtectedRoute> },
+            { path: 'pos', element: <ProtectedRoute allowedRoles={POS_ROLES}><POSPage /></ProtectedRoute> },
 
-            // Operational (cashier+)
-            { path: 'transactions', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><TransactionHistoryPage /></ProtectedRoute> },
+            // Operational
+            { path: 'transactions', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><TransactionHistoryPage /></ProtectedRoute> },
             { path: 'tables', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><TablesPage /></ProtectedRoute> },
             { path: 'kitchen', element: <ProtectedRoute allowedRoles={KITCHEN_ROLES}><KitchenDisplayPage /></ProtectedRoute> },
             { path: 'shifts', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><ShiftPage /></ProtectedRoute> },
@@ -97,31 +100,31 @@ export const router = createBrowserRouter([
             {
                 path: 'products',
                 children: [
-                    { path: '', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ProductsPage /></ProtectedRoute> },
-                    { path: 'new', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ProductFormPage /></ProtectedRoute> },
-                    { path: ':id', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ProductFormPage /></ProtectedRoute> },
-                    { path: ':id/recipe', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><RecipePage /></ProtectedRoute> },
+                    { path: '', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ProductsPage /></ProtectedRoute> },
+                    { path: 'new', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ProductFormPage /></ProtectedRoute> },
+                    { path: ':id', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ProductFormPage /></ProtectedRoute> },
+                    { path: ':id/recipe', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><RecipePage /></ProtectedRoute> },
                 ],
             },
-            { path: 'categories', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><CategoriesPage /></ProtectedRoute> },
+            { path: 'categories', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><CategoriesPage /></ProtectedRoute> },
             {
                 path: 'expenses',
                 children: [
-                    { path: '', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><ExpensesPage /></ProtectedRoute> },
-                    { path: 'categories', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ExpenseCategoriesPage /></ProtectedRoute> },
+                    { path: '', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ExpensesPage /></ProtectedRoute> },
+                    { path: 'categories', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ExpenseCategoriesPage /></ProtectedRoute> },
                 ]
             },
-            { path: 'modifiers', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ModifiersPage /></ProtectedRoute> },
-            { path: 'ingredients', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><IngredientsPage /></ProtectedRoute> },
-            { path: 'customers', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><CustomersPage /></ProtectedRoute> },
+            { path: 'modifiers', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ModifiersPage /></ProtectedRoute> },
+            { path: 'ingredients', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><IngredientsPage /></ProtectedRoute> },
+            { path: 'customers', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><CustomersPage /></ProtectedRoute> },
 
             // Management (admin+)
             { path: 'outlets', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><OutletsPage /></ProtectedRoute> },
-            { path: 'users', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><UsersPage /></ProtectedRoute> },
+            { path: 'users', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><UsersPage /></ProtectedRoute> },
             { path: 'reports', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ReportsPage /></ProtectedRoute> },
             { path: 'subscription', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><TenantPage /></ProtectedRoute> },
-            { path: 'settings/printer', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><PrinterSettingsPage /></ProtectedRoute> },
-            { path: 'settings/receipt', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ReceiptSettingsPage /></ProtectedRoute> },
+            { path: 'settings/printer', element: <ProtectedRoute allowedRoles={CONFIG_ROLES}><PrinterSettingsPage /></ProtectedRoute> },
+            { path: 'settings/receipt', element: <ProtectedRoute allowedRoles={CONFIG_ROLES}><ReceiptSettingsPage /></ProtectedRoute> },
             { path: 'settings/audit-log', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><AuditLogPage /></ProtectedRoute> },
         ],
     },

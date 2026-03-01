@@ -13,6 +13,7 @@ interface CartHeaderProps {
     setShowResumeModal: (show: boolean) => void;
     itemsCount: number;
     handleResetAll: () => void;
+    isFnb: boolean;
 }
 
 export const CartHeader = ({
@@ -25,7 +26,8 @@ export const CartHeader = ({
     pendingTransactionsCount,
     setShowResumeModal,
     itemsCount,
-    handleResetAll
+    handleResetAll,
+    isFnb
 }: CartHeaderProps) => {
     const tableName = tableId && tables ? tables.find(t => t.id === tableId)?.name : tableId;
 
@@ -68,7 +70,10 @@ export const CartHeader = ({
                         onClick={() => setShowOrderModal(true)}
                         className="flex items-center gap-2 mt-2 px-2 py-1 rounded-lg hover:bg-indigo-50 text-indigo-500 transition-all text-[10px] font-bold uppercase tracking-widest border border-transparent hover:border-indigo-100 w-fit"
                     >
-                        {orderType === 'dine_in' ? (tableName ? `Meja ${tableName}` : 'Pilih Meja') : orderType.replace('_', ' ')}
+                        {isFnb
+                            ? (orderType === 'dine_in' ? (tableName ? `Meja ${tableName}` : 'Pilih Meja') : orderType.replace('_', ' '))
+                            : (orderType === 'walk_in' ? 'Walk-In' : orderType === 'online' ? 'Online' : orderType.replace('_', ' '))
+                        }
                         <ChevronDown size={12} strokeWidth={3} />
                     </button>
                 )}

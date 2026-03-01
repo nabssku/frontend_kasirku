@@ -4,7 +4,9 @@ import { Plus, Trash2, ArrowLeft, Save, Loader2, Info, Beef, Package } from 'luc
 import { useProducts } from '../../hooks/useProducts';
 import { useIngredients } from '../../hooks/useIngredients';
 import { useRecipe, useUpsertRecipe, useDeleteRecipe } from '../../hooks/useRecipes';
+import { useBusinessType } from '../../hooks/useBusinessType';
 import type { RecipeItem } from '../../types';
+import { toast } from 'sonner';
 
 export default function RecipePage() {
     const { id } = useParams<{ id: string }>();
@@ -17,8 +19,16 @@ export default function RecipePage() {
 
     const product = products?.find(p => p.id === id);
 
+    const { isRetail } = useBusinessType();
     const [items, setItems] = useState<Partial<RecipeItem>[]>([]);
     const [yieldQty, setYieldQty] = useState(1);
+
+    useMemo(() => {
+        if (isRetail) {
+            toast.error('Resep tidak tersedia untuk bisnis tipe Retail');
+            navigate('/products');
+        }
+    }, [isRetail, navigate]);
 
     // Sync state when recipe loads
     useMemo(() => {

@@ -1,5 +1,6 @@
-import { User, ChevronDown, CreditCard, Store, Bike, CheckCircle2, Save, Loader2 } from 'lucide-react';
+import { User, ChevronDown, CreditCard, Store, Bike, CheckCircle2, Save, Loader2, Trash2 } from 'lucide-react';
 import type { CartItem } from '../../../app/store/useCartStore';
+import { useBusinessType } from '../../../hooks/useBusinessType';
 
 interface CartFooterProps {
     isDragging: boolean;
@@ -28,6 +29,7 @@ interface CartFooterProps {
     isPending: boolean;
     currentShift: any;
     activeTransactionId: string | null;
+    setShowCancelModal: (show: boolean) => void;
 }
 
 export const CartFooter = ({
@@ -35,8 +37,9 @@ export const CartFooter = ({
     showDetails, setShowDetails, setShowOrderModal, customersData, customerId, notes,
     total, discount, discountType, calculatedDiscount, tax, grandTotal, items, paymentMethod, paidAmount,
     setShowPaymentModal, handleSaveOrder, handleCheckout, isPending,
-    currentShift, activeTransactionId
+    currentShift, activeTransactionId, setShowCancelModal
 }: CartFooterProps) => {
+    const { isFnb } = useBusinessType();
     return (
         <div
             className={`mt-auto bg-white border-t border-slate-100 p-6 pt-9 space-y-6 shadow-[0_-20px_50px_rgba(0,0,0,0.08)] z-30 relative rounded-t-[32px] transition-transform ${isDragging ? '' : 'duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]'} `}
@@ -78,8 +81,12 @@ export const CartFooter = ({
                         </div>
                     </div>
                     {notes && (
-                        <div className="p-3 bg-amber-50/50 rounded-xl border-l-2 border-amber-200 text-[11px] font-medium text-amber-700 italic text-left">
-                            "{notes}"
+                        <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-3 shadow-sm italic">
+                            <Save size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                            <div className="flex flex-col text-left">
+                                <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest leading-none mb-1">Catatan Transaksi</span>
+                                <p className="text-sm font-bold text-amber-900 leading-tight">"{notes}"</p>
+                            </div>
                         </div>
                     )}
 
@@ -99,6 +106,12 @@ export const CartFooter = ({
                             <span>Pajak (10%)</span>
                             <span className="text-slate-700 font-bold">Rp {tax.toLocaleString('id-ID')}</span>
                         </div>
+                        {isFnb && (
+                            <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                                <span>Service Charge</span>
+                                <span className="text-slate-700 font-bold">—</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -153,7 +166,7 @@ export const CartFooter = ({
                         <div className="flex items-center gap-3">
                             {isPending ? <Loader2 className="animate-spin text-white" size={24} /> : <CreditCard size={24} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />}
                             <span className="uppercase tracking-[0.15em] text-sm whitespace-nowrap">
-                                {isPending ? 'Memproses...' : activeTransactionId ? 'Selesaikan' : 'Bayar'}
+                                {isPending ? 'Memproses...' : activeTransactionId ? '' : 'Bayar'}
                             </span>
                         </div>
 
@@ -164,6 +177,17 @@ export const CartFooter = ({
                             </span>
                         </div>
                     </button>
+
+                    {activeTransactionId && (
+                        <button
+                            onClick={() => setShowCancelModal(true)}
+                            disabled={isPending}
+                            className="w-16 h-16 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 disabled:grayscale shadow-sm border border-red-100 group shrink-0"
+                            title="Batalkan Pesanan"
+                        >
+                            <Trash2 size={24} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

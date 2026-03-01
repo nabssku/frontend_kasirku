@@ -1,6 +1,7 @@
-import { Clock, ChefHat, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Clock, ChefHat, CheckCircle, Loader2, RefreshCw, ShoppingBag } from 'lucide-react';
 import { useKitchenOrders, useUpdateKitchenStatus } from '../../hooks/useKitchenOrders';
 import type { KitchenOrder } from '../../types';
+import { useBusinessType } from '../../hooks/useBusinessType';
 
 const STATUS_FLOW: Record<string, { next: KitchenOrder['status'] | null; label: string; color: string }> = {
     queued: { next: 'cooking', label: 'Proses', color: 'bg-amber-500 hover:bg-amber-600' },
@@ -75,9 +76,27 @@ function KitchenCard({ order }: { order: KitchenOrder }) {
 }
 
 export default function KitchenDisplayPage() {
+    const { isRetail } = useBusinessType();
     const { data: orders = [], isLoading, refetch, isFetching } = useKitchenOrders();
 
     const byStatus = (status: string) => orders.filter(o => o.status === status);
+
+    if (isRetail) {
+        return (
+            <div className="flex flex-col items-center justify-center py-24 text-center gap-6">
+                <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center ring-8 ring-purple-50/50">
+                    <ShoppingBag size={44} className="text-purple-400" />
+                </div>
+                <div className="space-y-2">
+                    <h2 className="text-xl font-black text-slate-800">Fitur Tidak Tersedia</h2>
+                    <p className="text-sm text-slate-500 max-w-sm">
+                        Kitchen Display System hanya tersedia untuk bisnis tipe <span className="font-bold text-indigo-600">FNB</span>.
+                        Ubah tipe bisnis outlet Anda di halaman <span className="font-bold">Outlet</span> untuk mengaktifkan fitur ini.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="h-full flex flex-col space-y-4">

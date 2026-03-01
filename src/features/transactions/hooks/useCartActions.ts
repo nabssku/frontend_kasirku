@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCartStore } from '../../../app/store/useCartStore';
 import type { CartItem } from '../../../app/store/useCartStore';
-import { useCreateTransaction, useUpdateTransaction, usePendingTransactions } from '../../../hooks/useTransactions';
+import { useCreateTransaction, useUpdateTransaction, usePendingTransactions, useCancelTransaction } from '../../../hooks/useTransactions';
 import { useCurrentShift } from '../../../hooks/useShifts';
 import { useAuthStore } from '../../../app/store/useAuthStore';
 import { useReceiptSettings } from '../../../hooks/useReceiptSettings';
@@ -16,6 +16,7 @@ export const useCartActions = () => {
 
     const { mutate: createTransaction, isPending: isCreating } = useCreateTransaction();
     const { mutate: updateTransaction, isPending: isUpdating } = useUpdateTransaction();
+    const { mutate: cancelTransaction, isPending: isCancelling } = useCancelTransaction();
     const { refetch: refetchPending } = usePendingTransactions();
     const { data: currentShift } = useCurrentShift();
     const { user } = useAuthStore();
@@ -34,7 +35,7 @@ export const useCartActions = () => {
     const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
     const [showNoShiftModal, setShowNoShiftModal] = useState(false);
 
-    const isPending = isCreating || isUpdating;
+    const isPending = isCreating || isUpdating || isCancelling;
 
     const total = getTotal();
     const calculatedDiscount = discountType === 'percent' ? (total * (discount / 100)) : discount;
@@ -59,7 +60,7 @@ export const useCartActions = () => {
 
     const handleCheckout = () => {
         if (items.length === 0) return;
-        if (!currentShift) {
+        if (!currentShift || currentShift.status !== 'open') {
             setShowNoShiftModal(true);
             return;
         }
@@ -79,7 +80,7 @@ export const useCartActions = () => {
             payment_method: paymentMethod,
             customer_id: customerId || undefined,
             discount: calculatedDiscount || 0,
-            notes: notes || undefined,
+            notes: notes,
             table_id: tableId || undefined,
             type: orderType,
             shift_id: currentShift.id,
@@ -123,7 +124,7 @@ export const useCartActions = () => {
 
     const handleSaveOrder = () => {
         if (items.length === 0) return;
-        if (!currentShift) {
+        if (!currentShift || currentShift.status !== 'open') {
             setShowNoShiftModal(true);
             return;
         }
@@ -137,7 +138,7 @@ export const useCartActions = () => {
             })),
             customer_id: customerId || undefined,
             discount: calculatedDiscount || 0,
-            notes: notes || undefined,
+            notes: notes,
             table_id: tableId || undefined,
             type: orderType,
             shift_id: currentShift.id,
@@ -190,6 +191,20 @@ export const useCartActions = () => {
         setActiveTransactionId(tx.id);
     };
 
+    const handleCancelOrder = (reason: string) => {
+        if (!activeTransactionId) return;
+        cancelTransaction({ id: activeTransactionId, notes: reason }, {
+            onSuccess: () => {
+                toast.success('Pesanan berhasil dibatalkan');
+                handleResetAll();
+                refetchPending();
+            },
+            onError: (error: any) => {
+                toast.error(error?.response?.data?.message || 'Gagal membatalkan pesanan');
+            }
+        });
+    };
+
     return {
         paymentMethod, setPaymentMethod,
         paidAmount, setPaidAmount,
@@ -203,7 +218,7 @@ export const useCartActions = () => {
         printTransactionId, setPrintTransactionId,
         isPending,
         total, tax, service_charge, grandTotal, changeAmount,
-        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll,
+        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder,
         currentShift,
         showNoShiftModal, setShowNoShiftModal
     };

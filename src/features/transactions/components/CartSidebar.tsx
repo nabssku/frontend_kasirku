@@ -2,16 +2,17 @@ import { useCartStore } from '../../../app/store/useCartStore';
 import { usePendingTransactions } from '../../../hooks/useTransactions';
 import { useCustomers } from '../../../hooks/useCustomers';
 import { useTables } from '../../../hooks/useTables';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ReceiptModal } from './ReceiptModal';
 import { useTransactionReceipt } from '../../../hooks/usePrinters';
 import { useCartDraggable } from '../hooks/useCartDraggable';
 import { CartItemList } from './CartItemList';
 import { CartFooter } from './CartFooter';
-import { ResumeOrderModal, OrderModal, PaymentModal, NoShiftModal } from './CartModals';
+import { ResumeOrderModal, OrderModal, PaymentModal, NoShiftModal, CancelOrderModal } from './CartModals';
 import { useCartActions } from '../hooks/useCartActions';
 import { CartHeader } from './CartHeader';
 import { CartSuccessView } from './CartSuccessView';
+import { useBusinessType } from '../../../hooks/useBusinessType';
 
 interface CartSidebarProps {
     isOpen?: boolean;
@@ -23,11 +24,22 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const { data: pendingTransactions = [] } = usePendingTransactions();
     const { data: customersData } = useCustomers(1, '');
     const { data: tables = [] } = useTables();
+    const { isFnb, isRetail } = useBusinessType();
+
+    // Set a sensible default orderType when switching business mode
+    useEffect(() => {
+        if (isRetail && (orderType === 'dine_in' || orderType === 'takeaway' || orderType === 'delivery')) {
+            setOrderType('walk_in');
+        } else if (isFnb && (orderType === 'walk_in' || orderType === 'online')) {
+            setOrderType('dine_in');
+        }
+    }, [isRetail, isFnb]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [showDetails, setShowDetails] = useState(false);
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
 
     const {
         paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
@@ -35,7 +47,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
         calculatedDiscount, notes, setNotes,
         showSuccess, activeTransactionId, printTransactionId, setPrintTransactionId,
         isPending, total, tax, grandTotal, changeAmount,
-        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, currentShift,
+        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder, currentShift,
         showNoShiftModal, setShowNoShiftModal
     } = useCartActions();
 
@@ -72,6 +84,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     setShowResumeModal={setShowResumeModal}
                     itemsCount={items.length}
                     handleResetAll={handleResetAll}
+                    isFnb={isFnb}
                 />
 
                 <div className="flex-1 overflow-y-auto flex flex-col no-scrollbar">
@@ -105,6 +118,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     isPending={isPending}
                     currentShift={currentShift}
                     activeTransactionId={activeTransactionId}
+                    setShowCancelModal={setShowCancelModal}
                 />
             </div>
 
@@ -123,6 +137,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 customersData={customersData} discount={discount} setDiscount={setDiscount}
                 discountType={discountType} setDiscountType={setDiscountType}
                 notes={notes} setNotes={setNotes}
+                isFnb={isFnb}
             />
 
             <PaymentModal
@@ -136,6 +151,16 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
             )}
 
             <NoShiftModal isOpen={showNoShiftModal} onClose={() => setShowNoShiftModal(false)} />
+
+            <CancelOrderModal
+                isOpen={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                onConfirm={(reason) => {
+                    handleCancelOrder(reason);
+                    setShowCancelModal(false);
+                }}
+                isPending={isPending}
+            />
         </>
     );
 };

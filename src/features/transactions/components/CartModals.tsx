@@ -1,4 +1,5 @@
-import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle, LogIn, Clock, Receipt } from 'lucide-react';
+import { useState } from 'react';
+import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle, LogIn, Clock, Receipt, Loader2, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // --- No Active Shift Modal ---
@@ -94,9 +95,12 @@ export const ResumeOrderModal = ({ isOpen, onClose, pendingTransactions, onResum
                                                 <Table2 size={16} strokeWidth={2.5} />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Lokasi / Meja</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tipe</p>
                                                 <p className="text-xs font-black text-slate-800">
-                                                    {tx.type === 'dine_in' ? (tx.table?.name || 'Meja ?') : tx.type?.replace('_', ' ').toUpperCase()}
+                                                    {tx.type === 'dine_in' ? (tx.table?.name || 'Meja ?')
+                                                        : tx.type === 'walk_in' ? 'Walk-In'
+                                                            : tx.type === 'online' ? 'Online'
+                                                                : tx.type?.replace('_', ' ').toUpperCase()}
                                                 </p>
                                             </div>
                                         </div>
@@ -145,12 +149,14 @@ interface OrderModalProps {
     setDiscountType: (type: 'fixed' | 'percent') => void;
     notes: string;
     setNotes: (val: string) => void;
+    isFnb: boolean;
 }
 
 export const OrderModal = ({
     isOpen, onClose, orderType, setOrderType, tableId, setTable, tables,
     customerId, setCustomerId, customersData, discount, setDiscount,
-    discountType, setDiscountType, notes, setNotes
+    discountType, setDiscountType, notes, setNotes,
+    isFnb
 }: OrderModalProps) => {
     if (!isOpen) return null;
 
@@ -172,27 +178,47 @@ export const OrderModal = ({
                     <div className="space-y-3">
                         <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Tipe Pesanan</label>
                         <div className="flex bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 shadow-inner">
-                            {[
-                                { id: 'dine_in', icon: Store, label: 'Dine In' },
-                                { id: 'takeaway', icon: ChefHat, label: 'Bungkus' },
-                                { id: 'delivery', icon: Bike, label: 'Delivery' }
-                            ].map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => setOrderType(t.id as any)}
-                                    className={`flex-1 flex flex-col items-center gap-1 sm:gap-1.5 py-3 sm:py-4 rounded-xl transition-all duration-300 ${orderType === t.id
-                                        ? 'bg-white text-indigo-600 shadow-md sm:shadow-lg scale-[1.02] border border-indigo-100/50'
-                                        : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'} `}
-                                >
-                                    <t.icon size={20} strokeWidth={orderType === t.id ? 2.5 : 2} />
-                                    <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${orderType === t.id ? 'opacity-100' : 'opacity-60'} `}>{t.label}</span>
-                                </button>
-                            ))}
+                            {isFnb ? (
+                                // FNB order types
+                                [
+                                    { id: 'dine_in', icon: Store, label: 'Dine In' },
+                                    { id: 'takeaway', icon: ChefHat, label: 'Bungkus' },
+                                    { id: 'delivery', icon: Bike, label: 'Delivery' }
+                                ].map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => setOrderType(t.id as any)}
+                                        className={`flex-1 flex flex-col items-center gap-1 sm:gap-1.5 py-3 sm:py-4 rounded-xl transition-all duration-300 ${orderType === t.id
+                                            ? 'bg-white text-indigo-600 shadow-md sm:shadow-lg scale-[1.02] border border-indigo-100/50'
+                                            : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'} `}
+                                    >
+                                        <t.icon size={20} strokeWidth={orderType === t.id ? 2.5 : 2} />
+                                        <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${orderType === t.id ? 'opacity-100' : 'opacity-60'} `}>{t.label}</span>
+                                    </button>
+                                ))
+                            ) : (
+                                // Retail order types
+                                [
+                                    { id: 'walk_in', icon: Store, label: 'Walk-In' },
+                                    { id: 'online', icon: Bike, label: 'Online' }
+                                ].map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => setOrderType(t.id as any)}
+                                        className={`flex-1 flex flex-col items-center gap-1 sm:gap-1.5 py-3 sm:py-4 rounded-xl transition-all duration-300 ${orderType === t.id
+                                            ? 'bg-white text-indigo-600 shadow-md sm:shadow-lg scale-[1.02] border border-indigo-100/50'
+                                            : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'} `}
+                                    >
+                                        <t.icon size={20} strokeWidth={orderType === t.id ? 2.5 : 2} />
+                                        <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${orderType === t.id ? 'opacity-100' : 'opacity-60'} `}>{t.label}</span>
+                                    </button>
+                                ))
+                            )}
                         </div>
                     </div>
 
-                    {/* Table Selection (Dine In) */}
-                    {orderType === 'dine_in' && (
+                    {/* Table Selection (Dine In, FNB only) */}
+                    {isFnb && orderType === 'dine_in' && (
                         <div className="space-y-3 animate-in slide-in-from-top-4 duration-500 text-left">
                             <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nomor Meja</label>
                             <div className="relative group">
@@ -455,6 +481,65 @@ export const PaymentModal = ({
                     >
                         {paidAmount < grandTotal ? 'Nominal Kurang' : 'Konfirmasi Pembayaran'}
                     </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Cancel Order Modal ---
+interface CancelOrderModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (reason: string) => void;
+    isPending?: boolean;
+}
+
+export const CancelOrderModal = ({ isOpen, onClose, onConfirm, isPending }: CancelOrderModalProps) => {
+    const [reason, setReason] = useState('');
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[130] p-4 text-left">
+            <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="p-8 space-y-6">
+                    <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto ring-8 ring-red-50/50">
+                        <Trash2 size={40} className="text-red-500" strokeWidth={2.5} />
+                    </div>
+                    <div className="space-y-2 text-center">
+                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Batalkan Pesanan?</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                            Pesanan ini akan dihapus dan stok akan dikembalikan. Berikan alasan pembatalan.
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Alasan Pembatalan</label>
+                        <textarea
+                            autoFocus
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            className="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all text-sm font-bold text-slate-700 min-h-[100px] no-scrollbar shadow-inner"
+                            placeholder="Contoh: Kesalahan input / Pelanggan batal..."
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={() => onConfirm(reason)}
+                            disabled={!reason.trim() || isPending}
+                            className="w-full h-14 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:grayscale text-white rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[11px] shadow-xl shadow-red-200 transition-all active:scale-95"
+                        >
+                            {isPending ? <Loader2 className="animate-spin" size={18} /> : 'Konfirmasi Batalkan'}
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="w-full h-12 text-slate-400 hover:text-slate-600 font-bold text-[10px] uppercase tracking-widest transition-all"
+                        >
+                            Kembali
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

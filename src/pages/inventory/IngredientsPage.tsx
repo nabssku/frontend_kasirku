@@ -2,12 +2,28 @@ import { useState } from 'react';
 import { Plus, Pencil, Trash2, AlertTriangle, Package, ChevronRight } from 'lucide-react';
 import { useIngredients, useCreateIngredient, useUpdateIngredient, useDeleteIngredient, useAdjustStock } from '../../hooks/useIngredients';
 import type { Ingredient } from '../../types';
+import { useBusinessType } from '../../hooks/useBusinessType';
+import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 type AdjustType = 'in' | 'out' | 'adjustment' | 'waste';
 
 const UNIT_OPTIONS = ['g', 'kg', 'ml', 'L', 'pcs', 'sachet', 'box', 'slice'];
 
 export default function IngredientsPage() {
+    const { isFnb } = useBusinessType();
+
+    useEffect(() => {
+        if (!isFnb) {
+            toast.error('Halaman Bahan Baku tidak tersedia untuk outlet Retail.');
+        }
+    }, [isFnb]);
+
+    if (!isFnb) {
+        return <Navigate to="/products" replace />;
+    }
+
     const { data: ingredients = [], isLoading } = useIngredients();
     const createIngredient = useCreateIngredient();
     const updateIngredient = useUpdateIngredient();

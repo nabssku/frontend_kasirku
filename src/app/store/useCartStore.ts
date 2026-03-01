@@ -16,7 +16,7 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[];
-  orderType: 'dine_in' | 'takeaway' | 'delivery';
+  orderType: 'dine_in' | 'takeaway' | 'delivery' | 'walk_in' | 'online';
   tableId: string | null;
   addItem: (item: Omit<CartItem, 'quantity' | 'cartId'>) => void;
   removeItem: (cartId: string) => void;

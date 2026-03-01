@@ -7,13 +7,17 @@ import {
     ChevronLeft,
     ChevronRight,
     Printer,
-    Store
+    Store,
+    AlertCircle,
+    XCircle
 } from 'lucide-react';
 import { useTransactionHistory } from '../../hooks/useTransactionHistory';
+import { useCancelTransaction } from '../../hooks/useTransactions';
 import { useAuthStore } from '../../app/store/useAuthStore';
 import { useOutlets } from '../../hooks/useOutlets';
 import { useTransactionReceipt } from '../../hooks/usePrinters';
 import { ReceiptModal } from '../../features/transactions/components/ReceiptModal';
+import { toast } from 'sonner';
 import type { Transaction } from '../../types';
 
 export default function TransactionHistoryPage() {
@@ -21,6 +25,8 @@ export default function TransactionHistoryPage() {
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
     const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(undefined);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
 
     const { user } = useAuthStore();
     const isOwner = user?.roles?.some(r => r.slug === 'owner' || r.slug === 'super_admin');
@@ -28,6 +34,30 @@ export default function TransactionHistoryPage() {
     const { data: outlets } = useOutlets();
     const { data: historyData, isLoading } = useTransactionHistory(page, selectedOutletId);
     const { data: receiptData } = useTransactionReceipt(printTransactionId);
+    const cancelMutation = useCancelTransaction();
+
+    const handleCancelTransaction = async () => {
+        if (!selectedTransaction) return;
+        if (!cancelReason.trim()) {
+            toast.error('Alasan pembatalan harus diisi');
+            return;
+        }
+
+        cancelMutation.mutate({
+            id: selectedTransaction.id,
+            notes: cancelReason
+        }, {
+            onSuccess: () => {
+                toast.success('Transaksi berhasil dibatalkan');
+                setIsCancelModalOpen(false);
+                setCancelReason('');
+                setSelectedTransaction(null);
+            },
+            onError: (error: any) => {
+                toast.error(error?.response?.data?.message || 'Gagal membatalkan transaksi');
+            }
+        });
+    };
 
     const fmtRp = (n: number) => new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -114,6 +144,11 @@ export default function TransactionHistoryPage() {
                                             <span className="font-mono text-[10px] md:text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded whitespace-nowrap">
                                                 {tx.invoice_number}
                                             </span>
+                                            {tx.status === 'cancelled' && (
+                                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 uppercase">
+                                                    Dibatalkan
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 hidden sm:table-cell">
                                             <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -210,6 +245,21 @@ export default function TransactionHistoryPage() {
                         </div>
 
                         <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+                            {selectedTransaction.status === 'cancelled' && (
+                                <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex gap-3">
+                                    <XCircle className="text-red-500 shrink-0" size={20} />
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-bold text-red-800">Transaksi Dibatalkan</p>
+                                        <p className="text-xs text-red-600 line-clamp-2">
+                                            Alasan: {selectedTransaction.cancel_reason}
+                                        </p>
+                                        <p className="text-[10px] text-red-500 font-medium italic">
+                                            Dibatalkan oleh {selectedTransaction.cancelledBy?.name || 'Sistem'} pada {fmtDate(selectedTransaction.cancelled_at || '')}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Tanggal</p>
@@ -227,6 +277,12 @@ export default function TransactionHistoryPage() {
                                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Metode Bayar</p>
                                     <p className="text-sm font-medium text-slate-700 capitalize">{selectedTransaction.payment_method?.replace('_', ' ') || '-'}</p>
                                 </div>
+                                {selectedTransaction.notes && (
+                                    <div className="col-span-2 space-y-1 bg-amber-50 p-3 rounded-xl border border-amber-100 italic">
+                                        <p className="text-[10px] text-amber-500 uppercase font-bold tracking-wider">Catatan</p>
+                                        <p className="text-sm text-amber-900 leading-tight">"{selectedTransaction.notes}"</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-3">
@@ -278,6 +334,15 @@ export default function TransactionHistoryPage() {
                         </div>
 
                         <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                            {selectedTransaction.status !== 'cancelled' && (
+                                <button
+                                    onClick={() => setIsCancelModalOpen(true)}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-xl font-bold transition-all active:scale-95"
+                                >
+                                    <AlertCircle size={18} />
+                                    Batalkan
+                                </button>
+                            )}
                             <button
                                 onClick={() => { setPrintTransactionId(selectedTransaction.id); setSelectedTransaction(null); }}
                                 className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-md active:scale-95"
@@ -289,6 +354,58 @@ export default function TransactionHistoryPage() {
                     </div>
                 </div>
             )}
+
+            {/* Modal Input Alasan Pembatalan */}
+            {isCancelModalOpen && selectedTransaction && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-slate-800">Batalkan Transaksi</h3>
+                            <button onClick={() => setIsCancelModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 rounded-full">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl flex gap-3">
+                                <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                                <p className="text-xs text-amber-700 leading-relaxed">
+                                    Membatalkan transaksi akan mengembalikan stok produk ({selectedTransaction.items?.length} item) dan stok bahan baku terkait. Tindakan ini tidak dapat dibatalkan.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">Alasan Pembatalan</label>
+                                <textarea
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    placeholder="Contoh: Kesalahan input produk, Pelanggan membatalkan pesanan..."
+                                    className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-sm"
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                        <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                            <button
+                                onClick={() => setIsCancelModalOpen(false)}
+                                className="flex-1 px-4 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-all"
+                            >
+                                Tutup
+                            </button>
+                            <button
+                                onClick={handleCancelTransaction}
+                                disabled={cancelMutation.isPending || !cancelReason.trim()}
+                                className="flex-[2] bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl font-bold shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {cancelMutation.isPending ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    'Batalkan Transaksi'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

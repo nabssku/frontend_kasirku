@@ -73,6 +73,7 @@ export interface Outlet {
   id: string;
   tenant_id: string;
   name: string;
+  business_type: 'fnb' | 'retail';
   address?: string;
   phone?: string;
   email?: string;
@@ -332,7 +333,7 @@ export interface Transaction {
   outlet_id?: string;
   table_id?: string;
   shift_id?: string;
-  type?: 'dine_in' | 'takeaway' | 'delivery';
+  type?: 'dine_in' | 'takeaway' | 'delivery' | 'walk_in' | 'online';
   subtotal: number;
   tax_rate?: number;
   tax: number;
@@ -344,6 +345,10 @@ export interface Transaction {
   payment_method?: string;
   status: 'pending' | 'completed' | 'cancelled' | 'refunded';
   notes?: string;
+  cancelled_at?: string;
+  cancelled_by?: string;
+  cancel_reason?: string;
+  cancelledBy?: { id: string; name: string };
   cashier?: { id: string; name: string };
   customer?: { id: string; name: string; phone?: string } | null;
   table?: { id: string; name: string } | null;
@@ -444,7 +449,7 @@ export interface PrinterReceiptData {
   customer: string;
   table_id?: string;
   table_name?: string;
-  type?: 'dine_in' | 'takeaway' | 'delivery';
+  type?: 'dine_in' | 'takeaway' | 'delivery' | 'walk_in' | 'online';
   items: PrinterReceiptItem[];
   subtotal: number;
   discount: number;
@@ -456,6 +461,7 @@ export interface PrinterReceiptData {
   change_amount: number;
   payment_method: string;
   status: string;
+  notes?: string;
   receipt_settings?: ReceiptSettings;
 }
 

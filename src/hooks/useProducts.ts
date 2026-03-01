@@ -21,15 +21,16 @@ interface ProductPayload {
 }
 
 // ─── Query: List all products ─────────────────────────────────────────────────
-export const useProducts = (categoryId?: string, search?: string) => {
+export const useProducts = (categoryId?: string, search?: string, outletId?: string, options?: { enabled?: boolean }) => {
   return useQuery({
-    queryKey: ['products', categoryId, search],
+    queryKey: ['products', categoryId, search, outletId],
     queryFn: async () => {
       const { data } = await api.get<ProductsResponse>('/products', {
-        params: { category_id: categoryId, search },
+        params: { category_id: categoryId, search, outlet_id: outletId },
       });
       return data.data;
     },
+    ...options,
   });
 };
 

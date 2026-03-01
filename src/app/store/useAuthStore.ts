@@ -6,6 +6,7 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  isInitializing: boolean;
   setAuth: (response: AuthResponse) => void;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -17,11 +18,13 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      isInitializing: true,
       setAuth: (response) =>
         set({
           user: response.user,
           token: response.token,
           isAuthenticated: true,
+          isInitializing: false,
         }),
       logout: async () => {
         try {
@@ -34,6 +37,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             token: null,
             isAuthenticated: false,
+            isInitializing: false,
           });
         }
       },
@@ -41,9 +45,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           const api = (await import('../../lib/axios')).default;
           const { data } = await api.get('/auth/me');
-          set({ user: data.data, isAuthenticated: true });
+          set({ user: data.data, isAuthenticated: true, isInitializing: false });
         } catch (error) {
-          set({ user: null, token: null, isAuthenticated: false });
+          set({ user: null, token: null, isAuthenticated: false, isInitializing: false });
         }
       },
     }),

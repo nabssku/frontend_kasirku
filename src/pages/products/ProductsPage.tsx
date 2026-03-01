@@ -3,9 +3,13 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Package, Beef, ListTree } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts, useDeleteProduct } from '../../hooks/useProducts';
+import { useBusinessType } from '../../hooks/useBusinessType';
 
 export default function ProductsPage() {
-    const { data: products, isLoading, error } = useProducts();
+    const { isFnb, outlet } = useBusinessType();
+    const { data: products, isLoading, error } = useProducts(undefined, undefined, outlet?.id, {
+        enabled: !!outlet?.id, // Wait for outlet to load to avoid fetching all products globally
+    });
     const { mutate: deleteProduct } = useDeleteProduct();
     const [search, setSearch] = useState('');
     const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -33,13 +37,15 @@ export default function ProductsPage() {
                     <p className="text-slate-500 text-sm mt-1">Kelola produk, resep, dan stok toko Anda</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link
-                        to="/modifiers"
-                        className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition-colors shadow-sm text-sm"
-                    >
-                        <ListTree size={18} />
-                        Kelola Modifiers
-                    </Link>
+                    {isFnb && (
+                        <Link
+                            to="/modifiers"
+                            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition-colors shadow-sm text-sm"
+                        >
+                            <ListTree size={18} />
+                            Kelola Modifiers
+                        </Link>
+                    )}
                     <Link
                         to="/products/new"
                         className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm text-sm"
@@ -85,7 +91,7 @@ export default function ProductsPage() {
                         <thead>
                             <tr className="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
                                 <th className="px-6 py-4 text-left">Produk</th>
-                                <th className="px-6 py-4 text-left hidden sm:table-cell">Resep / Mod</th>
+                                {isFnb && <th className="px-6 py-4 text-left hidden sm:table-cell">Resep / Mod</th>}
                                 <th className="px-6 py-4 text-left hidden md:table-cell">Kategori</th>
                                 <th className="px-6 py-4 text-right hidden xs:table-cell">Stok</th>
                                 <th className="px-6 py-4 text-right">Harga</th>
@@ -107,16 +113,18 @@ export default function ProductsPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 hidden sm:table-cell">
-                                        <div className="flex items-center gap-2">
-                                            {product.has_recipe && (
-                                                <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600" title="Ada Resep"><Beef size={14} /></span>
-                                            )}
-                                            {product.modifier_groups && product.modifier_groups.length > 0 && (
-                                                <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600" title="Ada Modifiers"><ListTree size={14} /></span>
-                                            )}
-                                        </div>
-                                    </td>
+                                    {isFnb && (
+                                        <td className="px-6 py-4 hidden sm:table-cell">
+                                            <div className="flex items-center gap-2">
+                                                {product.has_recipe && (
+                                                    <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600" title="Ada Resep"><Beef size={14} /></span>
+                                                )}
+                                                {product.modifier_groups && product.modifier_groups.length > 0 && (
+                                                    <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600" title="Ada Modifiers"><ListTree size={14} /></span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    )}
                                     <td className="px-6 py-4 hidden md:table-cell">
                                         <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase">{product.category?.name || '—'}</span>
                                     </td>
@@ -137,13 +145,15 @@ export default function ProductsPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Link
-                                                to={`/products/${product.id}/recipe`}
-                                                className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                title="Kelola Resep"
-                                            >
-                                                <Beef size={15} />
-                                            </Link>
+                                            {isFnb && (
+                                                <Link
+                                                    to={`/products/${product.id}/recipe`}
+                                                    className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                    title="Kelola Resep"
+                                                >
+                                                    <Beef size={15} />
+                                                </Link>
+                                            )}
                                             <Link
                                                 to={`/products/${product.id}`}
                                                 className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

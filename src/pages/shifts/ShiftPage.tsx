@@ -8,6 +8,7 @@ import { useCurrentShift, useOpenShift, useCloseShift, useShifts, useAddCashLog 
 import { useAuthStore } from '../../app/store/useAuthStore';
 import { useUsers } from '../../hooks/useUsers';
 import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
+import { toast } from 'sonner';
 import type { Shift } from '../../types';
 
 function formatRp(n: number) {
@@ -274,20 +275,35 @@ export default function ShiftPage() {
 
     const handleOpen = async () => {
         if (!outletId) return;
-        await openShift.mutateAsync({ outlet_id: outletId, opening_cash: Number(openingCash) });
-        setShowOpenForm(false);
+        try {
+            await openShift.mutateAsync({ outlet_id: outletId, opening_cash: Number(openingCash) });
+            toast.success('Shift berhasil dibuka');
+            setShowOpenForm(false);
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || 'Gagal membuka shift');
+        }
     };
 
     const handleClose = async () => {
         if (!currentShift) return;
-        await closeShift.mutateAsync({ id: currentShift.id, closing_cash: Number(closingCash) });
-        setShowCloseForm(false);
+        try {
+            await closeShift.mutateAsync({ id: currentShift.id, closing_cash: Number(closingCash) });
+            toast.success('Shift berhasil ditutup');
+            setShowCloseForm(false);
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || 'Gagal menutup shift');
+        }
     };
 
     const handleCashLog = async () => {
         if (!currentShift) return;
-        await addCashLog.mutateAsync({ shiftId: currentShift.id, ...cashLogForm, amount: Number(cashLogForm.amount) });
-        setShowCashLog(false);
+        try {
+            await addCashLog.mutateAsync({ shiftId: currentShift.id, ...cashLogForm, amount: Number(cashLogForm.amount) });
+            toast.success('Pergerakan kas berhasil dicatat');
+            setShowCashLog(false);
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || 'Gagal mencatat kas');
+        }
     };
 
     return (

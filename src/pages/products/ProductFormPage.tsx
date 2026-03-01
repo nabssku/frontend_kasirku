@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Image as ImageIcon, Upload, X, Check } from 'lucide-re
 import { useCategories } from '../../hooks/useCategories';
 import { useProduct, useCreateProduct, useUpdateProduct } from '../../hooks/useProducts';
 import { useModifierGroups } from '../../hooks/useModifiers';
+import { useBusinessType } from '../../hooks/useBusinessType';
 
 const productSchema = z.object({
     name: z.string().min(1, 'Nama produk wajib diisi'),
@@ -47,6 +48,7 @@ export default function ProductFormPage() {
     const { mutate: createProduct, isPending: creating } = useCreateProduct();
     const { mutate: updateProduct, isPending: updating } = useUpdateProduct();
     const { data: modifierGroups } = useModifierGroups();
+    const { isFnb } = useBusinessType();
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -273,65 +275,67 @@ export default function ProductFormPage() {
                     </div>
 
                     {/* Modifier Groups Section */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-5">
-                        <div className="flex items-center justify-between">
-                            <h2 className="font-semibold text-slate-700 text-sm uppercase tracking-wider">Modifier / Tambahan</h2>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                                {selectedModifierGroups.length} Grup Terpilih
-                            </p>
-                        </div>
+                    {isFnb && (
+                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-5">
+                            <div className="flex items-center justify-between">
+                                <h2 className="font-semibold text-slate-700 text-sm uppercase tracking-wider">Modifier / Tambahan</h2>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                                    {selectedModifierGroups.length} Grup Terpilih
+                                </p>
+                            </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {modifierGroups?.map((group) => {
-                                const isSelected = selectedModifierGroups.includes(group.id);
-                                return (
-                                    <button
-                                        key={group.id}
-                                        type="button"
-                                        onClick={() => {
-                                            const current = selectedModifierGroups;
-                                            const updated = isSelected
-                                                ? current.filter(id => id !== group.id)
-                                                : [...current, group.id];
-                                            setValue('modifier_group_ids', updated);
-                                        }}
-                                        className={`
-                                            flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left
-                                            ${isSelected
-                                                ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-500/5'
-                                                : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'
-                                            }
-                                        `}
-                                    >
-                                        <div className={`
-                                            w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all
-                                            ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'}
-                                        `}>
-                                            {isSelected && <Check size={12} className="text-white" />}
-                                        </div>
-                                        <div>
-                                            <p className={`text-sm font-bold ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>{group.name}</p>
-                                            <p className="text-[10px] text-slate-400 font-medium">
-                                                {group.modifiers?.length || 0} Opsi • {group.required ? 'Wajib' : 'Opsional'}
-                                            </p>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                            {(!modifierGroups || modifierGroups.length === 0) && (
-                                <div className="col-span-full py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                                    <p className="text-sm text-slate-400 italic">Belum ada grup modifier yang dibuat.</p>
-                                    <button
-                                        type="button"
-                                        onClick={() => navigate('/products/modifiers')}
-                                        className="mt-2 text-xs font-bold text-indigo-600 hover:underline"
-                                    >
-                                        Buat Modifier Sekarang →
-                                    </button>
-                                </div>
-                            )}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {modifierGroups?.map((group) => {
+                                    const isSelected = selectedModifierGroups.includes(group.id);
+                                    return (
+                                        <button
+                                            key={group.id}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = selectedModifierGroups;
+                                                const updated = isSelected
+                                                    ? current.filter(id => id !== group.id)
+                                                    : [...current, group.id];
+                                                setValue('modifier_group_ids', updated);
+                                            }}
+                                            className={`
+                                                flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left
+                                                ${isSelected
+                                                    ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-500/5'
+                                                    : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'
+                                                }
+                                            `}
+                                        >
+                                            <div className={`
+                                                w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all
+                                                ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'}
+                                            `}>
+                                                {isSelected && <Check size={12} className="text-white" />}
+                                            </div>
+                                            <div>
+                                                <p className={`text-sm font-bold ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>{group.name}</p>
+                                                <p className="text-[10px] text-slate-400 font-medium">
+                                                    {group.modifiers?.length || 0} Opsi • {group.required ? 'Wajib' : 'Opsional'}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                                {(!modifierGroups || modifierGroups.length === 0) && (
+                                    <div className="col-span-full py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                        <p className="text-sm text-slate-400 italic">Belum ada grup modifier yang dibuat.</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/products/modifiers')}
+                                            className="mt-2 text-xs font-bold text-indigo-600 hover:underline"
+                                        >
+                                            Buat Modifier Sekarang →
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Sidebar */}

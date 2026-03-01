@@ -29,6 +29,9 @@ import {
 import { useState, useMemo, useEffect } from 'react';
 import { Network } from '@capacitor/network';
 import type { ConnectionStatus } from '@capacitor/network';
+import { AiChat } from '../../features/ai/components/AiChat';
+import { Sparkles } from 'lucide-react';
+import { useBusinessType } from '../../hooks/useBusinessType';
 
 interface NavItem {
     name: string;
@@ -45,7 +48,8 @@ interface NavGroup {
 
 // ─── Role groups ──────────────────────────────────────────────────────────────
 const ADMIN_ROLES: UserRole[] = ['super_admin', 'owner', 'admin'];
-const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier']; // Owner focus on reports
+const ADMIN_ONLY_ROLES: UserRole[] = ['super_admin', 'admin']; // Explicitly excludes owner
+const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier']; // Non-owner operational staff
 const KITCHEN_ROLES: UserRole[] = ['super_admin', 'admin', 'kitchen', 'cashier'];
 const OWNER_ROLES: UserRole[] = ['super_admin', 'owner'];
 const POS_ROLES: UserRole[] = ['super_admin', 'cashier']; // Terminal POS focus on cashiers
@@ -67,7 +71,7 @@ const allNavGroups: NavGroup[] = [
                 name: 'Pengeluaran',
                 path: '/expenses',
                 icon: Receipt,
-                roles: OWNER_ROLES,
+                roles: ADMIN_ONLY_ROLES,
                 children: [
                     { name: 'Daftar Pengeluaran', path: '/expenses' },
                     { name: 'Kategori Pengeluaran', path: '/expenses/categories' },
@@ -85,7 +89,7 @@ const allNavGroups: NavGroup[] = [
                 name: 'Katalog',
                 path: '/products',
                 icon: Package,
-                roles: ADMIN_ROLES,
+                roles: ADMIN_ONLY_ROLES,
                 children: [
                     { name: 'Data Produk', path: '/products' },
                     { name: 'Kategori Produk', path: '/categories' },
@@ -93,7 +97,7 @@ const allNavGroups: NavGroup[] = [
                     { name: 'Bahan Baku', path: '/ingredients' },
                 ]
             },
-            { name: 'Pelanggan', path: '/customers', icon: Users, roles: ADMIN_ROLES },
+            { name: 'Pelanggan', path: '/customers', icon: Users, roles: ADMIN_ONLY_ROLES },
         ],
     },
     {
@@ -123,6 +127,8 @@ export const DashboardLayout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
     const [networkStatus, setNetworkStatus] = useState<ConnectionStatus | null>(null);
+    const [isAiOpen, setIsAiOpen] = useState(false);
+    const { isRetail } = useBusinessType();
 
     // Network status listener
     useEffect(() => {
@@ -167,19 +173,60 @@ export const DashboardLayout = () => {
         [user?.roles]
     );
 
-    // Filter nav groups based on user roles
+    // Identify if user is owner or super admin
+    const isOwner = useMemo(
+        () => userRoleSlugs.includes('owner') || userRoleSlugs.includes('super_admin'),
+        [userRoleSlugs]
+    );
+
+    const isSuperAdmin = useMemo(
+        () => userRoleSlugs.includes('super_admin'),
+        [userRoleSlugs]
+    );
+
+    // Filter nav groups based on user roles and business type
     const filteredNavGroups = useMemo(() => {
         return allNavGroups
             .map((group) => ({
                 ...group,
-                items: group.items.filter((item) => {
-                    // If no role restriction, show to all
-                    if (!item.roles) return true;
-                    // Show if user has at least one matching role
-                    return item.roles.some((r) => userRoleSlugs.includes(r));
-                }),
+                items: group.items
+                    .filter((item) => {
+                        // Apply business type filtering: Hide FNB-only items in Retail stores
+                        // We allow super_admin to see everything for debugging/setup
+                        if (isRetail && !isSuperAdmin) {
+                            if (item.path === '/tables' || item.path === '/kitchen') {
+                                return false;
+                            }
+                        }
+
+                        // If no role restriction, show to all
+                        if (!item.roles) return true;
+                        // Show if user has at least one matching role
+                        return item.roles.some((r) => userRoleSlugs.includes(r));
+                    })
+                    .map(item => ({
+                        ...item,
+                        // Filter children if any
+                        children: item.children ? item.children.filter(child => {
+                            if (isRetail && !isSuperAdmin) {
+                                // Hide FNB-only sub-items
+                                if (child.path === '/modifiers' || child.path === '/ingredients') {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }) : undefined
+                    }))
+                    .filter(() => {
+                        // All items currently have a path, so they remain valid even if children are empty.
+                        return true;
+                    })
             }))
             .filter((group) => group.items.length > 0); // Hide empty groups
+    }, [userRoleSlugs, isRetail, isOwner]);
+
+    const showAiButton = useMemo(() => {
+        return userRoleSlugs.some(role => ADMIN_ROLES.includes(role));
     }, [userRoleSlugs]);
 
     const isActive = (path: string) =>
@@ -398,6 +445,36 @@ export const DashboardLayout = () => {
                 <div className="flex-1 overflow-y-auto p-4 md:p-8">
                     <Outlet />
                 </div>
+
+                {/* JagoKasir AI Floating Button */}
+                {showAiButton && (
+                    <>
+                        <button
+                            onClick={() => setIsAiOpen(!isAiOpen)}
+                            className={`
+                                fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 ring-4 ring-white z-50
+                                ${isAiOpen
+                                    ? 'bg-red-500 hover:bg-red-600 rotate-90'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-110 active:scale-95'}
+                            `}
+                        >
+                            {isAiOpen ? (
+                                <X className="text-white" size={24} />
+                            ) : (
+                                <Sparkles className="text-white animate-pulse" size={24} />
+                            )}
+
+                            {!isAiOpen && (
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-500 border-2 border-white"></span>
+                                </span>
+                            )}
+                        </button>
+
+                        {isAiOpen && <AiChat onClose={() => setIsAiOpen(false)} />}
+                    </>
+                )}
             </main>
         </div>
     );

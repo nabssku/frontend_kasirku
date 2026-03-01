@@ -67,3 +67,20 @@ export const usePendingTransactions = () => {
         },
     });
 };
+
+export const useCancelTransaction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
+      const { data } = await api.post(`/transactions/${id}/cancel`, { notes });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
+    },
+  });
+};

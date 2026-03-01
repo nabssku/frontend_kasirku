@@ -5,12 +5,16 @@ import { useCategories } from '../../hooks/useCategories';
 import { ProductCard } from '../../features/transactions/components/ProductCard';
 import { CartSidebar } from '../../features/transactions/components/CartSidebar';
 import { useCartStore } from '../../app/store/useCartStore';
+import { useBusinessType } from '../../hooks/useBusinessType';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function POSPage() {
     const { items } = useCartStore();
     const itemsCount = items.length;
-    const { data: products, isLoading, error } = useProducts();
+    const { outlet } = useBusinessType();
+    const { data: products, isLoading, error } = useProducts(undefined, undefined, outlet?.id, {
+        enabled: !!outlet?.id, // Prevent fetching global products while outlet resolves
+    });
     const { data: categories = [] } = useCategories();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
