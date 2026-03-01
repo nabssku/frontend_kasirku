@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">KasirKu</string>
-    <string name="title_activity_main">KasirKu</string>
-    <string name="package_name">com.kasirku.app</string>
-    <string name="custom_url_scheme">com.kasirku.app</string>
+    <string name="app_name">JagoKasir</string>
+    <string name="title_activity_main">JagoKasir</string>
+    <string name="package_name">com.jagokasir.app</string>
+    <string name="custom_url_scheme">com.jagokasir.app</string>
 </resources>

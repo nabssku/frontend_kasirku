@@ -95,7 +95,7 @@ export default function TenantPage() {
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Langganan & Paket</h1>
                     <p className="text-slate-500 mt-1 max-w-xl">
-                        Kelola paket langganan Anda dan scale bisnis Anda dengan fitur-fitur premium KasirKu.
+                        Kelola paket langganan Anda dan scale bisnis Anda dengan fitur-fitur premium JagoKasir.
                     </p>
                 </div>
                 <div className="flex bg-slate-100 p-1.5 rounded-2xl shadow-inner-sm">

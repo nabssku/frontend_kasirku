@@ -29,7 +29,7 @@ export default function SuperAdminDashboard() {
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-white">Platform Overview</h1>
-                <p className="text-slate-400 mt-1">Monitor your entire KasirKu platform from here</p>
+                <p className="text-slate-400 mt-1">Monitor your entire JagoKasir platform from here</p>
             </div>
 
             {/* Stats Grid */}

@@ -11,7 +11,7 @@ interface SEOProps {
 
 export const SEO = ({
     title = 'JagoKasir- Smart POS Solution untuk Bisnis Modern',
-    description = 'Kelola bisnis retail dan F&B Anda dengan mudah menggunakan Jagokasir. Aplikasi kasir online tercepat, termudah, dan terlengkap.',
+    description = 'Kelola bisnis retail dan F&B Anda dengan mudah menggunakan JagoKasir. Aplikasi kasir online tercepat, termudah, dan terlengkap.',
     keywords = 'aplikasi kasir, pos system, point of sale, kasir online, inventory management, retail pos, f&b pos, JagoKasir',
     image = '/og-image2.png',
     url = 'https://jagokasir.store',

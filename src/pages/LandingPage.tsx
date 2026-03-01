@@ -91,7 +91,7 @@ export default function LandingPage() {
         <div className="min-h-screen bg-slate-50 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
             <SEO
                 title="Solusi Kasir Pintar #1 di Indonesia"
-                description="Jagokasir adalah aplikasi POS cloud terbaik untuk UMKM. Kelola transaksi, stok, dan outlet dengan mudah."
+                description="JagoKasir adalah aplikasi POS cloud terbaik untuk UMKM. Kelola transaksi, stok, dan outlet dengan mudah."
             />
             {/* ─── Navigation ─────────────────────────────────────────────────── */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/60 transition-all">
