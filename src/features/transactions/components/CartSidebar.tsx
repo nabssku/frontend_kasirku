@@ -65,6 +65,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     activeTransactionId={activeTransactionId}
                     orderType={orderType}
                     tableId={tableId}
+                    tables={tables}
                     setShowOrderModal={setShowOrderModal}
                     onClose={onClose}
                     pendingTransactionsCount={pendingTransactions.length}

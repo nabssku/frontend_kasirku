@@ -145,6 +145,7 @@ Terima kasih!
                         <p>Tgl: {receipt.date}</p>
                         <p>Kasir: {receipt.cashier}</p>
                         <p>Pelanggan: {receipt.customer}</p>
+                        {receipt.table_name && <p>Meja: {receipt.table_name}</p>}
                         {receipt.type && <p>Tipe: {TypeLabel[receipt.type] ?? receipt.type}</p>}
 
                         <p className="border-t border-dashed border-slate-300 pt-1 mt-1">--------------------------------</p>

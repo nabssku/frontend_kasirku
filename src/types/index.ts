@@ -442,6 +442,8 @@ export interface PrinterReceiptData {
   date: string;
   cashier: string;
   customer: string;
+  table_id?: string;
+  table_name?: string;
   type?: 'dine_in' | 'takeaway' | 'delivery';
   items: PrinterReceiptItem[];
   subtotal: number;

@@ -6,6 +6,7 @@ import { useCurrentShift } from '../../../hooks/useShifts';
 import { useAuthStore } from '../../../app/store/useAuthStore';
 import { useReceiptSettings } from '../../../hooks/useReceiptSettings';
 import { useBluetoothPrint } from '../../../hooks/useBluetoothPrint';
+import { useTables } from '../../../hooks/useTables';
 import { toast } from 'sonner';
 
 export const useCartActions = () => {
@@ -19,6 +20,7 @@ export const useCartActions = () => {
     const { data: currentShift } = useCurrentShift();
     const { user } = useAuthStore();
     const { outlet } = useReceiptSettings(user?.outlet_id);
+    const { data: tables = [] } = useTables();
     const { printKitchenOrder } = useBluetoothPrint();
 
     const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -95,6 +97,7 @@ export const useCartActions = () => {
             printKitchenOrder({
                 type: orderType,
                 table_id: tableId,
+                table_name: tableId ? tables.find(t => t.id === tableId)?.name : undefined,
                 items: items,
                 notes: notes
             });
@@ -151,6 +154,7 @@ export const useCartActions = () => {
             printKitchenOrder({
                 type: orderType,
                 table_id: tableId,
+                table_name: tableId ? tables.find(t => t.id === tableId)?.name : undefined,
                 items: items,
                 notes: notes
             });

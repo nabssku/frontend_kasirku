@@ -1,10 +1,12 @@
 import { ShoppingCart, ChevronDown, X, Clock, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { RestaurantTable } from '../../../types';
 
 interface CartHeaderProps {
     activeTransactionId: string | null;
     orderType: string;
     tableId: string | null;
+    tables?: RestaurantTable[];
     setShowOrderModal: (show: boolean) => void;
     onClose?: () => void;
     pendingTransactionsCount: number;
@@ -17,6 +19,7 @@ export const CartHeader = ({
     activeTransactionId,
     orderType,
     tableId,
+    tables,
     setShowOrderModal,
     onClose,
     pendingTransactionsCount,
@@ -24,6 +27,8 @@ export const CartHeader = ({
     itemsCount,
     handleResetAll
 }: CartHeaderProps) => {
+    const tableName = tableId && tables ? tables.find(t => t.id === tableId)?.name : tableId;
+
     return (
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white/40 backdrop-blur-xl sticky top-0 z-30">
             <div className="flex flex-col text-left">
@@ -63,7 +68,7 @@ export const CartHeader = ({
                         onClick={() => setShowOrderModal(true)}
                         className="flex items-center gap-2 mt-2 px-2 py-1 rounded-lg hover:bg-indigo-50 text-indigo-500 transition-all text-[10px] font-bold uppercase tracking-widest border border-transparent hover:border-indigo-100 w-fit"
                     >
-                        {orderType === 'dine_in' ? `Meja ${tableId || '?'}` : orderType.replace('_', ' ')}
+                        {orderType === 'dine_in' ? (tableName ? `Meja ${tableName}` : 'Pilih Meja') : orderType.replace('_', ' ')}
                         <ChevronDown size={12} strokeWidth={3} />
                     </button>
                 )}

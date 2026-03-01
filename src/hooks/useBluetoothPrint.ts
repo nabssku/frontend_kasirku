@@ -161,6 +161,7 @@ async function buildEscPosData(receipt: PrinterReceiptData): Promise<Uint8Array>
         textToBytes(`Tgl: ${receipt.date}\n`),
         textToBytes(`Kasir: ${receipt.cashier}\n`),
         textToBytes(`Pelanggan: ${receipt.customer}\n`),
+        receipt.table_name ? textToBytes(`Meja: ${receipt.table_name}\n`) : (receipt.table_id ? textToBytes(`Meja ID: ${receipt.table_id}\n`) : new Uint8Array(0)),
         receipt.type ? textToBytes(`Tipe: ${typeLabel[receipt.type] ?? receipt.type}\n`) : new Uint8Array(0),
         separator,
         ...receipt.items.flatMap(item => [
