@@ -19,6 +19,7 @@ import { useTransactionReceipt } from '../../hooks/usePrinters';
 import { ReceiptModal } from '../../features/transactions/components/ReceiptModal';
 import { toast } from 'sonner';
 import type { Transaction } from '../../types';
+import { formatRp } from '../../lib/format';
 
 export default function TransactionHistoryPage() {
     const [page, setPage] = useState(1);
@@ -59,11 +60,7 @@ export default function TransactionHistoryPage() {
         });
     };
 
-    const fmtRp = (n: number) => new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(n);
+    const fmtRp = (n: number) => formatRp(n);
 
     const fmtDate = (d: string) => {
         const date = new Date(d);

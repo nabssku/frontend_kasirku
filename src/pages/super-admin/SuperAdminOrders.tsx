@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSuperAdminOrders } from '../../hooks/useSuperAdmin';
 import { Receipt, Search, Eye, X, DollarSign, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { formatRp } from '../../lib/format';
 import type { PaymentTransaction } from '../../types';
 
 export default function SuperAdminOrders() {
@@ -99,7 +100,7 @@ export default function SuperAdminOrders() {
                                                 <td className="px-5 py-3">
                                                     <span className="text-white font-medium flex items-center gap-1">
                                                         <DollarSign size={12} className="text-green-400" />
-                                                        Rp {order.amount.toLocaleString('id-ID')}
+                                                        {formatRp(order.amount)}
                                                     </span>
                                                 </td>
                                                 <td className="px-5 py-3">
@@ -185,7 +186,7 @@ export default function SuperAdminOrders() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-slate-400">Amount</span>
-                                <span className="text-white font-medium">Rp {selectedOrder.amount.toLocaleString('id-ID')}</span>
+                                <span className="text-white font-medium">{formatRp(selectedOrder.amount)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-slate-400">Status</span>

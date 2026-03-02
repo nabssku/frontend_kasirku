@@ -10,10 +10,7 @@ import { useUsers } from '../../hooks/useUsers';
 import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
 import { toast } from 'sonner';
 import type { Shift } from '../../types';
-
-function formatRp(n: number) {
-    return 'Rp ' + Math.floor(n ?? 0).toLocaleString('id-ID');
-}
+import { formatRp } from '../../lib/format';
 
 function DiscrepancyBadge({ status }: { status?: string }) {
     if (!status || status === 'OK') return null;

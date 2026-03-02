@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle, LogIn, Clock, Receipt, Loader2, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { formatRp } from '../../../lib/format';
 
 // --- No Active Shift Modal ---
 export const NoShiftModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
@@ -118,7 +119,7 @@ export const ResumeOrderModal = ({ isOpen, onClose, pendingTransactions, onResum
                                     <div className="text-right">
                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Tagihan</p>
                                         <div className="text-lg font-black text-indigo-600 bg-indigo-50/50 px-3 py-1 rounded-xl border border-indigo-100/50">
-                                            Rp {parseFloat(tx.grand_total.toString()).toLocaleString('id-ID')}
+                                            {formatRp(tx.grand_total)}
                                         </div>
                                     </div>
                                 </div>
@@ -347,7 +348,7 @@ export const PaymentModal = ({
                         <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">Pembayaran</h3>
                         <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
                             <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Tagihan:</span>
-                            <span className="text-xs sm:text-sm font-black text-indigo-600">Rp {grandTotal.toLocaleString('id-ID')}</span>
+                            <span className="text-xs sm:text-sm font-black text-indigo-600">{formatRp(grandTotal)}</span>
                         </div>
                     </div>
                     <button onClick={onClose} className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all">
@@ -449,7 +450,7 @@ export const PaymentModal = ({
                         <div className="p-4 sm:p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex justify-between items-center animate-in slide-in-from-top-4 duration-500">
                             <div className="flex flex-col text-left">
                                 <span className="text-[9px] sm:text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5 sm:mb-1">Kembalian</span>
-                                <span className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">Rp {(paidAmount - grandTotal).toLocaleString('id-ID')}</span>
+                                <span className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">{formatRp(paidAmount - grandTotal)}</span>
                             </div>
                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
                                 <CheckCircle2 size={24} />
@@ -461,7 +462,7 @@ export const PaymentModal = ({
                         <div className="p-4 sm:p-6 bg-amber-50 rounded-2xl border border-amber-100 flex justify-between items-center animate-in slide-in-from-top-4 duration-500">
                             <div className="flex flex-col text-left">
                                 <span className="text-[9px] sm:text-[10px] font-black text-amber-600 uppercase tracking-widest mb-0.5 sm:mb-1">Kurang Bayar</span>
-                                <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">Rp {(grandTotal - paidAmount).toLocaleString('id-ID')}</span>
+                                <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">{formatRp(grandTotal - paidAmount)}</span>
                             </div>
                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
                                 <AlertCircle size={24} />

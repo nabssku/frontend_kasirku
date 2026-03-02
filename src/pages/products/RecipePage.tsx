@@ -7,6 +7,7 @@ import { useRecipe, useUpsertRecipe, useDeleteRecipe } from '../../hooks/useReci
 import { useBusinessType } from '../../hooks/useBusinessType';
 import type { RecipeItem } from '../../types';
 import { toast } from 'sonner';
+import { formatRp } from '../../lib/format';
 
 export default function RecipePage() {
     const { id } = useParams<{ id: string }>();
@@ -68,7 +69,7 @@ export default function RecipePage() {
                 items: items.filter(item => item.ingredient_id && (item.quantity || 0) > 0) as RecipeItem[]
             }
         });
-        alert('Resep berhasil disimpan!');
+        toast.success('Resep berhasil disimpan!');
         navigate('/products');
     };
 
@@ -184,23 +185,23 @@ export default function RecipePage() {
                             <div className="pt-4 border-t border-slate-50 space-y-2">
                                 <div className="flex justify-between text-sm text-slate-500">
                                     <span>Total Biaya Bahan</span>
-                                    <span className="font-bold text-slate-900">Rp {totalCost.toLocaleString('id-ID')}</span>
+                                    <span className="font-bold text-slate-900">{formatRp(totalCost)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-2">
                                     <span className="text-xs font-bold text-indigo-600 uppercase">HPP per Porsi</span>
-                                    <span className="text-xl font-black text-indigo-600">Rp {Math.round(totalCost / (yieldQty || 1)).toLocaleString('id-ID')}</span>
+                                    <span className="text-xl font-black text-indigo-600">{formatRp(Math.round(totalCost / (yieldQty || 1)))}</span>
                                 </div>
                             </div>
 
                             <div className="pt-4 border-t border-slate-50">
                                 <div className="flex justify-between text-sm text-slate-500 mb-1">
                                     <span>Harga Jual</span>
-                                    <span className="font-bold text-slate-900">Rp {(product?.price || 0).toLocaleString('id-ID')}</span>
+                                    <span className="font-bold text-slate-900">{formatRp(product?.price || 0)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs font-bold text-emerald-600 uppercase">Estimasi Laba per Porsi</span>
                                     <span className="text-lg font-bold text-emerald-600">
-                                        Rp {Math.max(0, (product?.price || 0) - (totalCost / (yieldQty || 1))).toLocaleString('id-ID')}
+                                        {formatRp(Math.max(0, (product?.price || 0) - (totalCost / (yieldQty || 1))))}
                                     </span>
                                 </div>
                             </div>

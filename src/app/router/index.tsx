@@ -93,8 +93,22 @@ export const router = createBrowserRouter([
             // Operational
             { path: 'transactions', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><TransactionHistoryPage /></ProtectedRoute> },
             { path: 'tables', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><TablesPage /></ProtectedRoute> },
-            { path: 'kitchen', element: <ProtectedRoute allowedRoles={KITCHEN_ROLES}><KitchenDisplayPage /></ProtectedRoute> },
-            { path: 'shifts', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><ShiftPage /></ProtectedRoute> },
+            {
+                path: 'kitchen',
+                element: (
+                    <ProtectedRoute allowedRoles={KITCHEN_ROLES} requiredFeature="kitchen_display" featureName="Kitchen Display (KDS)">
+                        <KitchenDisplayPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'shifts',
+                element: (
+                    <ProtectedRoute allowedRoles={OPERATIONAL_ROLES} requiredFeature="shift_management" featureName="Manajemen Shift">
+                        <ShiftPage />
+                    </ProtectedRoute>
+                )
+            },
 
             // Catalog (admin+)
             {
@@ -110,22 +124,71 @@ export const router = createBrowserRouter([
             {
                 path: 'expenses',
                 children: [
-                    { path: '', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ExpensesPage /></ProtectedRoute> },
-                    { path: 'categories', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ExpenseCategoriesPage /></ProtectedRoute> },
+                    {
+                        path: '',
+                        element: (
+                            <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES} requiredFeature="expenses" featureName="Manajemen Pengeluaran">
+                                <ExpensesPage />
+                            </ProtectedRoute>
+                        )
+                    },
+                    {
+                        path: 'categories',
+                        element: (
+                            <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES} requiredFeature="expenses" featureName="Manajemen Pengeluaran">
+                                <ExpenseCategoriesPage />
+                            </ProtectedRoute>
+                        )
+                    },
                 ]
             },
-            { path: 'modifiers', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><ModifiersPage /></ProtectedRoute> },
-            { path: 'ingredients', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><IngredientsPage /></ProtectedRoute> },
-            { path: 'customers', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><CustomersPage /></ProtectedRoute> },
+            {
+                path: 'modifiers',
+                element: (
+                    <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES} requiredFeature="modifiers" featureName="Modifiers / Ekstra">
+                        <ModifiersPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'ingredients',
+                element: (
+                    <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES} requiredFeature="inventory_basic" featureName="Manajemen Stok & Bahan Baku">
+                        <IngredientsPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'customers',
+                element: (
+                    <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES} requiredFeature="customers" featureName="Manajemen Pelanggan">
+                        <CustomersPage />
+                    </ProtectedRoute>
+                )
+            },
 
             // Management (admin+)
             { path: 'outlets', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><OutletsPage /></ProtectedRoute> },
             { path: 'users', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><UsersPage /></ProtectedRoute> },
-            { path: 'reports', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><ReportsPage /></ProtectedRoute> },
+            {
+                path: 'reports',
+                element: (
+                    <ProtectedRoute allowedRoles={ADMIN_ROLES} requiredFeature="advanced_reports" featureName="Laporan Canggih">
+                        <ReportsPage />
+                    </ProtectedRoute>
+                )
+            },
             { path: 'subscription', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><TenantPage /></ProtectedRoute> },
             { path: 'settings/printer', element: <ProtectedRoute allowedRoles={CONFIG_ROLES}><PrinterSettingsPage /></ProtectedRoute> },
             { path: 'settings/receipt', element: <ProtectedRoute allowedRoles={CONFIG_ROLES}><ReceiptSettingsPage /></ProtectedRoute> },
-            { path: 'settings/audit-log', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><AuditLogPage /></ProtectedRoute> },
+            {
+                path: 'settings/audit-log',
+                element: (
+                    <ProtectedRoute allowedRoles={OWNER_ROLES} requiredFeature="audit_log" featureName="Audit Log">
+                        <AuditLogPage />
+                    </ProtectedRoute>
+                )
+            },
         ],
     },
 ]);

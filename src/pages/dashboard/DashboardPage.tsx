@@ -1,4 +1,5 @@
 import { TrendingUp, ShoppingCart, DollarSign, BarChart2, Package, Store } from 'lucide-react';
+import { formatRp } from '../../lib/format';
 import { useDailyReport, useTopProducts } from '../../hooks/useReports';
 import { useAuthStore } from '../../app/store/useAuthStore';
 import { useOutlets } from '../../hooks/useOutlets';
@@ -45,8 +46,8 @@ export default function DashboardPage() {
 
     const fmtRp = (n?: number) =>
         n !== undefined
-            ? 'Rp ' + n.toLocaleString('id-ID')
-            : 'Rp 0';
+            ? formatRp(n)
+            : formatRp(0);
 
     return (
         <div className="space-y-8">

@@ -13,13 +13,26 @@ interface CurrentSubscriptionResponse {
 interface SubscribeResponse {
     payment_transaction: {
         id: string;
-        snap_token: string;
+        invoice_id: string;
+        payment_url: string;
+        final_amount: number;
         gateway_order_id: string;
         amount: number;
         status: string;
     };
-    snap_token: string;
-    client_key: string;
+    payment_url: string;
+    invoice_id: string;
+    final_amount: number;
+}
+
+interface CheckPaymentResponse {
+    success: boolean;
+    invoice_id: string;
+    status: 'pending' | 'paid' | 'expired' | 'failed';
+    amount: number | null;
+    final_amount: number | null;
+    paid_at: string | null;
+    expires_at: string | null;
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -64,6 +77,23 @@ export function useSubscribe() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['subscription'] });
+        },
+    });
+}
+
+export function useCheckPayment(invoice: string | null, enabled = false) {
+    return useQuery<CheckPaymentResponse>({
+        queryKey: ['subscription', 'check-payment', invoice],
+        queryFn: async () => {
+            const { data } = await api.get(`/subscriptions/check-payment/${invoice}`);
+            return data;
+        },
+        enabled: enabled && !!invoice,
+        refetchInterval: (query) => {
+            const status = query.state.data?.status;
+            // Stop polling once settled
+            if (status === 'paid' || status === 'expired' || status === 'failed') return false;
+            return 5000; // poll every 5 seconds while pending
         },
     });
 }

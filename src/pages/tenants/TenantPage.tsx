@@ -1,36 +1,25 @@
 import { useState } from 'react';
-import { useCurrentSubscription, useSubscriptionHistory, usePlans, useSubscribe } from '../../hooks/useSubscription';
+import { useCurrentSubscription, useSubscriptionHistory, usePlans, useSubscribe, useCheckPayment } from '../../hooks/useSubscription';
+import { formatRp } from '../../lib/format';
 import {
     CreditCard, Clock, AlertTriangle, CheckCircle2, Crown, Package,
     Users, ShoppingBag, Tag, Beaker, Sliders, ChevronDown, ChevronUp, Loader2,
+    ExternalLink, RefreshCw, BarChart3, Monitor,
+    History, Receipt,
 } from 'lucide-react';
 
-// Midtrans Snap types
-declare global {
-    interface Window {
-        snap: {
-            pay: (token: string, callbacks: {
-                onSuccess?: (result: unknown) => void;
-                onPending?: (result: unknown) => void;
-                onError?: (result: unknown) => void;
-                onClose?: () => void;
-            }) => void;
-        };
-    }
-}
-
-// Load Midtrans Snap script dynamically
-function loadMidtransSnap(clientKey: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        if (window.snap) { resolve(); return; }
-        const script = document.createElement('script');
-        script.src = `https://app.sandbox.midtrans.com/snap/snap.js`;
-        script.setAttribute('data-client-key', clientKey);
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Midtrans Snap'));
-        document.head.appendChild(script);
-    });
-}
+const FEATURE_MAP: Record<string, { label: string; icon: any }> = {
+    'pos_basic': { label: 'Kasir POS Dasar', icon: ShoppingBag },
+    'inventory_basic': { label: 'Manajemen Stok', icon: Package },
+    'inventory_recipe': { label: 'Resep & HPP Produk', icon: Beaker },
+    'modifiers': { label: 'Produk Ekstra (Modifiers)', icon: Sliders },
+    'customers': { label: 'Manajemen Pelanggan', icon: Users },
+    'expenses': { label: 'Catatan Pengeluaran', icon: Receipt },
+    'kitchen_display': { label: 'Kitchen Display (KDS)', icon: Monitor },
+    'advanced_reports': { label: 'Laporan Bisnis Lengkap', icon: BarChart3 },
+    'audit_log': { label: 'Audit Log & Keamanan', icon: History },
+    'shift_management': { label: 'Manajemen Shift', icon: Clock },
+};
 
 export default function TenantPage() {
     const { data: subscriptionData, isLoading } = useCurrentSubscription();
@@ -40,6 +29,14 @@ export default function TenantPage() {
     const [expandHistory, setExpandHistory] = useState(false);
     const [selectedCycle, setSelectedCycle] = useState<'monthly' | 'yearly'>('monthly');
     const [payingPlanId, setPayingPlanId] = useState<number | null>(null);
+    const [pendingInvoice, setPendingInvoice] = useState<string | null>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+
+    // Poll payment status while modal is open
+    const paymentCheck = useCheckPayment(pendingInvoice, showPaymentModal);
+    const paidSuccessfully = paymentCheck.data?.status === 'paid';
+    const paymentExpired = paymentCheck.data?.status === 'expired' || paymentCheck.data?.status === 'failed';
 
     const sub = subscriptionData?.subscription;
     const isTrial = sub?.status === 'trial';
@@ -56,27 +53,26 @@ export default function TenantPage() {
                 billing_cycle: selectedCycle,
             });
 
-            if (result.snap_token && result.client_key) {
-                await loadMidtransSnap(result.client_key);
-                window.snap.pay(result.snap_token, {
-                    onSuccess: () => {
-                        window.location.reload();
-                    },
-                    onPending: () => {
-                        alert('Pembayaran sedang diproses. Kami akan memperbarui status Anda segera.');
-                    },
-                    onError: () => {
-                        alert('Pembayaran gagal. Silakan coba lagi.');
-                    },
-                    onClose: () => {
-                        // User closed Snap popup
-                    },
-                });
+            if (result.payment_url && result.invoice_id) {
+                setPaymentUrl(result.payment_url);
+                setPendingInvoice(result.invoice_id);
+                setShowPaymentModal(true);
+                // Open bayar.gg payment page in new tab
+                window.open(result.payment_url, '_blank');
             }
         } catch {
             alert('Gagal membuat transaksi. Silakan coba lagi.');
         } finally {
             setPayingPlanId(null);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setShowPaymentModal(false);
+        setPendingInvoice(null);
+        setPaymentUrl(null);
+        if (paidSuccessfully) {
+            window.location.reload();
         }
     };
 
@@ -90,6 +86,67 @@ export default function TenantPage() {
 
     return (
         <div className="space-y-8">
+            {/* bayar.gg Payment Status Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 text-center space-y-6">
+                        {paidSuccessfully ? (
+                            <>
+                                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+                                    <CheckCircle2 size={40} className="text-emerald-500" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-900">Pembayaran Berhasil!</h2>
+                                <p className="text-slate-500">Langganan Anda telah aktif. Klik tutup untuk memperbarui halaman.</p>
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="w-full py-3 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors"
+                                >
+                                    Tutup & Perbarui
+                                </button>
+                            </>
+                        ) : paymentExpired ? (
+                            <>
+                                <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+                                    <AlertTriangle size={40} className="text-red-500" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-900">Pembayaran Gagal / Kedaluwarsa</h2>
+                                <p className="text-slate-500">Transaksi ini telah berakhir atau dibatalkan. Silakan coba lagi.</p>
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="w-full py-3 rounded-2xl bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition-colors"
+                                >
+                                    Tutup
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div className="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center mx-auto">
+                                    <RefreshCw size={36} className="text-indigo-500 animate-spin" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-900">Menunggu Pembayaran</h2>
+                                <p className="text-slate-500">
+                                    Halaman pembayaran bayar.gg telah dibuka di tab baru. Selesaikan pembayaran di sana, halaman ini akan otomatis diperbarui.
+                                </p>
+                                <a
+                                    href={paymentUrl ?? '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors"
+                                >
+                                    <ExternalLink size={18} />
+                                    Buka Halaman Pembayaran
+                                </a>
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="w-full py-3 rounded-2xl bg-slate-100 text-slate-600 font-semibold hover:bg-slate-200 transition-colors text-sm"
+                                >
+                                    Batalkan / Tutup
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -206,26 +263,52 @@ export default function TenantPage() {
 
                     {/* Plan features/limits with progress concept simplified */}
                     {sub.plan && (
-                        <div className="mt-8 pt-8 border-t border-slate-100 relative z-10">
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Benefit & Kapasitas Paket</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                                {[
-                                    { icon: ShoppingBag, label: 'Produk', value: sub.plan.max_products, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-                                    { icon: Tag, label: 'Kategori', value: sub.plan.max_categories, bg: 'bg-violet-50', color: 'text-violet-600' },
-                                    { icon: Users, label: 'Pengguna', value: sub.plan.max_users, bg: 'bg-blue-50', color: 'text-blue-600' },
-                                    { icon: Package, label: 'Outlet', value: sub.plan.max_outlets, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-                                    { icon: Beaker, label: 'Bahan Bakar', value: sub.plan.max_ingredients, bg: 'bg-amber-50', color: 'text-amber-600' },
-                                    { icon: Sliders, label: 'Modifier', value: sub.plan.max_modifiers, bg: 'bg-rose-50', color: 'text-rose-600' },
-                                ].map(item => (
-                                    <div key={item.label} className="p-3 rounded-2xl bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-sm transition-all">
-                                        <div className={`w-8 h-8 rounded-xl ${item.bg} ${item.color} flex items-center justify-center mb-2`}>
-                                            <item.icon size={16} />
+                        <div className="mt-8 pt-8 border-t border-slate-100 relative z-10 space-y-8">
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Kapasitas Paket</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                                    {[
+                                        { icon: ShoppingBag, label: 'Produk', value: sub.plan.max_products, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+                                        { icon: Tag, label: 'Kategori', value: sub.plan.max_categories, bg: 'bg-violet-50', color: 'text-violet-600' },
+                                        { icon: Users, label: 'Pengguna', value: sub.plan.max_users, bg: 'bg-blue-50', color: 'text-blue-600' },
+                                        { icon: Package, label: 'Outlet', value: sub.plan.max_outlets, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+                                        { icon: Beaker, label: 'Bahan Bakar', value: sub.plan.max_ingredients, bg: 'bg-amber-50', color: 'text-amber-600' },
+                                        { icon: Sliders, label: 'Modifier', value: sub.plan.max_modifiers, bg: 'bg-rose-50', color: 'text-rose-600' },
+                                    ].map(item => (
+                                        <div key={item.label} className="p-3 rounded-2xl bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-sm transition-all">
+                                            <div className={`w-8 h-8 rounded-xl ${item.bg} ${item.color} flex items-center justify-center mb-2`}>
+                                                <item.icon size={16} />
+                                            </div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase">{item.label}</p>
+                                            <p className="text-sm font-bold text-slate-900">{item.value === -1 ? 'Unlimited' : item.value}</p>
                                         </div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{item.label}</p>
-                                        <p className="text-sm font-bold text-slate-900">{item.value === -1 ? 'Unlimited' : item.value}</p>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
+
+                            {sub.plan.features?.filter(f => f.feature_value === 'true').length > 0 && (
+                                <div>
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Fitur Tambahan Aktif</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {sub.plan.features.filter(f => f.feature_value === 'true').map(f => {
+                                            const fInfo = FEATURE_MAP[f.feature_key] || {
+                                                label: f.feature_key.replace(/_/g, ' '),
+                                                icon: CheckCircle2
+                                            };
+                                            return (
+                                                <div key={f.feature_key} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                                                    <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center text-emerald-500 shadow-sm">
+                                                        <fInfo.icon size={16} />
+                                                    </div>
+                                                    <span className="text-sm text-slate-700 font-bold capitalize">
+                                                        {fInfo.label}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -277,7 +360,7 @@ export default function TenantPage() {
                                     <div className="mb-8">
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-4xl font-black text-slate-900 tracking-tighter">
-                                                Rp {plan.price.toLocaleString('id-ID')}
+                                                {formatRp(plan.price)}
                                             </span>
                                             <span className="text-sm font-bold text-slate-400">
                                                 /{plan.billing_cycle === 'monthly' ? 'bulan' : 'tahun'}
@@ -303,20 +386,26 @@ export default function TenantPage() {
                                         ))}
                                     </div>
 
-                                    {plan.features?.length > 0 && (
+                                    {plan.features?.filter(f => f.feature_value === 'true').length > 0 && (
                                         <div className="pt-6 mb-8 border-t border-slate-50">
                                             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-3">Fitur Tambahan</p>
                                             <div className="space-y-3">
-                                                {plan.features.map(f => (
-                                                    <div key={f.feature_key} className="flex items-center gap-2">
-                                                        <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                                                            <CheckCircle2 size={12} />
+                                                {plan.features.filter(f => f.feature_value === 'true').map(f => {
+                                                    const fInfo = FEATURE_MAP[f.feature_key] || {
+                                                        label: f.feature_key.replace(/_/g, ' '),
+                                                        icon: CheckCircle2
+                                                    };
+                                                    return (
+                                                        <div key={f.feature_key} className="flex items-center gap-2">
+                                                            <div className="w-5 h-5 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                                                                <fInfo.icon size={12} />
+                                                            </div>
+                                                            <span className="text-xs text-slate-600 font-medium capitalize">
+                                                                {fInfo.label}
+                                                            </span>
                                                         </div>
-                                                        <span className="text-xs text-slate-600 font-medium capitalize">
-                                                            {f.feature_key.replace(/_/g, ' ')}
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     )}

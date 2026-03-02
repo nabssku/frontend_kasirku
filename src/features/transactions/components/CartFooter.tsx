@@ -1,6 +1,7 @@
 import { User, ChevronDown, CreditCard, Store, Bike, CheckCircle2, Save, Loader2, Trash2 } from 'lucide-react';
 import type { CartItem } from '../../../app/store/useCartStore';
 import { useBusinessType } from '../../../hooks/useBusinessType';
+import { formatRp } from '../../../lib/format';
 
 interface CartFooterProps {
     isDragging: boolean;
@@ -42,7 +43,7 @@ export const CartFooter = ({
     const { isFnb } = useBusinessType();
     return (
         <div
-            className={`mt-auto bg-white border-t border-slate-100 p-6 pt-9 space-y-6 shadow-[0_-20px_50px_rgba(0,0,0,0.08)] z-30 relative rounded-t-[32px] transition-transform ${isDragging ? '' : 'duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]'} `}
+            className={`mt-auto bg-white border-t border-slate-100 p-6 pt-9 space-y-6 shadow-[0_-20px_50px_rgba(0,0,0,0.08)] z-30 relative rounded-t-[32px] transition-transform ${isDragging ? '' : 'duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]'}`}
             style={{ transform: isDragging ? `translateY(${dragOffset}px)` : 'none' }}
         >
             {/* Toggle Handle / Peek */}
@@ -55,7 +56,7 @@ export const CartFooter = ({
                 onClick={() => !isDragging && Math.abs(dragOffset) < 5 && setShowDetails(!showDetails)}
             >
                 <div className="flex flex-col items-center gap-1.5 pointer-events-none">
-                    <div className={`w-12 h-1.5 rounded-full transition-all duration-300 ${showDetails ? 'bg-indigo-100' : 'bg-slate-200'} `}
+                    <div className={`w-12 h-1.5 rounded-full transition-all duration-300 ${showDetails ? 'bg-indigo-100' : 'bg-slate-200'}`}
                         style={{ transform: `translateY(${Math.max(-10, Math.min(10, dragOffset * 0.2))}px)` }}></div>
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">
                         {showDetails ? 'Ringkasan' : 'Detail Transaksi'}
@@ -63,7 +64,7 @@ export const CartFooter = ({
                 </div>
             </div>
 
-            <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${showDetails ? 'max-h-[500px] opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'} `}>
+            <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${showDetails ? 'max-h-[500px] opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'}`}>
                 <div className="space-y-4">
                     <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 flex items-center justify-between group cursor-pointer hover:bg-indigo-100/50 transition-all" onClick={() => setShowOrderModal(true)}>
                         <div className="flex items-center gap-3">
@@ -90,21 +91,21 @@ export const CartFooter = ({
                         </div>
                     )}
 
-                    {/* Price Breakdown moved here */}
+                    {/* Price Breakdown */}
                     <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-3">
                         <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
                             <span>Subtotal</span>
-                            <span className="text-slate-700 font-bold">Rp {total.toLocaleString('id-ID')}</span>
+                            <span className="text-slate-700 font-bold">{formatRp(total)}</span>
                         </div>
                         {calculatedDiscount > 0 && (
                             <div className="flex justify-between text-[11px] font-black text-rose-400 uppercase tracking-wider">
                                 <span>Diskon {discountType === 'percent' && `(${discount}%)`}</span>
-                                <span className="text-rose-500 font-bold">- Rp {calculatedDiscount.toLocaleString('id-ID')}</span>
+                                <span className="text-rose-500 font-bold">- {formatRp(calculatedDiscount)}</span>
                             </div>
                         )}
                         <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
                             <span>Pajak (10%)</span>
-                            <span className="text-slate-700 font-bold">Rp {tax.toLocaleString('id-ID')}</span>
+                            <span className="text-slate-700 font-bold">{formatRp(tax)}</span>
                         </div>
                         {isFnb && (
                             <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-wider">
@@ -134,7 +135,7 @@ export const CartFooter = ({
                             <div className="flex flex-col items-start">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Metode: {paymentMethod === 'cash' ? 'Tunai' : paymentMethod === 'bank_transfer' ? 'Transfer' : 'E-Wallet'}</span>
                                 <span className={`text-sm font-bold ${paidAmount >= grandTotal ? 'text-emerald-700' : 'text-slate-700'}`}>
-                                    {paidAmount > 0 ? `Rp ${paidAmount.toLocaleString('id-ID')}` : 'Pilih Pembayaran'}
+                                    {paidAmount > 0 ? formatRp(paidAmount) : 'Pilih Pembayaran'}
                                 </span>
                             </div>
                         </div>
@@ -173,7 +174,7 @@ export const CartFooter = ({
                         <div className="flex flex-col items-end">
                             <span className="text-[10px] font-black text-indigo-200/60 uppercase tracking-widest leading-none mb-0.5">Total</span>
                             <span className="text-lg font-black text-white tracking-tight">
-                                Rp {grandTotal.toLocaleString('id-ID')}
+                                {formatRp(grandTotal)}
                             </span>
                         </div>
                     </button>

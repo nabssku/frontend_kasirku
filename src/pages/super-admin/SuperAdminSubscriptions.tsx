@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useSuperAdminSubscriptions, useUpdateSubscription, useSuperAdminPlans } from '../../hooks/useSuperAdmin';
-import { Edit2, X, Check, Search, Calendar, ChevronRight, Power, PowerOff, AlertTriangle } from 'lucide-react';
+import { formatRp } from '../../lib/format';
+import {
+    Edit2, X, Check, Search, Calendar, ChevronRight, Power, PowerOff, AlertTriangle
+} from 'lucide-react';
 
 export default function SuperAdminSubscriptions() {
     const [search, setSearch] = useState('');
@@ -102,8 +105,8 @@ export default function SuperAdminSubscriptions() {
                                 onClick={handleToggleStatus}
                                 disabled={updateSubscription.isPending}
                                 className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50 ${confirmAction.action === 'deactivate'
-                                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
-                                        : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30'
+                                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
+                                    : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30'
                                     }`}
                             >
                                 {updateSubscription.isPending ? 'Processing...' : confirmAction.action === 'deactivate' ? 'Deactivate' : 'Activate'}
@@ -181,13 +184,13 @@ export default function SuperAdminSubscriptions() {
                                                     className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-white text-xs w-full max-w-[150px]"
                                                 >
                                                     {plans?.map((plan) => (
-                                                        <option key={plan.id} value={plan.id}>{plan.name} (Rp {plan.price.toLocaleString()})</option>
+                                                        <option key={plan.id} value={plan.id}>{plan.name} ({formatRp(plan.price)})</option>
                                                     ))}
                                                 </select>
                                             ) : (
                                                 <div className="flex flex-col">
                                                     <span className="text-sm text-white">{sub.plan?.name ?? '-'}</span>
-                                                    <span className="text-xs text-slate-500">Rp {Number(sub.plan?.price ?? 0).toLocaleString()} / {sub.plan?.billing_cycle}</span>
+                                                    <span className="text-xs text-slate-500">{formatRp(Number(sub.plan?.price ?? 0))} / {sub.plan?.billing_cycle}</span>
                                                 </div>
                                             )}
                                         </td>
@@ -205,9 +208,9 @@ export default function SuperAdminSubscriptions() {
                                                 </select>
                                             ) : (
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sub.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                        sub.status === 'trial' ? 'bg-cyan-500/10 text-cyan-400' :
-                                                            sub.status === 'expired' ? 'bg-red-500/10 text-red-400' :
-                                                                'bg-slate-500/10 text-slate-400'
+                                                    sub.status === 'trial' ? 'bg-cyan-500/10 text-cyan-400' :
+                                                        sub.status === 'expired' ? 'bg-red-500/10 text-red-400' :
+                                                            'bg-slate-500/10 text-slate-400'
                                                     }`}>
                                                     {sub.status}
                                                 </span>
@@ -252,8 +255,8 @@ export default function SuperAdminSubscriptions() {
                                             {sub.days_remaining != null ? (
                                                 <div className="flex items-center gap-2">
                                                     <span className={`text-sm font-bold ${sub.days_remaining <= 0 ? 'text-red-400' :
-                                                            sub.days_remaining <= 7 ? 'text-amber-400' :
-                                                                'text-emerald-400'
+                                                        sub.days_remaining <= 7 ? 'text-amber-400' :
+                                                            'text-emerald-400'
                                                         }`}>
                                                         {sub.days_remaining}
                                                     </span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSuperAdminPlans, useCreatePlan, useUpdatePlan, useDeletePlan } from '../../hooks/useSuperAdmin';
 import { Plus, Edit2, Trash2, X, Check, ShieldCheck, ToggleLeft, ToggleRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { formatRp } from '../../lib/format';
 import type { Plan, PlanFeature } from '../../types';
 
 // ─── Available Features Registry ─────────────────────────────────────────────
@@ -297,8 +298,8 @@ export default function SuperAdminPlans() {
                                                 type="button"
                                                 onClick={() => toggleFeature(feature.key)}
                                                 className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${isEnabled
-                                                        ? 'bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/15'
-                                                        : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600'
+                                                    ? 'bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/15'
+                                                    : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600'
                                                     }`}
                                             >
                                                 <div className="flex-1 min-w-0">
@@ -401,7 +402,7 @@ export default function SuperAdminPlans() {
                                 {/* Price */}
                                 <div className="mb-4">
                                     <span className="text-3xl font-bold text-white">
-                                        Rp {plan.price.toLocaleString('id-ID')}
+                                        {formatRp(plan.price)}
                                     </span>
                                     <span className="text-sm text-slate-400 ml-1">/{plan.billing_cycle === 'monthly' ? 'bln' : 'thn'}</span>
                                 </div>

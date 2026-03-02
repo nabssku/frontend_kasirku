@@ -4,6 +4,7 @@ import type { Product, Modifier } from '../../../types';
 import { useState } from 'react';
 import { ModifierPicker } from './ModifierPicker';
 import { triggerHaptic } from '../../../utils/capacitor';
+import { formatRp } from '../../../lib/format';
 
 interface ProductCardProps {
     product: Product;
@@ -79,7 +80,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     <h3 className="font-bold text-slate-800 text-sm line-clamp-1 truncate uppercase tracking-tight">{product.name}</h3>
                     <p className="text-xs text-slate-400 font-medium">{product.category?.name || 'Uncategorized'}</p>
                     <div className="flex items-center justify-between pt-2">
-                        <p className="font-bold text-indigo-600">Rp {product.price.toLocaleString('id-ID')}</p>
+                        <p className="font-bold text-indigo-600">{formatRp(product.price)}</p>
                         <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                             <Plus size={18} />
                         </div>

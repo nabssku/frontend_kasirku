@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Package, Beef, ListTree } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts, useDeleteProduct } from '../../hooks/useProducts';
+import { formatRp } from '../../lib/format';
 import { useBusinessType } from '../../hooks/useBusinessType';
 
 export default function ProductsPage() {
@@ -138,7 +139,7 @@ export default function ProductsPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right font-bold text-slate-900 border-r-0 whitespace-nowrap">
-                                        Rp {Number(product.price).toLocaleString('id-ID')}
+                                        {formatRp(product.price)}
                                     </td>
                                     <td className="px-6 py-4 text-center hidden lg:table-cell">
                                         <div className={`w-2 h-2 rounded-full mx-auto ${product.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />

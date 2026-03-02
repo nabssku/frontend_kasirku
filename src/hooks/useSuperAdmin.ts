@@ -164,3 +164,14 @@ export function useSuperAdminOrderDetail(id: string) {
     enabled: !!id,
   });
 }
+// ─── Payment Gateway Stats ───────────────────────────────────────────────────
+
+export function useSuperAdminPaymentStats(period = 'month') {
+  return useQuery({
+    queryKey: ['super-admin', 'payment-stats', period],
+    queryFn: async () => {
+      const { data } = await api.get('/super-admin/payment-statistics', { params: { period } });
+      return data.data;
+    },
+  });
+}

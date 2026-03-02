@@ -32,12 +32,15 @@ import type { ConnectionStatus } from '@capacitor/network';
 import { AiChat } from '../../features/ai/components/AiChat';
 import { Sparkles } from 'lucide-react';
 import { useBusinessType } from '../../hooks/useBusinessType';
+import { useCurrentSubscription } from '../../hooks/useSubscription';
+import type { PlanFeature } from '../../types';
 
 interface NavItem {
     name: string;
     path: string;
     icon: React.ElementType;
     roles?: UserRole[];
+    feature?: string;
     children?: Omit<NavItem, 'icon'>[];
 }
 
@@ -72,14 +75,15 @@ const allNavGroups: NavGroup[] = [
                 path: '/expenses',
                 icon: Receipt,
                 roles: ADMIN_ONLY_ROLES,
+                feature: 'expenses',
                 children: [
                     { name: 'Daftar Pengeluaran', path: '/expenses' },
                     { name: 'Kategori Pengeluaran', path: '/expenses/categories' },
                 ]
             },
             { name: 'Meja', path: '/tables', icon: Table2, roles: OPERATIONAL_ROLES },
-            { name: 'Dapur (KDS)', path: '/kitchen', icon: ChefHat, roles: KITCHEN_ROLES },
-            { name: 'Shift', path: '/shifts', icon: Clock, roles: OPERATIONAL_ROLES },
+            { name: 'Dapur (KDS)', path: '/kitchen', icon: ChefHat, roles: KITCHEN_ROLES, feature: 'kitchen_display' },
+            { name: 'Shift', path: '/shifts', icon: Clock, roles: OPERATIONAL_ROLES, feature: 'shift_management' },
         ],
     },
     {
@@ -93,11 +97,11 @@ const allNavGroups: NavGroup[] = [
                 children: [
                     { name: 'Data Produk', path: '/products' },
                     { name: 'Kategori Produk', path: '/categories' },
-                    { name: 'Modifiers / Ekstra', path: '/modifiers' },
-                    { name: 'Bahan Baku', path: '/ingredients' },
+                    { name: 'Modifiers / Ekstra', path: '/modifiers', feature: 'modifiers' },
+                    { name: 'Bahan Baku', path: '/ingredients', feature: 'inventory_basic' },
                 ]
             },
-            { name: 'Pelanggan', path: '/customers', icon: Users, roles: ADMIN_ONLY_ROLES },
+            { name: 'Pelanggan', path: '/customers', icon: Users, roles: ADMIN_ONLY_ROLES, feature: 'customers' },
         ],
     },
     {
@@ -105,7 +109,7 @@ const allNavGroups: NavGroup[] = [
         items: [
             { name: 'Outlet', path: '/outlets', icon: Store, roles: OWNER_ROLES },
             { name: 'Pengguna', path: '/users', icon: UserCog, roles: OWNER_ROLES },
-            { name: 'Laporan', path: '/reports', icon: BarChart2, roles: ADMIN_ROLES },
+            { name: 'Laporan', path: '/reports', icon: BarChart2, roles: ADMIN_ROLES, feature: 'advanced_reports' },
         ],
     },
     {
@@ -114,7 +118,7 @@ const allNavGroups: NavGroup[] = [
             { name: 'Langganan', path: '/subscription', icon: CreditCard, roles: OWNER_ROLES },
             { name: 'Printer', path: '/settings/printer', icon: Printer, roles: CONFIG_ROLES },
             { name: 'Pengaturan Struk', path: '/settings/receipt', icon: FileText, roles: CONFIG_ROLES },
-            { name: 'Audit Log', path: '/settings/audit-log', icon: ShieldAlert, roles: OWNER_ROLES },
+            { name: 'Audit Log', path: '/settings/audit-log', icon: ShieldAlert, roles: OWNER_ROLES, feature: 'audit_log' },
         ],
     },
 ];
@@ -129,6 +133,17 @@ export const DashboardLayout = () => {
     const [networkStatus, setNetworkStatus] = useState<ConnectionStatus | null>(null);
     const [isAiOpen, setIsAiOpen] = useState(false);
     const { isRetail } = useBusinessType();
+
+    // Plan features
+    const { data: subscriptionData } = useCurrentSubscription();
+
+    const hasFeature = (featureKey: string | undefined): boolean => {
+        if (!featureKey) return true;
+        if (isSuperAdmin) return true;
+
+        const features = subscriptionData?.subscription?.plan?.features || [];
+        return features.some((f: PlanFeature) => f.feature_key === featureKey && f.feature_value === 'true');
+    };
 
     // Network status listener
     useEffect(() => {
@@ -192,7 +207,6 @@ export const DashboardLayout = () => {
                 items: group.items
                     .filter((item) => {
                         // Apply business type filtering: Hide FNB-only items in Retail stores
-                        // We allow super_admin to see everything for debugging/setup
                         if (isRetail && !isSuperAdmin) {
                             if (item.path === '/tables' || item.path === '/kitchen') {
                                 return false;
@@ -218,12 +232,11 @@ export const DashboardLayout = () => {
                         }) : undefined
                     }))
                     .filter(() => {
-                        // All items currently have a path, so they remain valid even if children are empty.
                         return true;
                     })
             }))
-            .filter((group) => group.items.length > 0); // Hide empty groups
-    }, [userRoleSlugs, isRetail, isOwner]);
+            .filter((group) => group.items.length > 0);
+    }, [userRoleSlugs, isRetail, isOwner, isSuperAdmin]);
 
     const showAiButton = useMemo(() => {
         return userRoleSlugs.some(role => ADMIN_ROLES.includes(role));
@@ -298,6 +311,7 @@ export const DashboardLayout = () => {
                                 const hasChildren = item.children && item.children.length > 0;
                                 const isExpanded = expandedItems.includes(item.name);
                                 const active = isParentActive(item);
+                                const locked = !hasFeature(item.feature);
 
                                 return (
                                     <div key={item.name} className="space-y-1">
@@ -308,6 +322,7 @@ export const DashboardLayout = () => {
                                                     w-full flex items-center p-2.5 rounded-xl transition-all duration-200 group
                                                     ${active ? 'bg-indigo-50/50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                                                     ${!isSidebarOpen ? 'justify-center' : ''}
+                                                    ${locked ? 'opacity-70' : ''}
                                                 `}
                                             >
                                                 <item.icon
@@ -317,20 +332,25 @@ export const DashboardLayout = () => {
                                                 {isSidebarOpen && (
                                                     <>
                                                         <span className="ml-3 font-semibold text-sm flex-1 text-left">{item.name}</span>
-                                                        {isExpanded ? <ChevronDown size={14} className="opacity-50" /> : <ChevronRight size={14} className="opacity-50" />}
+                                                        {locked ? (
+                                                            <span className="text-[8px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase ml-2">PREMIUM</span>
+                                                        ) : (
+                                                            isExpanded ? <ChevronDown size={14} className="opacity-50" /> : <ChevronRight size={14} className="opacity-50" />
+                                                        )}
                                                     </>
                                                 )}
                                             </button>
                                         ) : (
                                             <Link
                                                 to={item.path}
-                                                title={!isSidebarOpen ? item.name : undefined}
+                                                title={!isSidebarOpen ? `${item.name}${locked ? ' (Premium)' : ''}` : undefined}
                                                 className={`
                                                     flex items-center p-2.5 rounded-xl transition-all duration-200 group
                                                     ${isActive(item.path)
                                                         ? 'bg-indigo-50 text-indigo-700 shadow-sm'
                                                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                                                     ${!isSidebarOpen ? 'justify-center' : ''}
+                                                    ${locked ? 'opacity-70' : ''}
                                                 `}
                                             >
                                                 <item.icon
@@ -340,8 +360,8 @@ export const DashboardLayout = () => {
                                                 {isSidebarOpen && (
                                                     <div className="ml-3 flex-1 flex items-center justify-between">
                                                         <span className="font-semibold text-sm">{item.name}</span>
-                                                        {item.name === 'Audit Log' && (
-                                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">PREMIUM</span>
+                                                        {locked && (
+                                                            <span className="text-[8px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black uppercase">PREMIUM</span>
                                                         )}
                                                     </div>
                                                 )}
@@ -349,22 +369,29 @@ export const DashboardLayout = () => {
                                         )}
 
                                         {/* Sub-items */}
-                                        {hasChildren && isExpanded && isSidebarOpen && (
+                                        {hasChildren && isExpanded && isSidebarOpen && !locked && (
                                             <div className="ml-4 pl-4 border-l border-slate-100 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
-                                                {item.children?.map((child) => (
-                                                    <Link
-                                                        key={child.path}
-                                                        to={child.path}
-                                                        className={`
-                                                            flex items-center p-2 rounded-lg text-xs font-medium transition-all duration-200
-                                                            ${isActive(child.path)
-                                                                ? 'text-indigo-700 bg-indigo-50/50'
-                                                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}
-                                                        `}
-                                                    >
-                                                        {child.name}
-                                                    </Link>
-                                                ))}
+                                                {item.children?.map((child) => {
+                                                    const subLocked = !hasFeature(child.feature);
+                                                    return (
+                                                        <Link
+                                                            key={child.path}
+                                                            to={child.path}
+                                                            className={`
+                                                                flex items-center p-2 rounded-lg text-xs font-medium transition-all duration-200 justify-between
+                                                                ${isActive(child.path)
+                                                                    ? 'text-indigo-700 bg-indigo-50/50'
+                                                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}
+                                                                ${subLocked ? 'opacity-70' : ''}
+                                                            `}
+                                                        >
+                                                            <span>{child.name}</span>
+                                                            {subLocked && (
+                                                                <span className="text-[7px] bg-amber-100 text-amber-600 px-1 py-0.5 rounded font-bold uppercase ml-2">PREMIUM</span>
+                                                            )}
+                                                        </Link>
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </div>

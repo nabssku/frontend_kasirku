@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import OpenAI from 'openai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { formatRp } from '../../../lib/format';
 
 interface Message {
     role: 'system' | 'user' | 'assistant';
@@ -47,7 +48,7 @@ export const AiChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         Visual Formatting Rules:
         - For report data (lists of products, tables of sales, etc.), ALWAYS use Markdown Tables.
-        - ALWAYS bold currency values (e.g., **Rp 50.000**).
+        - ALWAYS bold currency values using period as separator (e.g., **Rp 50.000**).
         - Use bullet points for lists and steps.
         - Use "###" for small headings within your response.
         - Keep it clean, professional, and visually structured.
@@ -177,7 +178,7 @@ export const AiChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-4 overflow-x-auto no-scrollbar shrink-0">
                     <div className="flex items-center gap-1.5 shrink-0">
                         <TrendingUp size={12} className="text-emerald-500" />
-                        <span className="text-[10px] font-bold text-slate-600">Rp {context.selected_outlet?.today?.revenue?.toLocaleString() ?? 0}</span>
+                        <span className="text-[10px] font-bold text-slate-600">{formatRp(context.selected_outlet?.today?.revenue ?? 0)}</span>
                     </div>
                     {(context.inventory?.low_stock_alerts?.length ?? 0) > 0 && (
                         <div className="flex items-center gap-1.5 shrink-0 text-amber-600">

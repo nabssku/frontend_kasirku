@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useExpenses, useExpenseCategories, useCreateExpense, useDeleteExpense } from '../../hooks/useExpenses';
 import { useOutlets } from '../../hooks/useOutlets';
+import { formatRp } from '../../lib/format';
 
 export default function ExpensesPage() {
     const [page, setPage] = useState(1);
@@ -300,7 +301,7 @@ export default function ExpensesPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right font-bold text-red-600">
-                                        - Rp {Number(expense.amount).toLocaleString('id-ID')}
+                                        -{formatRp(expense.amount)}
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         {expense.attachment ? (

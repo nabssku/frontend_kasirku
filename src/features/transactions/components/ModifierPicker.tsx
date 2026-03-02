@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
-import { X, Check } from 'lucide-react';
 import type { Product, ModifierGroup, Modifier } from '../../../types';
+import { formatRp } from '../../../lib/format';
+import { useState, useMemo } from 'react'; // Added useState and useMemo imports
+import { X, Check } from 'lucide-react'; // Added X and Check imports
 
 interface ModifierPickerProps {
     product: Product;
@@ -112,7 +113,7 @@ export function ModifierPicker({ product, onClose, onConfirm }: ModifierPickerPr
                                                 </div>
                                                 <span className={`font-semibold text-sm ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>{m.name}</span>
                                             </div>
-                                            <span className="text-sm font-bold text-slate-500">+ Rp {m.price.toLocaleString('id-ID')}</span>
+                                            <span className="text-sm font-bold text-slate-500">+ {formatRp(m.price)}</span>
                                         </button>
                                     );
                                 })}
@@ -123,9 +124,9 @@ export function ModifierPicker({ product, onClose, onConfirm }: ModifierPickerPr
 
                 {/* Footer */}
                 <div className="p-6 bg-slate-50 border-t border-slate-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm text-slate-500 font-medium">Subtotal</span>
-                        <span className="text-lg font-bold text-slate-900">Rp {(product.price + totalExtra).toLocaleString('id-ID')}</span>
+                    <div className="flex items-center justify-between pt-2">
+                        <p className="font-bold text-indigo-600">{formatRp(product.price)}</p>
+                        <span className="text-lg font-bold text-slate-900">{formatRp(product.price + totalExtra)}</span>
                     </div>
                     <button
                         onClick={handleConfirm}

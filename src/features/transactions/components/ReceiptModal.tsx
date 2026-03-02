@@ -5,6 +5,7 @@ import { useBluetoothPrint } from '../../../hooks/useBluetoothPrint';
 import { usePrinters } from '../../../hooks/usePrinters';
 import { usePrinterStore } from '../../../app/store/usePrinterStore';
 import { shareContent } from '../../../utils/capacitor';
+import { formatRp } from '../../../lib/format';
 
 interface ReceiptModalProps {
     receipt: PrinterReceiptData | null;
@@ -96,7 +97,7 @@ Terima kasih!
 
     if (!receipt) return null;
 
-    const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
+    const fmt = (n: number) => formatRp(n);
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[200] p-4">

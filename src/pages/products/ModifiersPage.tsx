@@ -7,6 +7,7 @@ import { useBusinessType } from '../../hooks/useBusinessType';
 import { Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { formatRp } from '../../lib/format';
 
 export default function ModifiersPage() {
     const { isFnb } = useBusinessType();
@@ -102,7 +103,7 @@ export default function ModifiersPage() {
                                             <span className={`w-2 h-2 rounded-full ${m.is_available ? 'bg-green-400' : 'bg-red-400'}`} />
                                             <div>
                                                 <p className="text-sm font-semibold text-slate-800">{m.name}</p>
-                                                <p className="text-xs text-slate-400">Rp {m.price.toLocaleString('id-ID')}</p>
+                                                <p className="text-xs text-slate-400">{formatRp(m.price)}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

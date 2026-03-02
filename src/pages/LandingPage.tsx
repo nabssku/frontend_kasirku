@@ -20,6 +20,7 @@ import { getDefaultPage } from '../lib/auth';
 import type { Plan } from '../types';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { SEO } from '../components/SEO';
+import { formatRp } from '../lib/format';
 
 const features = [
     {
@@ -279,9 +280,8 @@ export default function LandingPage() {
                                         {plan.name}
                                     </h4>
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-sm font-bold opacity-60">Rp</span>
                                         <span className="text-4xl font-black tracking-tight">
-                                            {plan.price.toLocaleString('id-ID')}
+                                            {formatRp(plan.price)}
                                         </span>
                                         <span className="text-sm font-bold opacity-60">/{plan.billing_cycle === 'monthly' ? 'bln' : 'thn'}</span>
                                     </div>

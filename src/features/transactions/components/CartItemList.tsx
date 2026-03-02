@@ -1,6 +1,7 @@
 import { ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
 import type { CartItem } from '../../../app/store/useCartStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatRp } from '../../../lib/format';
 
 interface CartItemListProps {
     items: CartItem[];
@@ -50,7 +51,7 @@ export const CartItemList = ({ items, updateQuantity, removeItem }: CartItemList
                                         × {item.quantity}
                                     </motion.span>
                                 </div>
-                                <p className="text-xs font-black text-indigo-600">Rp {(item.price * item.quantity).toLocaleString('id-ID')}</p>
+                                <p className="text-xs font-black text-indigo-600">{formatRp(item.price * item.quantity)}</p>
 
                                 {item.modifiers.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-2">

@@ -6,10 +6,7 @@ import { useOutlets } from '../../hooks/useOutlets';
 import api from '../../lib/axios';
 import { useQuery } from '@tanstack/react-query';
 import type { ProfitReport } from '../../types';
-
-function formatRp(n: number) {
-    return 'Rp ' + (n ?? 0).toLocaleString('id-ID');
-}
+import { formatRp } from '../../lib/format';
 
 export default function ReportsPage() {
     const [dateRange, setDateRange] = useState({
@@ -178,8 +175,8 @@ export default function ReportsPage() {
                                             <td className="px-6 py-4 text-right font-bold text-indigo-600">{formatRp(p.profit)}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${margin >= 50 ? 'bg-emerald-50 text-emerald-600' :
-                                                    margin >= 25 ? 'bg-indigo-50 text-indigo-600' :
-                                                        'bg-amber-50 text-amber-600'
+                                                        margin >= 25 ? 'bg-indigo-50 text-indigo-600' :
+                                                            'bg-amber-50 text-amber-600'
                                                     }`}>
                                                     {margin.toFixed(1)}%
                                                 </span>

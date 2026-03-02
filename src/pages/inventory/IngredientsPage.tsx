@@ -6,6 +6,7 @@ import { useBusinessType } from '../../hooks/useBusinessType';
 import { Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { formatRp } from '../../lib/format';
 
 type AdjustType = 'in' | 'out' | 'adjustment' | 'waste';
 
@@ -114,7 +115,7 @@ export default function IngredientsPage() {
                                         </td>
                                         <td className="px-6 py-4 text-right font-semibold text-slate-900">{item.current_stock} {item.unit}</td>
                                         <td className="px-6 py-4 text-right text-slate-500">{item.min_stock} {item.unit}</td>
-                                        <td className="px-6 py-4 text-right text-slate-500">Rp {item.cost_per_unit.toLocaleString('id-ID')}</td>
+                                        <td className="px-6 py-4 text-right text-slate-500">{formatRp(item.cost_per_unit)}</td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${isLow ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                                                 {isLow ? <AlertTriangle size={10} /> : null}{isLow ? 'Stok Rendah' : 'Aman'}
