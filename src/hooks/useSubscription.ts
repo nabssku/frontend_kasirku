@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
+import { useAuthStore } from '../app/store/useAuthStore';
 import type { Plan, Subscription } from '../types';
 
 // ─── Responses ────────────────────────────────────────────────────────────────
@@ -38,12 +39,15 @@ interface CheckPaymentResponse {
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
 export function useCurrentSubscription() {
+    const { token } = useAuthStore();
     return useQuery<CurrentSubscriptionResponse>({
-        queryKey: ['subscription', 'current'],
+        queryKey: ['subscription', 'current', token],
         queryFn: async () => {
             const { data } = await api.get('/subscriptions/current');
             return data.data;
         },
+        retry: false,          // Do NOT retry on 403; avoid hammering the API
+        staleTime: 1000 * 60,  // Cache for 1 minute
     });
 }
 
