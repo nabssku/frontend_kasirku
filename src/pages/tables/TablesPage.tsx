@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Table2, Users, Loader2, ShoppingBag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Table2, Users, Loader2, ShoppingBag, QrCode, Copy, Check, Eye } from 'lucide-react';
 import { useTables, useCreateTable, useUpdateTable, useDeleteTable, useUpdateTableStatus } from '../../hooks/useTables';
 import type { RestaurantTable } from '../../types';
 import { useBusinessType } from '../../hooks/useBusinessType';
+import { useCurrentSubscription } from '../../hooks/useSubscription';
+import api from '../../lib/axios';
 
 const STATUS_COLORS = {
     available: { bg: 'bg-green-100', text: 'text-green-700', label: 'Tersedia' },
@@ -18,6 +20,52 @@ export default function TablesPage() {
     const updateTable = useUpdateTable();
     const deleteTable = useDeleteTable();
     const updateStatus = useUpdateTableStatus();
+    const { data: subscriptionRes } = useCurrentSubscription();
+
+    const hasQrFeature = subscriptionRes?.subscription?.plan?.features?.some(
+        (f: { feature_key: string; feature_value: string }) =>
+            f.feature_key === 'qr_self_order' && f.feature_value === 'true'
+    ) ?? false;
+
+    const [qrLoading, setQrLoading] = useState<string | null>(null);
+    const [qrCopied, setQrCopied] = useState<string | null>(null);
+    const [qrModal, setQrModal] = useState<{ tableId: string; tableNm: string; url: string } | null>(null);
+
+    const generateQr = async (tableId: string) => {
+        setQrLoading(tableId);
+        try {
+            const { data } = await api.post(`/tables/${tableId}/qr/generate`);
+            if (data.success) {
+                window.location.reload(); // refresh table data
+            } else {
+                alert(data.message || 'Gagal generate QR.');
+            }
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Gagal generate QR.');
+        } finally {
+            setQrLoading(null);
+        }
+    };
+
+    const toggleQr = async (tableId: string, enabled: boolean) => {
+        setQrLoading(tableId);
+        try {
+            const { data } = await api.patch(`/tables/${tableId}/qr/toggle`, { enabled });
+            if (!data.success) alert(data.message || 'Gagal mengubah QR.');
+            else window.location.reload();
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Gagal mengubah QR.');
+        } finally {
+            setQrLoading(null);
+        }
+    };
+
+    const copyQrUrl = (url: string, tableId: string) => {
+        navigator.clipboard.writeText(url).then(() => {
+            setQrCopied(tableId);
+            setTimeout(() => setQrCopied(null), 2000);
+        });
+    };
 
     const [showForm, setShowForm] = useState(false);
     const [editItem, setEditItem] = useState<RestaurantTable | null>(null);
@@ -141,6 +189,56 @@ export default function TablesPage() {
                                                     <Trash2 size={12} />
                                                 </button>
                                             </div>
+
+                                            {/* QR Self Order Panel (admin only, feature-gated) */}
+                                            {hasQrFeature && (
+                                                <div className="mt-3 pt-3 border-t border-slate-100">
+                                                    {(table as any).qr_token ? (
+                                                        <div className="flex items-center justify-between gap-1">
+                                                            {/* Toggle */}
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); toggleQr(table.id, !(table as any).qr_enabled); }}
+                                                                disabled={qrLoading === table.id}
+                                                                title={(table as any).qr_enabled ? 'Nonaktifkan QR' : 'Aktifkan QR'}
+                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${(table as any).qr_enabled
+                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                                                    }`}
+                                                            >
+                                                                {qrLoading === table.id
+                                                                    ? <Loader2 size={10} className="animate-spin" />
+                                                                    : <QrCode size={10} />}
+                                                                {(table as any).qr_enabled ? 'QR ON' : 'QR OFF'}
+                                                            </button>
+                                                            {/* Copy URL */}
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); copyQrUrl((table as any).qr_url ?? '', table.id); }}
+                                                                title="Salin link menu"
+                                                                className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                                            >
+                                                                {qrCopied === table.id ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
+                                                            </button>
+                                                            {/* View QR */}
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); setQrModal({ tableId: table.id, tableNm: table.name, url: (table as any).qr_url ?? '' }); }}
+                                                                title="Lihat QR Code"
+                                                                className="p-1 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                                                            >
+                                                                <Eye size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={e => { e.stopPropagation(); generateQr(table.id); }}
+                                                            disabled={qrLoading === table.id}
+                                                            className="w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all"
+                                                        >
+                                                            {qrLoading === table.id ? <Loader2 size={10} className="animate-spin" /> : <QrCode size={10} />}
+                                                            Generate QR
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
@@ -153,6 +251,36 @@ export default function TablesPage() {
                             <p>Belum ada meja. Tambahkan meja pertama!</p>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* --- QR Code Modal --- */}
+            {qrModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setQrModal(null)}>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xs p-6 text-center" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-lg font-bold mb-1">{qrModal.tableNm}</h3>
+                        <p className="text-xs text-slate-400 mb-4">Scan QR untuk membuka menu</p>
+                        <div className="flex justify-center">
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrModal.url)}`}
+                                alt="QR Code"
+                                className="rounded-xl border border-slate-200"
+                            />
+                        </div>
+                        <p className="text-xs text-slate-400 mt-4 break-all">{qrModal.url}</p>
+                        <button
+                            onClick={() => { copyQrUrl(qrModal.url, qrModal.tableId); }}
+                            className="mt-4 w-full bg-orange-500 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-orange-600 transition-colors"
+                        >
+                            <Copy size={14} /> Salin Link Menu
+                        </button>
+                        <button
+                            onClick={() => setQrModal(null)}
+                            className="mt-2 text-sm text-slate-400 hover:text-slate-600"
+                        >
+                            Tutup
+                        </button>
+                    </div>
                 </div>
             )}
 

@@ -1,3 +1,4 @@
+import { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AuthLayout } from '../../components/shared/AuthLayout';
 import { DashboardLayout } from '../../components/shared/DashboardLayout';
@@ -31,24 +32,34 @@ import SuperAdminPlans from '../../pages/super-admin/SuperAdminPlans';
 import SuperAdminOrders from '../../pages/super-admin/SuperAdminOrders';
 import LandingPage from '../../pages/LandingPage';
 import AuditLogPage from '../../pages/settings/AuditLogPage';
-import { lazy } from 'react';
-const PrinterSettingsPage = lazy(() => import('../../pages/settings/PrinterSettingsPage'));
-const ReceiptSettingsPage = lazy(() => import('../../pages/settings/ReceiptSettingsPage'));
 import { ProtectedRoute } from './ProtectedRoute';
 import type { UserRole } from '../../types';
 
+const PrinterSettingsPage = lazy(() => import('../../pages/settings/PrinterSettingsPage'));
+const ReceiptSettingsPage = lazy(() => import('../../pages/settings/ReceiptSettingsPage'));
+
+// ─── Web Menu (public, no auth) ───────────────────────────────────────────────
+const MenuPage = lazy(() => import('../../pages/menu/MenuPage'));
+const PaymentPage = lazy(() => import('../../pages/menu/PaymentPage'));
+const OrderStatusPage = lazy(() => import('../../pages/menu/OrderStatusPage'));
+
 // ─── Role groups ──────────────────────────────────────────────────────────────
 const ADMIN_ROLES: UserRole[] = ['super_admin', 'owner', 'admin'];
-const ADMIN_ONLY_ROLES: UserRole[] = ['super_admin', 'admin']; // Explicitly excludes owner
-const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier']; // Non-owner operational staff
+const ADMIN_ONLY_ROLES: UserRole[] = ['super_admin', 'admin'];
+const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier'];
 const KITCHEN_ROLES: UserRole[] = ['super_admin', 'admin', 'kitchen', 'cashier'];
 const OWNER_ROLES: UserRole[] = ['super_admin', 'owner'];
-const POS_ROLES: UserRole[] = ['super_admin', 'cashier']; // Terminal POS focus on cashiers
-const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin']; // Operational config
+const POS_ROLES: UserRole[] = ['super_admin', 'cashier'];
+const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin'];
 const SUPER_ADMIN_ROLES: UserRole[] = ['super_admin'];
 
 export const router = createBrowserRouter([
-    // ─── Auth routes (with AuthLayout wrapper) ─────────────────────────────────
+    // ─── Public Web Menu (QR Self Order, no auth needed) ──────────────────────
+    { path: '/menu/table/:qrToken', element: <MenuPage /> },
+    { path: '/menu/payment/:sessionToken', element: <PaymentPage /> },
+    { path: '/menu/order/:sessionToken/status', element: <OrderStatusPage /> },
+
+    // ─── Auth routes ──────────────────────────────────────────────────────────
     {
         element: <AuthLayout />,
         children: [
@@ -56,7 +67,7 @@ export const router = createBrowserRouter([
             { path: '/register', element: <RegisterPage /> },
         ],
     },
-    // ─── Super Admin Panel ─────────────────────────────────────────────────────
+    // ─── Super Admin Panel ────────────────────────────────────────────────────
     {
         path: '/super-admin',
         element: (
@@ -77,7 +88,7 @@ export const router = createBrowserRouter([
     // ─── Landing Page ─────────────────────────────────────────────────────────
     { path: '/', element: <LandingPage /> },
 
-    // ─── Protected dashboard routes ────────────────────────────────────────────
+    // ─── Protected dashboard routes ───────────────────────────────────────────
     {
         path: '/',
         element: (
@@ -86,11 +97,9 @@ export const router = createBrowserRouter([
             </ProtectedRoute>
         ),
         children: [
-            // Accessible to all authenticated users
             { path: 'dashboard', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardPage /></ProtectedRoute> },
             { path: 'pos', element: <ProtectedRoute allowedRoles={POS_ROLES}><POSPage /></ProtectedRoute> },
 
-            // Operational
             { path: 'transactions', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><TransactionHistoryPage /></ProtectedRoute> },
             { path: 'tables', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><TablesPage /></ProtectedRoute> },
             {
@@ -109,8 +118,6 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 )
             },
-
-            // Catalog (admin+)
             {
                 path: 'products',
                 children: [
@@ -167,7 +174,6 @@ export const router = createBrowserRouter([
                 )
             },
 
-            // Management (admin+)
             { path: 'outlets', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><OutletsPage /></ProtectedRoute> },
             { path: 'users', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><UsersPage /></ProtectedRoute> },
             {
