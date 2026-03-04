@@ -50,7 +50,7 @@ const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier'];
 const KITCHEN_ROLES: UserRole[] = ['super_admin', 'admin', 'kitchen', 'cashier'];
 const OWNER_ROLES: UserRole[] = ['super_admin', 'owner'];
 const POS_ROLES: UserRole[] = ['super_admin', 'cashier'];
-const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin'];
+const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier'];
 const SUPER_ADMIN_ROLES: UserRole[] = ['super_admin'];
 
 export const router = createBrowserRouter([
