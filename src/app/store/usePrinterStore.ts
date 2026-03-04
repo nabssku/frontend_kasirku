@@ -26,16 +26,22 @@ export const usePrinterStore = create<PrinterState>()(
             isConnecting: false,
             isConnected: false,
             lastError: null,
-            setCashierDevice: (device) => set({ 
-                cashierDevice: device, 
-                isConnected: !!device?.gatt?.connected || !!device?.native,
-                lastCashierPrinterId: device?.id || null 
-            }),
-            setKitchenDevice: (device) => set({ 
-                kitchenDevice: device, 
-                isConnected: !!device?.gatt?.connected || !!device?.native || !!get().cashierDevice?.gatt?.connected,
-                lastKitchenPrinterId: device?.id || null 
-            }),
+            setCashierDevice: (device) => {
+                const kitchen = get().kitchenDevice;
+                set({ 
+                    cashierDevice: device, 
+                    isConnected: (!!device?.gatt?.connected || !!device?.native) || (!!kitchen?.gatt?.connected || !!kitchen?.native),
+                    lastCashierPrinterId: device?.id || null 
+                });
+            },
+            setKitchenDevice: (device) => {
+                const cashier = get().cashierDevice;
+                set({ 
+                    kitchenDevice: device, 
+                    isConnected: (!!device?.gatt?.connected || !!device?.native) || (!!cashier?.gatt?.connected || !!cashier?.native),
+                    lastKitchenPrinterId: device?.id || null 
+                });
+            },
             setIsConnecting: (isConnecting) => set({ isConnecting }),
             setIsConnected: (isConnected) => set({ isConnected }),
             setLastError: (lastError) => set({ lastError }),

@@ -300,19 +300,30 @@ export function useBluetoothPrint() {
         characteristicCache = {};
     }, [setIsConnected]);
 
-    const autoConnect = useCallback(async (): Promise<void> => {
+    const autoConnect = useCallback(async (configList?: any[]): Promise<void> => {
         if (isNative) {
             try {
                 await BleClient.initialize();
-                if (lastCashierPrinterId) {
-                    await BleClient.connect(lastCashierPrinterId, onDisconnected);
-                    setCashierDevice({ id: lastCashierPrinterId, name: 'Kasir Printer', native: true });
+                
+                // If we have a config list, use it to determine which IDs to connect
+                const cashierId = configList?.find(p => p.type === 'cashier' || p.type === 'both')?.mac_address || lastCashierPrinterId;
+                const kitchenId = configList?.find(p => p.type === 'kitchen' || p.type === 'both')?.mac_address || lastKitchenPrinterId;
+
+                if (cashierId) {
+                    try {
+                        await BleClient.connect(cashierId, onDisconnected);
+                        setCashierDevice({ id: cashierId, name: 'Kasir Printer', native: true });
+                    } catch (e) { console.warn('Native Cashier connect failed', e); }
                 }
-                if (lastKitchenPrinterId && lastKitchenPrinterId !== lastCashierPrinterId) {
-                    await BleClient.connect(lastKitchenPrinterId, onDisconnected);
-                    setKitchenDevice({ id: lastKitchenPrinterId, name: 'Dapur Printer', native: true });
+
+                if (kitchenId && kitchenId !== cashierId) {
+                    try {
+                        await BleClient.connect(kitchenId, onDisconnected);
+                        setKitchenDevice({ id: kitchenId, name: 'Dapur Printer', native: true });
+                    } catch (e) { console.warn('Native Kitchen connect failed', e); }
                 }
-                setIsConnected(true);
+                
+                setIsConnected(!!(cashierId || kitchenId));
             } catch (e) {
                 console.warn('Capacitor Auto-connect failed', e);
             }
@@ -322,20 +333,35 @@ export function useBluetoothPrint() {
         if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return;
         try {
             const devices = await navigator.bluetooth.getDevices();
-            const cDev = devices.find(d => d.id === lastCashierPrinterId);
-            const kDev = devices.find(d => d.id === lastKitchenPrinterId);
+            
+            // Map types from configList if provided
+            let cashierTargetId = lastCashierPrinterId;
+            let kitchenTargetId = lastKitchenPrinterId;
+
+            if (configList) {
+                cashierTargetId = configList.find(p => p.type === 'cashier' || p.type === 'both')?.mac_address || null;
+                kitchenTargetId = configList.find(p => p.type === 'kitchen' || p.type === 'both')?.mac_address || null;
+            }
+
+            const cDev = devices.find(d => d.id === cashierTargetId);
+            const kDev = devices.find(d => d.id === kitchenTargetId);
             
             if (cDev) {
-                if (!cDev.gatt?.connected) await cDev.gatt?.connect();
-                cDev.removeEventListener('gattserverdisconnected', onDisconnected);
-                cDev.addEventListener('gattserverdisconnected', onDisconnected);
-                setCashierDevice(cDev);
+                try {
+                    if (!cDev.gatt?.connected) await cDev.gatt?.connect();
+                    cDev.removeEventListener('gattserverdisconnected', onDisconnected);
+                    cDev.addEventListener('gattserverdisconnected', onDisconnected);
+                    setCashierDevice(cDev);
+                } catch (e) { console.warn('Web Cashier connect failed', e); }
             }
+            
             if (kDev && kDev.id !== cDev?.id) {
-                if (!kDev.gatt?.connected) await kDev.gatt?.connect();
-                kDev.removeEventListener('gattserverdisconnected', onDisconnected);
-                kDev.addEventListener('gattserverdisconnected', onDisconnected);
-                setKitchenDevice(kDev);
+                try {
+                    if (!kDev.gatt?.connected) await kDev.gatt?.connect();
+                    kDev.removeEventListener('gattserverdisconnected', onDisconnected);
+                    kDev.addEventListener('gattserverdisconnected', onDisconnected);
+                    setKitchenDevice(kDev);
+                } catch (e) { console.warn('Web Kitchen connect failed', e); }
             }
             setIsConnected(!!(cDev || kDev));
         } catch (err) {
@@ -343,7 +369,7 @@ export function useBluetoothPrint() {
         }
     }, [lastCashierPrinterId, lastKitchenPrinterId, setCashierDevice, setKitchenDevice, setIsConnected, onDisconnected]);
 
-    const connectPrinter = useCallback(async (role: 'cashier' | 'kitchen' = 'cashier'): Promise<any | null> => {
+    const connectPrinter = useCallback(async (role: 'cashier' | 'kitchen' | 'both' = 'cashier'): Promise<any | null> => {
         setLastError(null);
         if (isNative) {
             try {
@@ -356,8 +382,10 @@ export function useBluetoothPrint() {
 
                 await BleClient.connect(device.deviceId, onDisconnected);
                 const devObj = { id: device.deviceId, name: device.name || 'BT Printer', native: true };
-                if (role === 'cashier') setCashierDevice(devObj);
-                else setKitchenDevice(devObj);
+                
+                if (role === 'cashier' || role === 'both') setCashierDevice(devObj);
+                if (role === 'kitchen' || role === 'both') setKitchenDevice(devObj);
+                
                 setIsConnected(true);
                 setIsConnecting(false);
                 return { name: devObj.name, device: devObj };
@@ -382,8 +410,9 @@ export function useBluetoothPrint() {
             device.removeEventListener('gattserverdisconnected', onDisconnected);
             device.addEventListener('gattserverdisconnected', onDisconnected);
 
-            if (role === 'cashier') setCashierDevice(device);
-            else setKitchenDevice(device);
+            if (role === 'cashier' || role === 'both') setCashierDevice(device);
+            if (role === 'kitchen' || role === 'both') setKitchenDevice(device);
+            
             setIsConnected(true);
             setIsConnecting(false);
             return { name: device.name ?? 'Bluetooth Printer', device };

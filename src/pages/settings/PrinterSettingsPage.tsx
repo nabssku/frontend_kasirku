@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
     Bluetooth, Plus, Trash2, Star as _Star,
-    BluetoothOff, Pencil, X, Loader2
+    BluetoothOff, Pencil, X, Loader2, RefreshCw
 } from 'lucide-react';
 import { usePrinters, useAddPrinter, useDeletePrinter, useUpdatePrinter, useSetDefaultPrinter } from '../../hooks/usePrinters';
 import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
@@ -30,10 +30,19 @@ export default function PrinterSettingsPage() {
     const { isConnecting, cashierDevice, kitchenDevice } = usePrinterStore();
 
     useEffect(() => {
-        if (!cashierDevice && !kitchenDevice && printers.some(p => p.is_default)) {
-            autoConnect();
+        if (printers.length > 0 && !cashierDevice && !kitchenDevice) {
+            autoConnect(printers);
         }
     }, [printers, cashierDevice, kitchenDevice, autoConnect]);
+
+    const handleReconnect = async () => {
+        try {
+            await autoConnect(printers);
+            toast.success('Mencoba menghubungkan ulang printer...');
+        } catch {
+            toast.error('Gagal menghubungkan ulang printer.');
+        }
+    };
 
     const handleAddPrinter = async () => {
         if (!isSupported) {
@@ -112,19 +121,29 @@ export default function PrinterSettingsPage() {
                     <h1 className="text-2xl font-bold text-slate-900">Pengaturan Printer</h1>
                     <p className="text-sm text-slate-500 mt-1">Kelola printer Bluetooth untuk Kasir & Dapur</p>
                 </div>
-                {!isOwnerOnly && (
+                <div className="flex gap-2">
                     <button
-                        onClick={handleAddPrinter}
-                        disabled={isConnecting || addPrinter.isPending}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-60"
+                        onClick={handleReconnect}
+                        disabled={isConnecting}
+                        className="flex items-center gap-2 bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors font-medium disabled:opacity-60"
                     >
-                        {isConnecting ? (
-                            <><Loader2 size={17} className="animate-spin" /> Mencari Printer...</>
-                        ) : (
-                            <><Plus size={17} /> Tambah Printer Bluetooth</>
-                        )}
+                        <RefreshCw size={17} className={isConnecting ? 'animate-spin' : ''} />
+                        Hubungkan Ulang
                     </button>
-                )}
+                    {!isOwnerOnly && (
+                        <button
+                            onClick={handleAddPrinter}
+                            disabled={isConnecting || addPrinter.isPending}
+                            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-60"
+                        >
+                            {isConnecting ? (
+                                <><Loader2 size={17} className="animate-spin" /> Mencari...</>
+                            ) : (
+                                <><Plus size={17} /> Tambah Printer</>
+                            )}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Role Info */}
@@ -204,7 +223,7 @@ export default function PrinterSettingsPage() {
                                                     <span className="text-[10px] font-bold text-emerald-600">AKTIF</span>
                                                 ) : (
                                                     <button
-                                                        onClick={() => autoConnect()}
+                                                        onClick={() => autoConnect(printers)}
                                                         className="text-[10px] font-bold text-indigo-500 underline"
                                                     >
                                                         HUBUNGKAN
