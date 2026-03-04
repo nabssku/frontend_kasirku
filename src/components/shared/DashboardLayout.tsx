@@ -56,7 +56,7 @@ const OPERATIONAL_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier']; // No
 const KITCHEN_ROLES: UserRole[] = ['super_admin', 'admin', 'kitchen', 'cashier'];
 const OWNER_ROLES: UserRole[] = ['super_admin', 'owner'];
 const POS_ROLES: UserRole[] = ['super_admin', 'cashier']; // Terminal POS focus on cashiers
-const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin']; // Operational config
+const CONFIG_ROLES: UserRole[] = ['super_admin', 'admin', 'cashier']; // Operational config
 
 const allNavGroups: NavGroup[] = [
     {
