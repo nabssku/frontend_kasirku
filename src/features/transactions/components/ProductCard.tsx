@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ModifierPicker } from './ModifierPicker';
 import { triggerHaptic } from '../../../utils/capacitor';
 import { formatRp } from '../../../lib/format';
+import { getImageUrl } from '../../../utils/url';
 
 interface ProductCardProps {
     product: Product;
@@ -53,7 +54,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 <div className="relative aspect-square rounded-xl bg-slate-50 mb-4 overflow-hidden">
                     {product.image ? (
                         <img
-                            src={product.image}
+                            src={getImageUrl(product.image)}
                             alt={product.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />

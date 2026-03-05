@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useProducts, useDeleteProduct } from '../../hooks/useProducts';
 import { formatRp } from '../../lib/format';
 import { useBusinessType } from '../../hooks/useBusinessType';
+import { getImageUrl } from '../../utils/url';
 
 export default function ProductsPage() {
     const { isFnb, outlet } = useBusinessType();
@@ -106,7 +107,7 @@ export default function ProductsPage() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2 md:gap-3">
                                             <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                                                {product.image ? <img src={product.image} className="w-full h-full object-cover rounded-xl" /> : <Package size={16} className="text-indigo-400" />}
+                                                {product.image ? <img src={getImageUrl(product.image)} className="w-full h-full object-cover rounded-xl" /> : <Package size={16} className="text-indigo-400" />}
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="font-bold text-slate-800 uppercase text-[10px] md:text-xs tracking-tight truncate">{product.name}</p>

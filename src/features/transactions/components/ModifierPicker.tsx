@@ -2,6 +2,7 @@ import type { Product, ModifierGroup, Modifier } from '../../../types';
 import { formatRp } from '../../../lib/format';
 import { useState, useMemo } from 'react'; // Added useState and useMemo imports
 import { X, Check } from 'lucide-react'; // Added X and Check imports
+import { getImageUrl } from '../../../utils/url';
 
 interface ModifierPickerProps {
     product: Product;
@@ -61,7 +62,7 @@ export function ModifierPicker({ product, onClose, onConfirm }: ModifierPickerPr
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
                             {product.image ? (
-                                <img src={product.image} className="w-full h-full object-cover rounded-2xl" alt="" />
+                                <img src={getImageUrl(product.image)} className="w-full h-full object-cover rounded-2xl" alt="" />
                             ) : (
                                 <div className="text-xl font-bold text-indigo-600">{product.name.charAt(0)}</div>
                             )}
