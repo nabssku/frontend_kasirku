@@ -3,6 +3,20 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../lib/axios';
 import './menu.css';
 
+interface PaymentResponse {
+    data: {
+        final_amount: number;
+        qris_converter: {
+            converted_qris: string;
+            original_qris: string;
+        };
+        invoice_id?: string;
+        payment_url?: string;
+    };
+    success?: boolean;
+    message?: string;
+}
+
 export default function PaymentPage() {
     const { sessionToken } = useParams<{ sessionToken: string }>();
     const navigate = useNavigate();
@@ -12,7 +26,7 @@ export default function PaymentPage() {
         invoice_id: string;
         invoice_number: string;
         grand_total: number;
-        payment_response: {};
+        payment_response: PaymentResponse;
         expires_at: string;
     } | null>(null);
 
