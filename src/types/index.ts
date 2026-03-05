@@ -472,6 +472,16 @@ export interface ExpenseCategory {
   description?: string;
 }
 
+export interface IngredientPurchase {
+  id: string;
+  expense_id: string;
+  ingredient_id: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  ingredient?: Ingredient;
+}
+
 export interface Expense {
   id: string;
   category_id: string;
@@ -484,9 +494,11 @@ export interface Expense {
   notes?: string;
   date: string;
   attachment?: string;
+  type: 'operational' | 'ingredient_purchase';
   category?: ExpenseCategory;
   user?: { id: string; name: string };
   outlet?: Outlet;
+  ingredient_purchases?: IngredientPurchase[];
 }
 
 // ─── Audit Log ────────────────────────────────────────────────────────────────

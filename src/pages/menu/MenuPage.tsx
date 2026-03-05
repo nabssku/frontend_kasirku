@@ -13,6 +13,9 @@ interface ModifierGroup {
     id: string;
     name: string;
     modifiers: Modifier[];
+    required: boolean;
+    min_select: number;
+    max_select: number;
 }
 
 interface Product {
@@ -20,7 +23,7 @@ interface Product {
     name: string;
     price: number;
     description?: string;
-    image_url?: string;
+    image?: string;
     modifier_groups?: ModifierGroup[];
 }
 
@@ -109,8 +112,8 @@ export default function MenuPage() {
 
     // ── Cart helpers ────────────────────────────────────────────────────────────
     const cartTotal = cart.reduce((sum, ci) => {
-        const modTotal = ci.selectedModifiers.reduce((m, mod) => m + mod.price, 0);
-        return sum + (ci.product.price + modTotal) * ci.quantity;
+        const modTotal = ci.selectedModifiers.reduce((m, mod) => m + Number(mod.price), 0);
+        return sum + (Number(ci.product.price) + modTotal) * ci.quantity;
     }, 0);
 
     const cartCount = cart.reduce((n, ci) => n + ci.quantity, 0);
@@ -139,16 +142,37 @@ export default function MenuPage() {
         setCart(prev => prev.filter((_, i) => i !== idx));
     };
 
-    const toggleMod = (mod: Modifier) => {
-        setSelectedMods(prev =>
-            prev.find(m => m.id === mod.id)
-                ? prev.filter(m => m.id !== mod.id)
-                : [...prev, mod]
-        );
+    const toggleMod = (group: ModifierGroup, mod: Modifier) => {
+        setSelectedMods(prev => {
+            const isInGroup = group.modifiers.some(m => m.id === mod.id);
+            if (!isInGroup) return prev;
+
+            const currentInGroup = prev.filter(m => group.modifiers.some(gm => gm.id === m.id));
+            const isSelected = prev.some(m => m.id === mod.id);
+
+            // If max_select is 1, act like a radio button
+            if (group.max_select === 1) {
+                if (isSelected && !group.required) {
+                    return prev.filter(m => m.id !== mod.id);
+                }
+                const otherGroups = prev.filter(m => !group.modifiers.some(gm => gm.id === m.id));
+                return [...otherGroups, mod];
+            }
+
+            // Normal checkbox behavior with max limit
+            if (isSelected) {
+                return prev.filter(m => m.id !== mod.id);
+            } else {
+                if (currentInGroup.length < (group.max_select || 999)) {
+                    return [...prev, mod];
+                }
+                return prev;
+            }
+        });
     };
 
-    const formatRp = (n: number) =>
-        'Rp ' + new Intl.NumberFormat('id-ID').format(n);
+    const formatRp = (n: any) =>
+        'Rp ' + new Intl.NumberFormat('id-ID').format(Number(n || 0));
 
     const tax = cartTotal * ((outlet?.tax_rate ?? 0) / 100);
     const sc = cartTotal * ((outlet?.service_charge ?? 0) / 100);
@@ -248,8 +272,8 @@ export default function MenuPage() {
                                     className="menu-card"
                                     onClick={() => { setSelectedProduct(product); setQty(1); setSelectedMods([]); }}
                                 >
-                                    {product.image_url && (
-                                        <img src={product.image_url} alt={product.name} className="menu-card-img" />
+                                    {product.image && (
+                                        <img src={product.image} alt={product.name} className="menu-card-img" />
                                     )}
                                     <div className="menu-card-body">
                                         <span className="menu-card-name">{product.name}</span>
@@ -281,30 +305,49 @@ export default function MenuPage() {
                 <div className="menu-overlay" onClick={() => setSelectedProduct(null)}>
                     <div className="menu-sheet" onClick={e => e.stopPropagation()}>
                         <div className="menu-sheet-drag" />
-                        {selectedProduct.image_url && (
-                            <img src={selectedProduct.image_url} alt={selectedProduct.name} className="menu-sheet-img" />
+                        {selectedProduct.image && (
+                            <img src={selectedProduct.image} alt={selectedProduct.name} className="menu-sheet-img" />
                         )}
                         <h3 className="menu-sheet-title">{selectedProduct.name}</h3>
                         {selectedProduct.description && <p className="menu-sheet-desc">{selectedProduct.description}</p>}
-                        <p className="menu-sheet-price">{formatRp(selectedProduct.price)}</p>
+                        <p className="menu-sheet-price">
+                            {formatRp(Number(selectedProduct.price) + selectedMods.reduce((s, m) => s + Number(m.price), 0))}
+                        </p>
 
                         {/* Modifiers */}
-                        {selectedProduct.modifier_groups?.map(group => (
-                            <div key={group.id} className="menu-mods">
-                                <h4 className="menu-mods-title">{group.name}</h4>
-                                {group.modifiers.map(mod => (
-                                    <label key={mod.id} className="menu-mod-option">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedMods.some(m => m.id === mod.id)}
-                                            onChange={() => toggleMod(mod)}
-                                        />
-                                        <span>{mod.name}</span>
-                                        {mod.price > 0 && <span className="menu-mod-price">+{formatRp(mod.price)}</span>}
-                                    </label>
-                                ))}
-                            </div>
-                        ))}
+                        {selectedProduct.modifier_groups?.map(group => {
+                            const selectedInGroup = selectedMods.filter(m => group.modifiers.some(gm => gm.id === m.id));
+                            const isValid = (!group.required && selectedInGroup.length === 0) ||
+                                (selectedInGroup.length >= (group.min_select || 0) &&
+                                    selectedInGroup.length <= (group.max_select || 999));
+
+                            return (
+                                <div key={group.id} className="menu-mods">
+                                    <h4 className="menu-mods-title">
+                                        {group.name}
+                                        {group.required && <span className="menu-mod-req"> (Wajib)</span>}
+                                        <span className="menu-mod-hint">
+                                            {group.max_select > 1 ? `Pilih ${group.min_select || 0}-${group.max_select}` : group.required ? 'Pilih 1' : 'Pilih maks 1'}
+                                        </span>
+                                    </h4>
+                                    {group.modifiers.map(mod => (
+                                        <label key={mod.id} className="menu-mod-option">
+                                            <input
+                                                type={group.max_select === 1 ? "radio" : "checkbox"}
+                                                name={`group-${group.id}`}
+                                                checked={selectedMods.some(m => m.id === mod.id)}
+                                                onChange={() => toggleMod(group, mod)}
+                                            />
+                                            <span>{mod.name}</span>
+                                            {Number(mod.price) > 0 && <span className="menu-mod-price">+{formatRp(mod.price)}</span>}
+                                        </label>
+                                    ))}
+                                    {!isValid && selectedInGroup.length > 0 && (
+                                        <p className="menu-mod-error">Minimal pilih {group.min_select} pilihan.</p>
+                                    )}
+                                </div>
+                            );
+                        })}
 
                         {/* Qty */}
                         <div className="menu-qty-row">
@@ -313,8 +356,19 @@ export default function MenuPage() {
                             <button className="menu-qty-btn" onClick={() => setQty(q => q + 1)}>+</button>
                         </div>
 
-                        <button className="menu-add-btn" onClick={addToCart}>
-                            Tambah ke Pesanan — {formatRp((selectedProduct.price + selectedMods.reduce((s, m) => s + m.price, 0)) * qty)}
+                        <button
+                            className="menu-add-btn"
+                            onClick={addToCart}
+                            disabled={
+                                selectedProduct.modifier_groups?.some(group => {
+                                    const count = selectedMods.filter(m => group.modifiers.some(gm => gm.id === m.id)).length;
+                                    if (group.required && count === 0) return true;
+                                    if (group.min_select && count < group.min_select) return true;
+                                    return false;
+                                })
+                            }
+                        >
+                            Tambah — {formatRp((Number(selectedProduct.price) + selectedMods.reduce((s, m) => s + Number(m.price), 0)) * qty)}
                         </button>
                     </div>
                 </div>
@@ -339,7 +393,7 @@ export default function MenuPage() {
                                 </div>
                                 <div className="menu-cart-item-right">
                                     <span className="menu-cart-item-price">
-                                        {formatRp((ci.product.price + ci.selectedModifiers.reduce((s, m) => s + m.price, 0)) * ci.quantity)}
+                                        {formatRp((Number(ci.product.price) + ci.selectedModifiers.reduce((s, m) => s + Number(m.price), 0)) * ci.quantity)}
                                     </span>
                                     <div className="menu-qty-row menu-qty-sm">
                                         <button className="menu-qty-btn" onClick={() => {

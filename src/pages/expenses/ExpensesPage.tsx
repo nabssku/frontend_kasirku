@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useExpenses, useExpenseCategories, useCreateExpense, useDeleteExpense } from '../../hooks/useExpenses';
 import { useOutlets } from '../../hooks/useOutlets';
+import { useIngredients } from '../../hooks/useIngredients';
 import { formatRp } from '../../lib/format';
+import { useEffect } from 'react';
 
 export default function ExpensesPage() {
     const [page, setPage] = useState(1);
@@ -21,10 +23,21 @@ export default function ExpensesPage() {
     const { data: expensesData, isLoading, error } = useExpenses({ ...filters, page });
     const { data: categories } = useExpenseCategories();
     const { data: outlets } = useOutlets();
+    const { data: ingredients } = useIngredients();
     const { mutate: createExpense, isPending: isCreating } = useCreateExpense();
     const { mutate: deleteExpense } = useDeleteExpense();
 
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<{
+        outlet_id: string;
+        category_id: string;
+        amount: string;
+        payment_method: 'cash' | 'bank_transfer' | 'other';
+        date: string;
+        notes: string;
+        reference_number: string;
+        type: 'operational' | 'ingredient_purchase';
+        items: { ingredient_id: string; quantity: number; unit_price: number }[];
+    }>({
         outlet_id: '',
         category_id: '',
         amount: '',
@@ -32,7 +45,17 @@ export default function ExpensesPage() {
         date: new Date().toISOString().split('T')[0],
         notes: '',
         reference_number: '',
+        type: 'operational',
+        items: [],
     });
+
+    // Auto calculate total for ingredient purchase
+    useEffect(() => {
+        if (form.type === 'ingredient_purchase') {
+            const total = form.items.reduce((acc, item) => acc + (item.quantity * item.unit_price), 0);
+            setForm(prev => ({ ...prev, amount: String(total) }));
+        }
+    }, [form.items, form.type]);
     const [attachment, setAttachment] = useState<File | null>(null);
 
     const handleCreate = (e: React.FormEvent) => {
@@ -45,7 +68,11 @@ export default function ExpensesPage() {
 
         const formData = new FormData();
         Object.entries(form).forEach(([key, value]) => {
-            formData.append(key, String(value));
+            if (key === 'items') {
+                formData.append(key, JSON.stringify(value));
+            } else {
+                formData.append(key, String(value));
+            }
         });
         if (attachment) {
             formData.append('attachment', attachment);
@@ -63,6 +90,8 @@ export default function ExpensesPage() {
                     date: new Date().toISOString().split('T')[0],
                     notes: '',
                     reference_number: '',
+                    type: 'operational',
+                    items: [],
                 });
                 setAttachment(null);
             }
@@ -146,6 +175,26 @@ export default function ExpensesPage() {
                         </div>
                         <form onSubmit={handleCreate} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5 col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Jenis Pengeluaran</label>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setForm({ ...form, type: 'operational', items: [] })}
+                                            className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all font-bold text-sm ${form.type === 'operational' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-slate-50 text-slate-400'}`}
+                                        >
+                                            Operasional
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setForm({ ...form, type: 'ingredient_purchase' })}
+                                            className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all font-bold text-sm ${form.type === 'ingredient_purchase' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-100 bg-slate-50 text-slate-400'}`}
+                                        >
+                                            Bahan Baku
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div className="space-y-1.5 col-span-2 md:col-span-1">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Outlet</label>
                                     <select
@@ -170,14 +219,101 @@ export default function ExpensesPage() {
                                         {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                 </div>
+
+                                {form.type === 'ingredient_purchase' && (
+                                    <div className="col-span-2 space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Daftar Bahan Baku</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setForm({ ...form, items: [...(form.items || []), { ingredient_id: '', quantity: 1, unit_price: 0 }] })}
+                                                className="text-indigo-600 font-bold text-xs hover:underline"
+                                            >
+                                                + Tambah Item
+                                            </button>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {form.items?.map((item, index) => (
+                                                <div key={index} className="grid grid-cols-12 gap-2 items-end bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                                                    <div className="col-span-5 space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Bahan</label>
+                                                        <select
+                                                            value={item.ingredient_id}
+                                                            onChange={(e) => {
+                                                                const newItems = [...(form.items || [])];
+                                                                newItems[index].ingredient_id = e.target.value;
+                                                                setForm({ ...form, items: newItems });
+                                                            }}
+                                                            className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs"
+                                                            required
+                                                        >
+                                                            <option value="">Pilih Bahan</option>
+                                                            {ingredients?.map(i => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div className="col-span-3 space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Qty</label>
+                                                        <input
+                                                            type="number"
+                                                            step="0.0001"
+                                                            value={item.quantity}
+                                                            onChange={(e) => {
+                                                                const newItems = [...(form.items || [])];
+                                                                newItems[index].quantity = Number(e.target.value);
+                                                                setForm({ ...form, items: newItems });
+                                                            }}
+                                                            className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs"
+                                                            placeholder="0"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="col-span-3 space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Harga/Unit</label>
+                                                        <input
+                                                            type="number"
+                                                            value={item.unit_price}
+                                                            onChange={(e) => {
+                                                                const newItems = [...(form.items || [])];
+                                                                newItems[index].unit_price = Number(e.target.value);
+                                                                setForm({ ...form, items: newItems });
+                                                            }}
+                                                            className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs"
+                                                            placeholder="0"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="col-span-1 pb-1 flex justify-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newItems = form.items?.filter((_, i) => i !== index);
+                                                                setForm({ ...form, items: newItems });
+                                                            }}
+                                                            className="text-red-400 hover:text-red-600 p-1"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {(!form.items || form.items.length === 0) && (
+                                                <div className="text-center py-4 text-xs text-slate-400 italic bg-white rounded-xl border border-dashed border-slate-200">
+                                                    Belum ada bahan baku yang dipilih
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="space-y-1.5 col-span-2 md:col-span-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nominal (Rp)</label>
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Nominal (Rp)</label>
                                     <input
                                         type="number"
                                         value={form.amount}
                                         onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                                        className={`w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold ${form.type === 'ingredient_purchase' ? 'text-indigo-600 bg-indigo-50/50' : ''}`}
                                         placeholder="0"
+                                        readOnly={form.type === 'ingredient_purchase'}
                                         required
                                     />
                                 </div>
@@ -283,9 +419,14 @@ export default function ExpensesPage() {
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
                                             <span className="font-bold text-slate-800 text-xs tracking-tight">{new Date(expense.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                                            <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 w-fit">
-                                                {expense.category?.name || 'Uncategorized'}
-                                            </span>
+                                            <div className="flex gap-1 mt-1">
+                                                <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase w-fit">
+                                                    {expense.category?.name || 'Uncategorized'}
+                                                </span>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase w-fit ${expense.type === 'ingredient_purchase' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'}`}>
+                                                    {expense.type === 'ingredient_purchase' ? 'Bahan Baku' : 'Operasional'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
