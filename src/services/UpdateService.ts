@@ -2,7 +2,6 @@ import { App } from '@capacitor/app';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
 import api from '../lib/axios';
-import axios from 'axios';
 
 export interface AppVersionInfo {
   version_name: string;
@@ -34,51 +33,57 @@ export const UpdateService = {
 
   downloadAndInstall: async (url: string, version: string, onProgress?: (progress: number) => void) => {
     try {
+      console.log('[UpdateService] Starting native download from URL:', url);
       const fileName = `jagokasir-v${version}.apk`;
-      
-      // 1. Download file using axios for progress tracking
-      const response = await axios.get(url, {
-        responseType: 'blob',
-        onDownloadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            onProgress(progress);
-          }
-        },
-      });
-
-      // 2. Convert blob to base64
-      const reader = new FileReader();
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          resolve(base64.split(',')[1]);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(response.data);
-      });
-
-      // 3. Save to filesystem
       const path = `updates/${fileName}`;
-      await Filesystem.writeFile({
-        path,
-        data: base64Data,
-        directory: Directory.Data,
-        recursive: true,
+
+      // 1. Setup progress listener
+      // Note: In newer Capacitor versions, the event name is 'progress'
+      const progressListener = await Filesystem.addListener('progress', (p: any) => {
+        if (onProgress && p.contentLength) {
+          const percent = Math.round((p.bytes / p.contentLength) * 100);
+          onProgress(percent);
+        }
       });
 
-      const fileUri = await Filesystem.getUri({
-        path,
-        directory: Directory.Data,
-      });
+      try {
+        // 2. Download file using native Capacitor Filesystem
+        // This is much more reliable on Android and avoids CORS/Memory issues
+        const result = await Filesystem.downloadFile({
+          url: url,
+          path: path,
+          directory: Directory.Data,
+          progress: true,
+          recursive: true, // Ensure parent directories are created
+        });
 
-      // 4. Open and Install
-      await FileOpener.open({
-        filePath: fileUri.uri,
-        contentType: 'application/vnd.android.package-archive',
-      });
-    } catch (error) {
-      console.error('Download or install failed', error);
+        console.log('[UpdateService] Native download complete:', result.path);
+
+        const fileUri = await Filesystem.getUri({
+          path,
+          directory: Directory.Data,
+        });
+
+        console.log('[UpdateService] Opening for installation:', fileUri.uri);
+        
+        // 3. Open and Install
+        await FileOpener.open({
+          filePath: fileUri.uri,
+          contentType: 'application/vnd.android.package-archive',
+        });
+      } catch (innerError: any) {
+        console.error('[UpdateService] Download/Open details:', {
+          message: innerError.message,
+          url: url,
+          path: path
+        });
+        throw innerError;
+      } finally {
+        // Always remove the listener
+        progressListener.remove();
+      }
+    } catch (error: any) {
+      console.error('[UpdateService] Error:', error);
       throw error;
     }
   },

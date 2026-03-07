@@ -215,6 +215,7 @@ export interface CashDrawerLog {
   reason?: string;
   created_at: string;
   user?: { id: string; name: string };
+  expense?: Expense;
 }
 
 export interface Shift {

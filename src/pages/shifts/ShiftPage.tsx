@@ -166,16 +166,42 @@ function ShiftSummaryCard({ shift }: { shift: Shift }) {
                         {shift.cash_drawer_logs && shift.cash_drawer_logs.length > 0 && (
                             <div className="space-y-2">
                                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Detail Log Laci</h4>
-                                <div className="max-h-40 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+                                <div className="max-h-60 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
                                     {shift.cash_drawer_logs.map(log => (
-                                        <div key={log.id} className="flex justify-between text-xs py-2 px-3 border border-slate-50 rounded-lg bg-slate-50/30">
-                                            <div className="space-y-0.5">
-                                                <span className={`font-bold ${log.type === 'in' ? 'text-green-600' : 'text-red-500'}`}>
+                                        <div key={log.id} className="p-3 border border-slate-100 rounded-xl bg-slate-50/50 hover:bg-white transition-colors group">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${log.type === 'in' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                                                        {log.type === 'in' ? 'Masuk' : 'Keluar'}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400 font-medium">
+                                                        {new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                                <span className={`font-black text-sm ${log.type === 'in' ? 'text-green-600' : 'text-red-600'}`}>
                                                     {log.type === 'in' ? '+' : '-'} {formatRp(log.amount)}
                                                 </span>
-                                                <p className="text-[9px] text-slate-400 italic">{log.reason || 'Tanpa keterangan'}</p>
                                             </div>
-                                            <span className="text-slate-400 text-[10px]">{new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+
+                                            <div className="space-y-1">
+                                                <p className="text-xs font-bold text-slate-700 leading-tight group-hover:text-indigo-600 transition-colors">
+                                                    {log.reason || 'Tanpa Keterangan'}
+                                                </p>
+
+                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                    {log.user && (
+                                                        <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                                                            <UserIcon size={10} />
+                                                            <span>Oleh: {log.user.name}</span>
+                                                        </div>
+                                                    )}
+                                                    {log.expense?.category && (
+                                                        <div className="flex items-center gap-1 text-[10px] text-indigo-400 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded">
+                                                            <span>Kategori: {log.expense.category.name}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
