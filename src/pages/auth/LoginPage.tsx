@@ -13,6 +13,7 @@ import { SEO } from '../../components/SEO';
 const loginSchema = z.object({
     email: z.string().email('Email tidak valid'),
     password: z.string().min(6, 'Password minimal 6 karakter'),
+    remember_me: z.boolean().optional(),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -29,11 +30,15 @@ export default function LoginPage() {
         formState: { errors, isSubmitting },
     } = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
+        defaultValues: {
+            remember_me: false,
+        },
     });
 
     const onSubmit = async (values: LoginForm) => {
         setErrorMessage('');
         try {
+            console.log('[Auth] Attempting login...', { email: values.email, remember_me: values.remember_me });
             const { data } = await api.post<{ data: AuthResponse }>('/auth/login', values);
             setAuth(data.data);
 
@@ -99,6 +104,20 @@ export default function LoginPage() {
                     {errors.password && (
                         <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
                     )}
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <input
+                            id="remember_me"
+                            type="checkbox"
+                            {...register('remember_me')}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="remember_me" className="ml-2 block text-sm text-slate-700">
+                            Ingat saya
+                        </label>
+                    </div>
                 </div>
 
                 <button

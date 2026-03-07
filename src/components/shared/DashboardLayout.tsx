@@ -109,7 +109,19 @@ const allNavGroups: NavGroup[] = [
         items: [
             { name: 'Outlet', path: '/outlets', icon: Store, roles: OWNER_ROLES },
             { name: 'Pengguna', path: '/users', icon: UserCog, roles: OWNER_ROLES },
-            { name: 'Laporan', path: '/reports', icon: BarChart2, roles: ADMIN_ROLES, feature: 'advanced_reports' },
+            {
+                name: 'Laporan',
+                path: '/reports',
+                icon: BarChart2,
+                roles: ADMIN_ROLES,
+                feature: 'advanced_reports',
+                children: [
+                    { name: 'Ringkasan Laporan', path: '/reports' },
+                    { name: 'Laporan Pendapatan', path: '/reports/income' },
+                    { name: 'Laporan Pengeluaran', path: '/reports/expense' },
+                    { name: 'Laporan Laba Rugi', path: '/reports/profit-loss' },
+                ]
+            },
         ],
     },
     {
@@ -164,6 +176,7 @@ export const DashboardLayout = () => {
     }, []);
 
     const handleLogout = async () => {
+        setIsMobileMenuOpen(false);
         await logout();
         navigate('/login');
     };
@@ -343,6 +356,7 @@ export const DashboardLayout = () => {
                                         ) : (
                                             <Link
                                                 to={item.path}
+                                                onClick={() => setIsMobileMenuOpen(false)}
                                                 title={!isSidebarOpen ? `${item.name}${locked ? ' (Premium)' : ''}` : undefined}
                                                 className={`
                                                     flex items-center p-2.5 rounded-xl transition-all duration-200 group
@@ -377,6 +391,7 @@ export const DashboardLayout = () => {
                                                         <Link
                                                             key={child.path}
                                                             to={child.path}
+                                                            onClick={() => setIsMobileMenuOpen(false)}
                                                             className={`
                                                                 flex items-center p-2 rounded-lg text-xs font-medium transition-all duration-200 justify-between
                                                                 ${isActive(child.path)
@@ -436,7 +451,10 @@ export const DashboardLayout = () => {
             <main className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-8 shrink-0">
                     <button
-                        onClick={() => setIsMobileMenuOpen(true)}
+                        onClick={() => {
+                            setIsMobileMenuOpen(true);
+                            setIsSidebarOpen(true);
+                        }}
                         className="p-2 -ml-2 mr-4 rounded-lg hover:bg-slate-100 text-slate-500 lg:hidden"
                     >
                         <Menu size={24} />

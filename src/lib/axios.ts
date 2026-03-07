@@ -51,12 +51,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh') && !originalRequest.url?.includes('/auth/logout')) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
+            originalRequest._retry = true; // Ensure we don't retry again if this fails
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return api(originalRequest);
           })
@@ -68,22 +69,38 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
+      const token = useAuthStore.getState().token;
+      if (!token) {
+        useAuthStore.getState().logout();
+        return Promise.reject(error);
+      }
+
       try {
+        console.log('[Auth] Attempting to refresh token...');
         const response = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, {
           headers: {
-            Authorization: `Bearer ${useAuthStore.getState().token}`
+            Authorization: `Bearer ${token}`
           }
         });
         
-        const { token } = response.data.data;
+        const newToken = response.data.data.token;
+        console.log('[Auth] Token refreshed successfully');
         useAuthStore.getState().setAuth(response.data.data);
         
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        processQueue(null, token);
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        processQueue(null, newToken);
         return api(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: any) {
+        console.error('[Auth] Refresh token failed:', refreshError.response?.status, refreshError.response?.data);
         processQueue(refreshError, null);
-        useAuthStore.getState().logout();
+        
+        // Logout if token is invalid (401/403) OR if server crashed (500)
+        // A 500 on refresh often means the token is so corrupt it crashed the parser
+        if ([401, 403, 500].includes(refreshError.response?.status)) {
+          console.warn('[Auth] Critical refresh error, logging out...');
+          useAuthStore.getState().logout();
+        }
+        
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -93,7 +110,7 @@ api.interceptors.response.use(
     // Handle other errors (403, 422, 500, etc.)
     const message = error.response?.data?.message || 'Terjadi kesalahan pada server';
     
-    if (error.response?.status === 403) {
+    if (error.response?.status === 403 && !originalRequest.url?.includes('/auth/logout')) {
       toast.error(message, {
         description: 'Batas paket tercapai atau akses ditolak',
         duration: 5000,

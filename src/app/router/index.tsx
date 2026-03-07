@@ -30,8 +30,13 @@ import SuperAdminUsers from '../../pages/super-admin/SuperAdminUsers';
 import SuperAdminSubscriptions from '../../pages/super-admin/SuperAdminSubscriptions';
 import SuperAdminPlans from '../../pages/super-admin/SuperAdminPlans';
 import SuperAdminOrders from '../../pages/super-admin/SuperAdminOrders';
+import SuperAdminAppVersion from '../../pages/super-admin/SuperAdminAppVersion';
 import LandingPage from '../../pages/LandingPage';
 import AuditLogPage from '../../pages/settings/AuditLogPage';
+
+const IncomeReport = lazy(() => import('../../pages/reports/IncomeReport'));
+const ExpenseReport = lazy(() => import('../../pages/reports/ExpenseReport'));
+const ProfitLossReport = lazy(() => import('../../pages/reports/ProfitLossReport'));
 import { ProtectedRoute } from './ProtectedRoute';
 import type { UserRole } from '../../types';
 
@@ -83,6 +88,7 @@ export const router = createBrowserRouter([
             { path: 'subscriptions', element: <SuperAdminSubscriptions /> },
             { path: 'plans', element: <SuperAdminPlans /> },
             { path: 'orders', element: <SuperAdminOrders /> },
+            { path: 'app-versions', element: <SuperAdminAppVersion /> },
         ],
     },
     // ─── Landing Page ─────────────────────────────────────────────────────────
@@ -178,11 +184,40 @@ export const router = createBrowserRouter([
             { path: 'users', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><UsersPage /></ProtectedRoute> },
             {
                 path: 'reports',
-                element: (
-                    <ProtectedRoute allowedRoles={ADMIN_ROLES} requiredFeature="advanced_reports" featureName="Laporan Canggih">
-                        <ReportsPage />
-                    </ProtectedRoute>
-                )
+                children: [
+                    {
+                        path: '',
+                        element: (
+                            <ProtectedRoute allowedRoles={ADMIN_ROLES} requiredFeature="advanced_reports" featureName="Laporan Canggih">
+                                <ReportsPage />
+                            </ProtectedRoute>
+                        )
+                    },
+                    {
+                        path: 'income',
+                        element: (
+                            <ProtectedRoute allowedRoles={ADMIN_ROLES} requiredFeature="advanced_reports" featureName="Laporan Pendapatan">
+                                <IncomeReport />
+                            </ProtectedRoute>
+                        )
+                    },
+                    {
+                        path: 'expense',
+                        element: (
+                            <ProtectedRoute allowedRoles={ADMIN_ROLES} requiredFeature="advanced_reports" featureName="Laporan Pengeluaran">
+                                <ExpenseReport />
+                            </ProtectedRoute>
+                        )
+                    },
+                    {
+                        path: 'profit-loss',
+                        element: (
+                            <ProtectedRoute allowedRoles={ADMIN_ROLES} requiredFeature="advanced_reports" featureName="Laporan Laba Rugi">
+                                <ProfitLossReport />
+                            </ProtectedRoute>
+                        )
+                    },
+                ]
             },
             { path: 'subscription', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><TenantPage /></ProtectedRoute> },
             { path: 'settings/printer', element: <ProtectedRoute allowedRoles={CONFIG_ROLES}><PrinterSettingsPage /></ProtectedRoute> },

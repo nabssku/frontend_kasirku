@@ -27,18 +27,20 @@ export const useAuthStore = create<AuthState>()(
           isInitializing: false,
         }),
       logout: async () => {
+        // Clear state immediately to avoid recursive loops
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isInitializing: false,
+        });
+
         try {
           const api = (await import('../../lib/axios')).default;
           await api.post('/auth/logout');
         } catch (error) {
-          console.error('Logout failed:', error);
-        } finally {
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isInitializing: false,
-          });
+          // Ignore logout errors as we've already cleared locally
+          console.error('Logout API failed:', error);
         }
       },
       checkAuth: async () => {

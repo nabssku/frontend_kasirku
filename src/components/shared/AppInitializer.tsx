@@ -1,9 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { initializeBluetooth, lockOrientationPortrait } from '../../utils/capacitor';
 import { useAuthStore } from '../../app/store/useAuthStore';
+import type { AppVersionInfo } from '../../services/UpdateService';
+import { UpdateService } from '../../services/UpdateService';
+import { UpdateModal } from './UpdateModal';
+import { Capacitor } from '@capacitor/core';
 
 export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
     const { token, checkAuth } = useAuthStore();
+    const [updateInfo, setUpdateInfo] = useState<AppVersionInfo | null>(null);
 
     useEffect(() => {
         const init = async () => {
@@ -11,6 +16,14 @@ export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
                 initializeBluetooth(),
                 lockOrientationPortrait()
             ]);
+
+            // Check for updates if on native platform
+            if (Capacitor.isNativePlatform()) {
+                const latest = await UpdateService.checkUpdate();
+                if (latest) {
+                    setUpdateInfo(latest);
+                }
+            }
 
             if (token) {
                 await checkAuth();
@@ -22,5 +35,15 @@ export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
         init();
     }, [token, checkAuth]);
 
-    return <>{children}</>;
+    return (
+        <>
+            {children}
+            {updateInfo && (
+                <UpdateModal
+                    info={updateInfo}
+                    onClose={() => setUpdateInfo(null)}
+                />
+            )}
+        </>
+    );
 };

@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "@capacitor-community/bluetooth-le": "^8.1.0",
+    "@capacitor-community/file-opener": "^8.0.0",
     "@capacitor/android": "^8.1.0",
     "@capacitor/app": "^8.0.1",
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/device": "^8.0.1",
+    "@capacitor/filesystem": "^8.1.2",
     "@capacitor/haptics": "^8.0.1",
     "@capacitor/ios": "^8.1.0",
     "@capacitor/network": "^8.0.1",

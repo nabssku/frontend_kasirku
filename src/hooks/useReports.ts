@@ -61,5 +61,59 @@ export const useExportTransactions = () => {
     }
   };
 
-  return { exportCsv };
+  const exportIncome = async (params: { start_date: string; end_date: string; outlet_id?: string; format: 'pdf' | 'csv' }) => {
+    try {
+      const response = await api.get('/reports/income/export', {
+        params,
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `income-report-${params.start_date}-to-${params.end_date}.${params.format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Income Export failed:', error);
+    }
+  };
+
+  const exportExpense = async (params: { start_date: string; end_date: string; outlet_id?: string; format: 'pdf' | 'csv' }) => {
+    try {
+      const response = await api.get('/reports/expense/export', {
+        params,
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `expense-report-${params.start_date}-to-${params.end_date}.${params.format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Expense Export failed:', error);
+    }
+  };
+
+  const exportProfitLoss = async (params: { start_date: string; end_date: string; outlet_id?: string }) => {
+    try {
+      const response = await api.get('/reports/profit-loss/export', {
+        params,
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `profit-loss-report-${params.start_date}-to-${params.end_date}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Profit Loss Export failed:', error);
+    }
+  };
+
+  return { exportCsv, exportIncome, exportExpense, exportProfitLoss };
 };

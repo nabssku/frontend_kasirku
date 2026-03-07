@@ -175,3 +175,39 @@ export function useSuperAdminPaymentStats(period = 'month') {
     },
   });
 }
+
+// ─── App Versions ─────────────────────────────────────────────────────────────
+export function useSuperAdminAppVersions(params?: { page?: number }) {
+  return useQuery<PaginatedResponse<any>>({
+    queryKey: ['super-admin', 'app-versions', params],
+    queryFn: async () => {
+      const { data } = await api.get('/super-admin/app-versions', { params });
+      return data.data;
+    },
+  });
+}
+
+export function useCreateAppVersion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const { data } = await api.post('/super-admin/app-versions', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['super-admin', 'app-versions'] }),
+  });
+}
+
+export function useDeleteAppVersion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/super-admin/app-versions/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['super-admin', 'app-versions'] }),
+  });
+}

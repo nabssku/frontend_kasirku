@@ -46,6 +46,7 @@ const navGroups: NavGroup[] = [
             { name: 'Subscriptions', path: '/super-admin/subscriptions', icon: CreditCard },
             { name: 'Plans', path: '/super-admin/plans', icon: Package },
             { name: 'Orders', path: '/super-admin/orders', icon: Receipt },
+            { name: 'App Versions', path: '/super-admin/app-versions', icon: ExternalLink },
         ],
     },
 ];
