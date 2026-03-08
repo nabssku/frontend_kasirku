@@ -98,10 +98,8 @@ export default function LandingPage() {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/60 transition-all">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                                <Zap className="text-white fill-white" size={24} />
-                            </div>
+                        <div className="flex items-center gap-3">
+                            <img src="/JagoKasir.png" alt="JagoKasir Logo" className="w-10 h-10 object-contain" />
                             <span className="text-2xl font-black text-slate-900 tracking-tight">
                                 JagoKasir <span className="text-indigo-600 italic">POS</span>
                             </span>
@@ -367,10 +365,8 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid md:grid-cols-4 gap-12 mb-16">
                         <div className="col-span-2">
-                            <div className="flex items-center gap-2 mb-6">
-                                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-900/40">
-                                    <Zap className="text-white fill-white" size={18} />
-                                </div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <img src="/JagoKasir.png" alt="JagoKasir Logo" className="w-10 h-10 object-contain" />
                                 <span className="text-xl font-black text-white tracking-tight">
                                     JagoKasir <span className="text-indigo-500 italic">POS</span>
                                 </span>

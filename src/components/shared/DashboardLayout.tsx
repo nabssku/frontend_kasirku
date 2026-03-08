@@ -313,18 +313,31 @@ export const DashboardLayout = () => {
                 fixed lg:relative inset-y-0 left-0 flex flex-col flex-shrink-0 z-50
             `}>
                 {/* Logo */}
-                <div className="p-4 flex items-center justify-between h-16 border-b border-slate-100">
+                <div className={`p-4 flex items-center h-16 border-b border-slate-100 ${!isSidebarOpen ? 'justify-center' : 'justify-between'}`}>
+                    <div className="flex items-center gap-3">
+                        <img src="/JagoKasir.png" alt="Logo" className="w-10 h-10 object-contain" />
+                        {isSidebarOpen && (
+                            <span className="text-xl font-bold text-slate-900 tracking-tight">
+                                JagoKasir <span className="text-indigo-600">POS</span>
+                            </span>
+                        )}
+                    </div>
                     {isSidebarOpen && (
-                        <span className="text-xl font-bold text-slate-900 tracking-tight">
-                            JagoKasir <span className="text-indigo-600">POS</span>
-                        </span>
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 ml-auto"
+                        >
+                            <X size={20} />
+                        </button>
                     )}
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 ml-auto"
-                    >
-                        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-                    </button>
+                    {!isSidebarOpen && (
+                        <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="hidden" // Just for structure, usually handled by clicking the bar or button
+                        >
+                            <Menu size={20} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Nav Groups */}

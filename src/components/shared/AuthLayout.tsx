@@ -20,10 +20,8 @@ export const AuthLayout = () => {
             <div className="relative w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center gap-2 mb-2">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                            <span className="text-white font-black text-xl italic">K</span>
-                        </div>
+                    <div className="inline-flex items-center gap-3 mb-2">
+                        <img src="/JagoKasir.png" alt="JagoKasir Logo" className="w-12 h-12 object-contain" />
                         <h1 className="text-3xl font-black text-slate-900 tracking-tight">
                             JagoKasir <span className="text-indigo-600 italic">POS</span>
                         </h1>
