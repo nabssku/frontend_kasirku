@@ -12,9 +12,6 @@ import { useCartActions } from '../hooks/useCartActions';
 import { CartHeader } from './CartHeader';
 import { CartSuccessView } from './CartSuccessView';
 import { useBusinessType } from '../../../hooks/useBusinessType';
-import { CartHistory } from './CartHistory';
-import { useAuthStore } from '../../../app/store/useAuthStore';
-import { ShoppingBag, History } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CartSidebarProps {
@@ -42,9 +39,6 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
-    const [activeTab, setActiveTab] = useState<'cart' | 'history'>('cart');
-    const { user } = useAuthStore();
-    const isCashier = user?.roles?.some(r => r.slug === 'cashier' || r.slug === 'owner' || r.slug === 'admin'); // Assuming these roles can also see history
 
     const {
         paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
@@ -109,66 +103,35 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     handleResetAll={handleResetAll}
                 />
 
-                {/* Role-based Tab Switcher */}
-                {isCashier && (
-                    <div className="px-4 py-2 flex items-center gap-2 border-b border-slate-100 bg-slate-50/50">
-                        <button
-                            onClick={() => setActiveTab('cart')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cart'
-                                ? 'bg-white text-indigo-600 shadow-sm border border-slate-100'
-                                : 'text-slate-400 hover:text-slate-600'
-                                }`}
-                        >
-                            <ShoppingBag size={14} />
-                            Keranjang
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('history')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history'
-                                ? 'bg-white text-indigo-600 shadow-sm border border-slate-100'
-                                : 'text-slate-400 hover:text-slate-600'
-                                }`}
-                        >
-                            <History size={14} />
-                            Histori Hari Ini
-                        </button>
-                    </div>
-                )}
 
                 <div className="flex-1 overflow-y-auto flex flex-col no-scrollbar">
-                    {activeTab === 'cart' ? (
-                        <>
-                            <div className="flex-1 flex flex-col min-h-0">
-                                <CartItemList
-                                    items={items}
-                                    updateQuantity={updateQuantity}
-                                    removeItem={removeItem}
-                                    tax={tax}
-                                    serviceCharge={service_charge}
-                                    taxRate={taxRate}
-                                    serviceChargeRate={serviceChargeRate}
-                                />
-                            </div>
-                            <CartFooter
-                                total={total}
-                                grandTotal={grandTotal}
-                                paidAmount={paidAmount}
-                                items={items}
-                                handleCheckout={onValidatedCheckout}
-                                handleSaveOrder={onValidatedSaveOrder}
-                                handlePrintCheck={handlePrintCheck}
-                                handleResetAll={handleResetAll}
-                                isPending={isPending}
-                                currentShift={currentShift}
-                                activeTransactionId={activeTransactionId}
-                                setShowCancelModal={setShowCancelModal}
-                                setShowOrderModal={setShowOrderModal}
-                                setShowPaymentModal={setShowPaymentModal}
-                            />
-                        </>
-                    ) : (
-                        <CartHistory onSelectTransaction={(id) => setPrintTransactionId(id)} />
-                    )}
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <CartItemList
+                            items={items}
+                            updateQuantity={updateQuantity}
+                            removeItem={removeItem}
+                            tax={tax}
+                            serviceCharge={service_charge}
+                            taxRate={taxRate}
+                            serviceChargeRate={serviceChargeRate}
+                        />
+                    </div>
+                    <CartFooter
+                        total={total}
+                        grandTotal={grandTotal}
+                        paidAmount={paidAmount}
+                        items={items}
+                        handleCheckout={onValidatedCheckout}
+                        handleSaveOrder={onValidatedSaveOrder}
+                        handlePrintCheck={handlePrintCheck}
+                        handleResetAll={handleResetAll}
+                        isPending={isPending}
+                        currentShift={currentShift}
+                        activeTransactionId={activeTransactionId}
+                        setShowCancelModal={setShowCancelModal}
+                        setShowOrderModal={setShowOrderModal}
+                        setShowPaymentModal={setShowPaymentModal}
+                    />
                 </div>
             </div>
 

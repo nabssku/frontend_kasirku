@@ -29,7 +29,7 @@ export const CartHeader = ({
     const tableName = tableId && tables ? tables.find(t => t.id === tableId)?.name : tableId;
 
     return (
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-30 h-20">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-20 h-20 flex-shrink-0">
             <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-slate-100 rounded-full text-slate-400">
                     <User size={24} />
