@@ -17,16 +17,31 @@ export const UpdateService = {
       const appInfo = await App.getInfo();
       // On Android, build is the versionCode
       const currentVersionCode = parseInt(appInfo.build);
+      console.log('[UpdateService] Current app version:', appInfo.version, 'Code:', currentVersionCode);
 
       const response = await api.get('/app-version/latest');
+      
+      if (!response.data.success) {
+        console.log('[UpdateService] No update available according to server');
+        return null;
+      }
+
       const latest = response.data.data;
+      console.log('[UpdateService] Latest version from server:', latest.version_name, 'Code:', latest.version_code);
 
       if (latest.version_code > currentVersionCode) {
+        console.log('[UpdateService] New version found!');
         return latest;
       }
+
+      console.log('[UpdateService] App is up to date');
       return null;
-    } catch (error) {
-      console.error('Check update failed', error);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        console.log('[UpdateService] No version record found on server (404)');
+      } else {
+        console.error('[UpdateService] Check update failed:', error.message || error);
+      }
       return null;
     }
   },
@@ -38,7 +53,6 @@ export const UpdateService = {
       const path = `updates/${fileName}`;
 
       // 1. Setup progress listener
-      // Note: In newer Capacitor versions, the event name is 'progress'
       const progressListener = await Filesystem.addListener('progress', (p: any) => {
         if (onProgress && p.contentLength) {
           const percent = Math.round((p.bytes / p.contentLength) * 100);
@@ -47,21 +61,41 @@ export const UpdateService = {
       });
 
       try {
-        // 2. Download file using native Capacitor Filesystem
-        // This is much more reliable on Android and avoids CORS/Memory issues
+        // Ensure updates directory exists in cache
+        try {
+          await Filesystem.mkdir({
+            path: 'updates',
+            directory: Directory.Cache,
+            recursive: true
+          });
+        } catch (e) {
+          // Ignore if exists
+        }
+
+        // 2. Download file using native Capacitor Filesystem to Cache
         const result = await Filesystem.downloadFile({
           url: url,
           path: path,
-          directory: Directory.Data,
+          directory: Directory.Cache,
           progress: true,
-          recursive: true, // Ensure parent directories are created
+          recursive: true,
         });
 
         console.log('[UpdateService] Native download complete:', result.path);
 
+        // Verify file exists
+        const fileInfo = await Filesystem.stat({
+          path: path,
+          directory: Directory.Cache
+        });
+
+        if (!fileInfo) {
+          throw new Error('File download succeeded but file not found in storage');
+        }
+
         const fileUri = await Filesystem.getUri({
           path,
-          directory: Directory.Data,
+          directory: Directory.Cache,
         });
 
         console.log('[UpdateService] Opening for installation:', fileUri.uri);
@@ -75,11 +109,11 @@ export const UpdateService = {
         console.error('[UpdateService] Download/Open details:', {
           message: innerError.message,
           url: url,
-          path: path
+          path: path,
+          directory: 'Directory.Cache'
         });
         throw innerError;
       } finally {
-        // Always remove the listener
         progressListener.remove();
       }
     } catch (error: any) {

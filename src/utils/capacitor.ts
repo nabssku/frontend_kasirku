@@ -6,6 +6,7 @@ import { Device } from '@capacitor/device';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { BleClient } from '@capacitor-community/bluetooth-le';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { Filesystem } from '@capacitor/filesystem';
 
 export const isNative = Capacitor.isNativePlatform();
 
@@ -36,6 +37,23 @@ export const initializeBluetooth = async () => {
             console.log('Bluetooth initialized');
         } catch (e) {
             console.warn('Bluetooth initialization failed', e);
+        }
+    }
+};
+
+/**
+ * Request Storage Permissions for Updates
+ */
+export const requestStoragePermissions = async () => {
+    if (isNative) {
+        try {
+            const status = await Filesystem.checkPermissions();
+            if (status.publicStorage !== 'granted') {
+                await Filesystem.requestPermissions();
+            }
+            console.log('Storage permissions checked/requested');
+        } catch (e) {
+            console.warn('Storage permission request failed', e);
         }
     }
 };
