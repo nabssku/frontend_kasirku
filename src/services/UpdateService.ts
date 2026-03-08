@@ -1,4 +1,5 @@
 import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
 import api from '../lib/axios';
@@ -17,20 +18,29 @@ export const UpdateService = {
       const appInfo = await App.getInfo();
       // On Android, build is the versionCode
       const currentVersionCode = parseInt(appInfo.build);
-      console.log('[UpdateService] Current app version:', appInfo.version, 'Code:', currentVersionCode);
+      console.log('[UpdateService] App Info:', {
+        version: appInfo.version,
+        build: appInfo.build,
+        currentVersionCode: currentVersionCode,
+        platform: Capacitor.getPlatform()
+      });
 
       const response = await api.get('/app-version/latest');
       
       if (!response.data.success) {
-        console.log('[UpdateService] No update available according to server');
+        console.log('[UpdateService] Server returned success:false for latest version');
         return null;
       }
 
       const latest = response.data.data;
-      console.log('[UpdateService] Latest version from server:', latest.version_name, 'Code:', latest.version_code);
+      console.log('[UpdateService] Latest from server:', {
+        version_name: latest.version_name,
+        version_code: latest.version_code,
+        comparison: `${latest.version_code} > ${currentVersionCode} = ${latest.version_code > currentVersionCode}`
+      });
 
       if (latest.version_code > currentVersionCode) {
-        console.log('[UpdateService] New version found!');
+        console.log('[UpdateService] Update IS available');
         return latest;
       }
 
@@ -119,6 +129,29 @@ export const UpdateService = {
     } catch (error: any) {
       console.error('[UpdateService] Error:', error);
       throw error;
+    }
+  },
+
+  clearUpdateCache: async () => {
+    try {
+      console.log('[UpdateService] Clearing update cache...');
+      const exists = await Filesystem.stat({
+        path: 'updates',
+        directory: Directory.Cache
+      }).catch(() => null);
+
+      if (exists) {
+        await Filesystem.rmdir({
+          path: 'updates',
+          directory: Directory.Cache,
+          recursive: true
+        });
+      }
+      console.log('[UpdateService] Update cache cleared');
+      return true;
+    } catch (error) {
+      console.error('[UpdateService] Failed to clear cache:', error);
+      return false;
     }
   },
 };

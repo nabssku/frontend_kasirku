@@ -58,6 +58,15 @@ export const AppVersionSettingsCard = () => {
         }
     };
 
+    const handleClearCache = async () => {
+        const success = await UpdateService.clearUpdateCache();
+        if (success) {
+            toast.success('Cache pembaruan berhasil dibersihkan');
+        } else {
+            toast.error('Gagal membersihkan cache');
+        }
+    };
+
     return (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
@@ -69,14 +78,22 @@ export const AppVersionSettingsCard = () => {
                     <p className="text-sm font-semibold text-slate-700">Versi Saat Ini</p>
                     <p className="text-xl font-bold text-indigo-600">v{version} <span className="text-xs font-normal text-slate-400">({build})</span></p>
                 </div>
-                <button
-                    onClick={handleCheckUpdate}
-                    disabled={isChecking}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors disabled:opacity-50"
-                >
-                    {isChecking ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                    Cek Pembaruan
-                </button>
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={handleCheckUpdate}
+                        disabled={isChecking}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                    >
+                        {isChecking ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                        Cek Pembaruan
+                    </button>
+                    <button
+                        onClick={handleClearCache}
+                        className="text-[10px] text-slate-400 hover:text-red-500 transition-colors text-right"
+                    >
+                        Bersihkan Cache
+                    </button>
+                </div>
             </div>
 
             {updateAvailable && (
