@@ -189,7 +189,7 @@ export const SuperAdminLayout = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-950 flex overflow-hidden">
+        <div className="min-h-full h-full bg-slate-950 flex overflow-hidden">
             {/* Desktop Sidebar */}
             <aside className={`
                 hidden lg:flex flex-col flex-shrink-0 bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out
@@ -216,7 +216,7 @@ export const SuperAdminLayout = () => {
             </aside>
 
             {/* Content Container */}
-            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 {/* Global Header */}
                 <header className="h-16 bg-slate-900/60 border-b border-slate-800/80 flex items-center px-4 lg:px-8 shrink-0 backdrop-blur-md sticky top-0 z-40">
                     <button

@@ -29,7 +29,7 @@ export const ProtectedRoute = ({
     // While verifying auth status, don't redirect yet
     if (isInitializing || (isAuthenticated && isSubscriptionLoading)) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="min-h-full h-full flex items-center justify-center bg-slate-50">
                 <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
             </div>
         );
@@ -62,7 +62,7 @@ export const ProtectedRoute = ({
             // Old logic allowed fall-through if data was undefined (fetching).
             if (isSubscriptionLoading && !isSubscriptionError) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                    <div className="min-h-full h-full flex items-center justify-center bg-slate-50">
                         <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
                     </div>
                 );

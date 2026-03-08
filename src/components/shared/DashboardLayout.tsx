@@ -296,7 +296,7 @@ export const DashboardLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+        <div className="min-h-full h-full bg-slate-50 flex overflow-hidden">
             {/* Sidebar Backdrop (Mobile/Tablet) */}
             {(isMobileMenuOpen || (isSidebarOpen && window.innerWidth < 1024)) && (
                 <div
@@ -480,7 +480,7 @@ export const DashboardLayout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+            <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-8 shrink-0">
                     <button
                         onClick={() => {

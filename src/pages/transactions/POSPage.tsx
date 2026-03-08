@@ -29,7 +29,7 @@ export default function POSPage() {
 
 
     return (
-        <div className="h-full flex overflow-hidden bg-slate-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <div className="h-full flex overflow-hidden bg-slate-50">
             {/* Cart Sidebar - Pass props for responsiveness */}
             <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 

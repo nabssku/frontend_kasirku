@@ -10,7 +10,7 @@ export const AuthLayout = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 overflow-hidden">
+        <div className="min-h-full h-full bg-slate-50 flex items-center justify-center px-4 py-8 overflow-hidden">
             {/* Decorative background elements */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-indigo-50 rounded-full blur-3xl opacity-60" />

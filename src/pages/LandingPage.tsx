@@ -89,7 +89,7 @@ export default function LandingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="min-h-full h-full bg-slate-50 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
             <SEO
                 title="Solusi Kasir Pintar #1 di Indonesia"
                 description="JagoKasir adalah aplikasi POS cloud terbaik untuk UMKM. Kelola transaksi, stok, dan outlet dengan mudah."
