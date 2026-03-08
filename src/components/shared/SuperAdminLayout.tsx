@@ -211,6 +211,7 @@ export const SuperAdminLayout = () => {
                 fixed inset-y-0 left-0 z-[60] w-72 bg-slate-900 border-r border-slate-800 transform lg:hidden transition-transform duration-300 ease-in-out
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
                 flex flex-col
+                pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]
             `}>
                 <SidebarContent />
             </aside>

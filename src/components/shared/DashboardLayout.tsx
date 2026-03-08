@@ -314,6 +314,8 @@ export const DashboardLayout = () => {
                 ${isSidebarOpen ? 'w-64' : 'w-20'}
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 fixed lg:relative inset-y-0 left-0 flex flex-col flex-shrink-0 z-50
+                pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]
+                lg:pt-0 lg:pb-0 lg:pl-0
             `}>
                 {/* Logo */}
                 <div className={`p-4 flex items-center h-16 border-b border-slate-100 ${!isSidebarOpen ? 'justify-center' : 'justify-between'}`}>

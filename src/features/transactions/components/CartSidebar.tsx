@@ -89,6 +89,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 fixed inset-y-0 left-0 z-50 w-full xs:w-[26rem] max-w-[95vw] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                 md:relative md:translate-x-0 md:z-0 md:w-[450px]
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+                pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]
+                md:pt-0 md:pb-0 md:pl-0
             `}>
                 <CartHeader
                     orderType={orderType}
