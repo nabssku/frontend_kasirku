@@ -9,6 +9,7 @@ interface CartFooterProps {
     items: CartItem[];
     handleCheckout: () => void;
     handleSaveOrder: () => void;
+    handlePrintCheck: () => Promise<void>;
     handleResetAll: () => void;
     currentShift: any;
     activeTransactionId: string | null;
@@ -19,11 +20,11 @@ interface CartFooterProps {
 }
 
 export const CartFooter = ({
-    grandTotal, paidAmount, items, handleCheckout, handleSaveOrder, currentShift, activeTransactionId, setShowCancelModal, setShowOrderModal, setShowPaymentModal, isPending
+    grandTotal, paidAmount, items, handleCheckout, handleSaveOrder, handlePrintCheck, currentShift, activeTransactionId, setShowCancelModal, setShowOrderModal, setShowPaymentModal, isPending
 }: CartFooterProps) => {
 
     const actionButtons = [
-        { icon: <Printer size={20} />, label: 'Print Check', onClick: () => { } },
+        { icon: <Printer size={20} />, label: 'Print Check', onClick: () => handlePrintCheck() },
         { icon: <Percent size={20} />, label: 'Disc. Order', onClick: () => setShowOrderModal(true) },
         { icon: <ClipboardList size={20} />, label: 'Order Notes', onClick: () => setShowOrderModal(true) },
         { icon: <Send size={20} />, label: 'Send to Kitchen', onClick: () => handleSaveOrder() },

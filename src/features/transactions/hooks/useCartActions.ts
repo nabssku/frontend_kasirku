@@ -22,7 +22,7 @@ export const useCartActions = () => {
     const { user } = useAuthStore();
     const { outlet } = useReceiptSettings(user?.outlet_id);
     const { data: tables = [] } = useTables();
-    const { printKitchenOrder } = useBluetoothPrint();
+    const { printKitchenOrder, printReceipt } = useBluetoothPrint();
 
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [paidAmount, setPaidAmount] = useState<number>(0);
@@ -205,6 +205,49 @@ export const useCartActions = () => {
         });
     };
 
+    const handlePrintCheck = async () => {
+        if (items.length === 0) {
+            toast.error('Keranjang kosong');
+            return;
+        }
+
+        const receiptData: any = {
+            store_name: outlet?.name || 'JagoKasir',
+            store_address: outlet?.address || '',
+            store_phone: outlet?.phone || '',
+            invoice_number: 'PRO-FORMA',
+            date: new Date().toLocaleString('id-ID'),
+            cashier: user?.name || '',
+            customer: customerId ? 'Customer' : 'Guest', // Simplification for now
+            table_name: tableId ? tables.find(t => t.id === tableId)?.name : undefined,
+            type: orderType,
+            items: items.map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                subtotal: item.price * item.quantity
+            })),
+            subtotal: total,
+            discount: calculatedDiscount,
+            tax: tax,
+            tax_rate: (outlet?.tax_rate || 0),
+            service_charge: service_charge,
+            grand_total: grandTotal,
+            paid_amount: 0,
+            change_amount: 0,
+            payment_method: '-',
+            status: 'unpaid',
+            receipt_settings: outlet?.receipt_settings
+        };
+
+        try {
+            await printReceipt(receiptData);
+            toast.success('Pro-forma receipt dicetak');
+        } catch (err) {
+            toast.error('Gagal mencetak check.');
+        }
+    };
+
     return {
         paymentMethod, setPaymentMethod,
         paidAmount, setPaidAmount,
@@ -218,7 +261,7 @@ export const useCartActions = () => {
         printTransactionId, setPrintTransactionId,
         isPending,
         total, tax, service_charge, grandTotal, changeAmount,
-        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder,
+        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder, handlePrintCheck,
         currentShift,
         showNoShiftModal, setShowNoShiftModal,
         serviceChargeRate: serviceChargeRate * 100,

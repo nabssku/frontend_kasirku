@@ -46,7 +46,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
         notes, setNotes,
         showSuccess, activeTransactionId, printTransactionId, setPrintTransactionId,
         isPending, total, tax, service_charge, grandTotal, changeAmount,
-        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder, currentShift,
+        handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder, handlePrintCheck, currentShift,
         showNoShiftModal, setShowNoShiftModal,
         taxRate, serviceChargeRate
     } = useCartActions();
@@ -122,6 +122,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     items={items}
                     handleCheckout={onValidatedCheckout}
                     handleSaveOrder={onValidatedSaveOrder}
+                    handlePrintCheck={handlePrintCheck}
                     handleResetAll={handleResetAll}
                     isPending={isPending}
                     currentShift={currentShift}
