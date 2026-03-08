@@ -33,6 +33,7 @@ import SuperAdminOrders from '../../pages/super-admin/SuperAdminOrders';
 import SuperAdminAppVersion from '../../pages/super-admin/SuperAdminAppVersion';
 import LandingPage from '../../pages/LandingPage';
 import AuditLogPage from '../../pages/settings/AuditLogPage';
+import AppInformationPage from '../../pages/settings/AppInformationPage';
 
 const IncomeReport = lazy(() => import('../../pages/reports/IncomeReport'));
 const ExpenseReport = lazy(() => import('../../pages/reports/ExpenseReport'));
@@ -230,6 +231,7 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 )
             },
+            { path: 'settings/info', element: <ProtectedRoute><AppInformationPage /></ProtectedRoute> },
         ],
     },
 ]);

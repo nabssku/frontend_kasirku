@@ -19,7 +19,6 @@ import { useReceiptSettings } from '../../hooks/useReceiptSettings';
 import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
 import { toast } from 'sonner';
 import type { ReceiptSettings } from '../../types';
-import { AppVersionSettingsCard } from '../../components/settings/AppVersionSettingsCard';
 
 export default function ReceiptSettingsPage() {
     const { user } = useAuthStore();
@@ -341,8 +340,6 @@ export default function ReceiptSettingsPage() {
                             </div>
                         </section>
                     </div>
-
-                    <AppVersionSettingsCard />
                 </div>
 
                 {/* Preview Section */}
