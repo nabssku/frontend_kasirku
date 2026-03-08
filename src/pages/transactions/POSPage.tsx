@@ -29,9 +29,12 @@ export default function POSPage() {
 
 
     return (
-        <div className="h-full flex overflow-hidden bg-slate-50">
+        <div className="h-full flex overflow-hidden bg-slate-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+            {/* Cart Sidebar - Pass props for responsiveness */}
+            <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
             {/* Product Area - Flex 1 */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <div className="flex-1 flex flex-col h-full overflow-hidden border-l border-slate-200">
                 {/* Header Section: Search & Categories */}
                 <div className="bg-white p-4 md:p-6 shadow-sm border-b border-slate-200 space-y-4">
                     <div className="relative group">
@@ -102,7 +105,7 @@ export default function POSPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6 pb-24">
+                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6 pb-24">
                             {filteredProducts?.map((product) => (
                                 <ProductCard key={product.id} product={product} />
                             ))}
@@ -117,7 +120,7 @@ export default function POSPage() {
                     animate={{ scale: itemsCount > 0 ? [1, 1.1, 1] : 1 }}
                     transition={{ duration: 0.3 }}
                     onClick={() => setIsCartOpen(true)}
-                    className="lg:hidden fixed bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 transition-all active:scale-90 z-30"
+                    className="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 transition-all active:scale-90 z-30"
                 >
                     <div className="relative">
                         <ShoppingCart size={24} />
@@ -143,10 +146,6 @@ export default function POSPage() {
                     </div>
                 </motion.button>
             </div>
-
-            {/* Cart Sidebar - Pass props for responsiveness */}
-            <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-
         </div>
     );
 }

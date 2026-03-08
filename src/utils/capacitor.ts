@@ -10,13 +10,13 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 export const isNative = Capacitor.isNativePlatform();
 
 /**
- * Lock screen orientation to portrait
+ * Lock screen orientation to landscape
  */
-export const lockOrientationPortrait = async () => {
+export const lockOrientationLandscape = async () => {
     if (isNative) {
         try {
-            await ScreenOrientation.lock({ orientation: 'portrait' });
-            console.log('Screen orientation locked to portrait');
+            await ScreenOrientation.lock({ orientation: 'landscape' });
+            console.log('Screen orientation locked to landscape');
         } catch (e) {
             console.warn('Screen orientation lock failed', e);
         }

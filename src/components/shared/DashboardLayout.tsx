@@ -34,6 +34,9 @@ import { Sparkles } from 'lucide-react';
 import { useBusinessType } from '../../hooks/useBusinessType';
 import { useCurrentSubscription } from '../../hooks/useSubscription';
 import type { PlanFeature } from '../../types';
+import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
+import { usePrinters } from '../../hooks/usePrinters';
+import { toast } from 'sonner';
 
 interface NavItem {
     name: string;
@@ -145,6 +148,19 @@ export const DashboardLayout = () => {
     const [networkStatus, setNetworkStatus] = useState<ConnectionStatus | null>(null);
     const [isAiOpen, setIsAiOpen] = useState(false);
     const { isRetail } = useBusinessType();
+
+    const { isConnected: isPrinterConnected, isConnecting: isPrinterConnecting, autoConnect: autoConnectPrinter } = useBluetoothPrint();
+    const { data: printers = [] } = usePrinters();
+
+    const handleReconnectPrinters = async () => {
+        if (isPrinterConnecting) return;
+        try {
+            toast.info('Menghubungkan ulang printer...');
+            await autoConnectPrinter(printers);
+        } catch (err) {
+            toast.error('Gagal menghubungkan printer.');
+        }
+    };
 
     // Plan features
     const { data: subscriptionData } = useCurrentSubscription();
@@ -476,6 +492,20 @@ export const DashboardLayout = () => {
                             </div>
                         )}
 
+                        <button
+                            onClick={handleReconnectPrinters}
+                            disabled={isPrinterConnecting}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${isPrinterConnected
+                                ? 'bg-indigo-50 text-indigo-600 border-indigo-100'
+                                : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-red-50 hover:text-red-500 hover:border-red-100 active:scale-95'
+                                }`}
+                        >
+                            <Printer size={14} className={isPrinterConnecting ? 'animate-spin' : ''} />
+                            <span className="hidden sm:inline">
+                                {isPrinterConnecting ? 'Connecting...' : isPrinterConnected ? 'Printer Ready' : 'Printer Off'}
+                            </span>
+                        </button>
+
                         <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-100">
                             <div className="text-right">
                                 <p className="text-xs font-bold text-slate-900 leading-none">{user?.name}</p>
@@ -487,7 +517,7 @@ export const DashboardLayout = () => {
                         </div>
                     </div>
                 </header>
-                <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div className={`flex-1 overflow-y-auto ${location.pathname === '/pos' ? '' : 'p-4 md:p-8'}`}>
                     <Outlet />
                 </div>
 
@@ -521,6 +551,6 @@ export const DashboardLayout = () => {
                     </>
                 )}
             </main>
-        </div>
+        </div >
     );
 };

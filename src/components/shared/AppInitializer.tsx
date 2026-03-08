@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { initializeBluetooth, lockOrientationPortrait } from '../../utils/capacitor';
+import { initializeBluetooth, lockOrientationLandscape } from '../../utils/capacitor';
 import { useAuthStore } from '../../app/store/useAuthStore';
 import type { AppVersionInfo } from '../../services/UpdateService';
 import { UpdateService } from '../../services/UpdateService';
@@ -14,7 +14,7 @@ export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
         const init = async () => {
             await Promise.all([
                 initializeBluetooth(),
-                lockOrientationPortrait()
+                lockOrientationLandscape()
             ]);
 
             // Check for updates if on native platform

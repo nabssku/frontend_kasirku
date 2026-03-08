@@ -222,24 +222,42 @@ export const OrderModal = ({
                     {isFnb && orderType === 'dine_in' && (
                         <div className="space-y-3 animate-in slide-in-from-top-4 duration-500 text-left">
                             <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nomor Meja</label>
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-500/50">
-                                    <Table2 size={18} />
-                                </div>
-                                <select
-                                    value={tableId || ''}
-                                    onChange={(e) => setTable(e.target.value)}
-                                    className="w-full pl-12 pr-10 py-3.5 sm:py-4 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold bg-slate-50/50 group-hover:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all appearance-none shadow-sm text-slate-700"
-                                >
-                                    <option value="">Pilih Nomor Meja</option>
-                                    {tables.filter(t => t.status === 'available' || t.id === tableId).map(t => (
-                                        <option key={t.id} value={t.id}>{t.name} ({t.status})</option>
-                                    ))}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
-                                    <ChevronDown size={18} />
-                                </div>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+                                {tables.map((t) => {
+                                    const isSelected = tableId === t.id;
+                                    const isAvailable = t.status === 'available' || isSelected;
+
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            disabled={!isAvailable}
+                                            onClick={() => setTable(t.id)}
+                                            className={`
+                                                relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300
+                                                ${isSelected
+                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105 z-10'
+                                                    : isAvailable
+                                                        ? 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200 hover:text-indigo-600'
+                                                        : 'bg-slate-50 border-slate-50 text-slate-300 cursor-not-allowed opacity-50'
+                                                }
+                                            `}
+                                        >
+                                            <Table2 size={isSelected ? 18 : 16} strokeWidth={isSelected ? 3 : 2} className="mb-1" />
+                                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight line-clamp-1">{t.name}</span>
+                                            {isSelected && (
+                                                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-indigo-600 rounded-full flex items-center justify-center shadow-md ring-2 ring-indigo-600">
+                                                    <CheckCircle2 size={12} strokeWidth={4} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
+                            {tables.length === 0 && (
+                                <p className="text-[9px] font-bold text-amber-500 uppercase tracking-widest pl-1 italic">
+                                    Tidak ada meja tersedia
+                                </p>
+                            )}
                         </div>
                     )}
 

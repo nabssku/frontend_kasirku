@@ -220,6 +220,8 @@ export const useCartActions = () => {
         total, tax, service_charge, grandTotal, changeAmount,
         handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder,
         currentShift,
-        showNoShiftModal, setShowNoShiftModal
+        showNoShiftModal, setShowNoShiftModal,
+        serviceChargeRate: serviceChargeRate * 100,
+        taxRate: taxRate * 100
     };
 };

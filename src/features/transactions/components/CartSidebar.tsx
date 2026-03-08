@@ -5,7 +5,6 @@ import { useTables } from '../../../hooks/useTables';
 import { useState, useEffect } from 'react';
 import { ReceiptModal } from './ReceiptModal';
 import { useTransactionReceipt } from '../../../hooks/usePrinters';
-import { useCartDraggable } from '../hooks/useCartDraggable';
 import { CartItemList } from './CartItemList';
 import { CartFooter } from './CartFooter';
 import { ResumeOrderModal, OrderModal, PaymentModal, NoShiftModal, CancelOrderModal } from './CartModals';
@@ -13,6 +12,7 @@ import { useCartActions } from '../hooks/useCartActions';
 import { CartHeader } from './CartHeader';
 import { CartSuccessView } from './CartSuccessView';
 import { useBusinessType } from '../../../hooks/useBusinessType';
+import { toast } from 'sonner';
 
 interface CartSidebarProps {
     isOpen?: boolean;
@@ -36,7 +36,6 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     }, [isRetail, isFnb]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const [showResumeModal, setShowResumeModal] = useState(false);
-    const [showDetails, setShowDetails] = useState(false);
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -44,18 +43,36 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const {
         paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
         customerId, setCustomerId, discount, setDiscount, discountType, setDiscountType,
-        calculatedDiscount, notes, setNotes,
+        notes, setNotes,
         showSuccess, activeTransactionId, printTransactionId, setPrintTransactionId,
-        isPending, total, tax, grandTotal, changeAmount,
+        isPending, total, tax, service_charge, grandTotal, changeAmount,
         handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder, currentShift,
-        showNoShiftModal, setShowNoShiftModal
+        showNoShiftModal, setShowNoShiftModal,
+        taxRate, serviceChargeRate
     } = useCartActions();
 
-    const { data: receiptData } = useTransactionReceipt(printTransactionId);
+    const validateOrderInfo = () => {
+        if (isFnb && orderType === 'dine_in' && !tableId) {
+            toast.error('Silakan pilih nomor meja terlebih dahulu');
+            setShowOrderModal(true);
+            return false;
+        }
+        return true;
+    };
 
-    const {
-        dragOffset, isDragging, handleDragStart, handleDragMove, handleDragEnd
-    } = useCartDraggable(showDetails, setShowDetails);
+    const onValidatedCheckout = () => {
+        if (validateOrderInfo()) {
+            handleCheckout();
+        }
+    };
+
+    const onValidatedSaveOrder = () => {
+        if (validateOrderInfo()) {
+            handleSaveOrder();
+        }
+    };
+
+    const { data: receiptData } = useTransactionReceipt(printTransactionId);
 
     if (showSuccess) {
         return <CartSuccessView changeAmount={changeAmount} />;
@@ -64,61 +81,54 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     return (
         <>
             {isOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden" onClick={onClose} />
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden" onClick={onClose} />
             )}
 
             <div className={`
-                h-full flex flex-col bg-gradient-to-b from-white to-slate-50 border-l border-slate-100 shadow-[20px_0_50px_rgba(0,0,0,0.1)] 
-                fixed inset-y-0 right-0 z-50 w-full xs:w-[24rem] max-w-[95vw] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                lg:relative lg:translate-x-0 lg:z-0 lg:w-[400px]
-                ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+                h-full flex flex-col bg-white border-r border-slate-200 shadow-xl
+                fixed inset-y-0 left-0 z-50 w-full xs:w-[26rem] max-w-[95vw] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+                md:relative md:translate-x-0 md:z-0 md:w-[450px]
+                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <CartHeader
-                    activeTransactionId={activeTransactionId}
                     orderType={orderType}
                     tableId={tableId}
                     tables={tables}
                     setShowOrderModal={setShowOrderModal}
                     onClose={onClose}
+                    isFnb={isFnb}
+                    activeTransactionId={activeTransactionId}
                     pendingTransactionsCount={pendingTransactions.length}
                     setShowResumeModal={setShowResumeModal}
-                    itemsCount={items.length}
                     handleResetAll={handleResetAll}
-                    isFnb={isFnb}
                 />
 
                 <div className="flex-1 overflow-y-auto flex flex-col no-scrollbar">
-                    <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
+                    <CartItemList
+                        items={items}
+                        updateQuantity={updateQuantity}
+                        removeItem={removeItem}
+                        tax={tax}
+                        serviceCharge={service_charge}
+                        taxRate={taxRate}
+                        serviceChargeRate={serviceChargeRate}
+                    />
                 </div>
 
                 <CartFooter
-                    isDragging={isDragging}
-                    dragOffset={dragOffset}
-                    handleDragStart={handleDragStart}
-                    handleDragMove={handleDragMove}
-                    handleDragEnd={handleDragEnd}
-                    showDetails={showDetails}
-                    setShowDetails={setShowDetails}
-                    setShowOrderModal={setShowOrderModal}
-                    customersData={customersData}
-                    customerId={customerId}
-                    notes={notes}
                     total={total}
-                    discount={discount}
-                    discountType={discountType}
-                    calculatedDiscount={calculatedDiscount}
-                    tax={tax}
                     grandTotal={grandTotal}
-                    items={items}
-                    paymentMethod={paymentMethod}
                     paidAmount={paidAmount}
-                    setShowPaymentModal={setShowPaymentModal}
-                    handleSaveOrder={handleSaveOrder}
-                    handleCheckout={handleCheckout}
+                    items={items}
+                    handleCheckout={onValidatedCheckout}
+                    handleSaveOrder={onValidatedSaveOrder}
+                    handleResetAll={handleResetAll}
                     isPending={isPending}
                     currentShift={currentShift}
                     activeTransactionId={activeTransactionId}
                     setShowCancelModal={setShowCancelModal}
+                    setShowOrderModal={setShowOrderModal}
+                    setShowPaymentModal={setShowPaymentModal}
                 />
             </div>
 
@@ -131,12 +141,22 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
             />
 
             <OrderModal
-                isOpen={showOrderModal} onClose={() => setShowOrderModal(false)}
-                orderType={orderType} setOrderType={setOrderType} tableId={tableId} setTable={setTable}
-                tables={tables} customerId={customerId} setCustomerId={setCustomerId}
-                customersData={customersData} discount={discount} setDiscount={setDiscount}
-                discountType={discountType} setDiscountType={setDiscountType}
-                notes={notes} setNotes={setNotes}
+                isOpen={showOrderModal}
+                onClose={() => setShowOrderModal(false)}
+                orderType={orderType}
+                setOrderType={setOrderType}
+                tableId={tableId}
+                setTable={setTable}
+                tables={tables}
+                customerId={customerId}
+                setCustomerId={setCustomerId}
+                customersData={customersData}
+                discount={discount}
+                setDiscount={setDiscount}
+                discountType={discountType}
+                setDiscountType={setDiscountType}
+                notes={notes}
+                setNotes={setNotes}
                 isFnb={isFnb}
             />
 
