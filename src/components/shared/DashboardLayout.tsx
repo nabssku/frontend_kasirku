@@ -134,7 +134,7 @@ const allNavGroups: NavGroup[] = [
             { name: 'Langganan', path: '/subscription', icon: CreditCard, roles: OWNER_ROLES },
             { name: 'Printer', path: '/settings/printer', icon: Printer, roles: CONFIG_ROLES },
             { name: 'Pengaturan Struk', path: '/settings/receipt', icon: FileText, roles: CONFIG_ROLES },
-            { name: 'Informasi Aplikasi', path: '/settings/info', icon: Info, roles: ADMIN_ROLES },
+            { name: 'Informasi Aplikasi', path: '/settings/info', icon: Info, roles: [...ADMIN_ROLES, 'cashier'] },
             { name: 'Audit Log', path: '/settings/audit-log', icon: ShieldAlert, roles: OWNER_ROLES, feature: 'audit_log' },
         ],
     },
