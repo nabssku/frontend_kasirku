@@ -13,6 +13,7 @@ import ModifiersPage from '../../pages/products/ModifiersPage';
 import RecipePage from '../../pages/products/RecipePage';
 import CustomersPage from '../../pages/customers/CustomersPage';
 import TransactionHistoryPage from '../../pages/transactions/TransactionHistoryPage';
+import DailyTransactionPage from '../../pages/transactions/DailyTransactionPage';
 import POSPage from '../../pages/transactions/POSPage';
 import TenantPage from '../../pages/tenants/TenantPage';
 import IngredientsPage from '../../pages/inventory/IngredientsPage';
@@ -108,6 +109,7 @@ export const router = createBrowserRouter([
             { path: 'pos', element: <ProtectedRoute allowedRoles={POS_ROLES}><POSPage /></ProtectedRoute> },
 
             { path: 'transactions', element: <ProtectedRoute allowedRoles={ADMIN_ROLES}><TransactionHistoryPage /></ProtectedRoute> },
+            { path: 'transactions/daily', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><DailyTransactionPage /></ProtectedRoute> },
             { path: 'tables', element: <ProtectedRoute allowedRoles={OPERATIONAL_ROLES}><TablesPage /></ProtectedRoute> },
             {
                 path: 'kitchen',

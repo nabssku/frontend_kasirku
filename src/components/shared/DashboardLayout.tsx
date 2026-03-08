@@ -74,6 +74,7 @@ const allNavGroups: NavGroup[] = [
         label: 'Operasional',
         items: [
             { name: 'Transaksi', path: '/transactions', icon: History, roles: ADMIN_ROLES },
+            { name: 'Riwayat Hari Ini', path: '/transactions/daily', icon: History, roles: OPERATIONAL_ROLES },
             {
                 name: 'Pengeluaran',
                 path: '/expenses',
