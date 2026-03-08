@@ -84,3 +84,19 @@ export const useCancelTransaction = () => {
     },
   });
 };
+export const useTodayTransactions = () => {
+    return useQuery({
+        queryKey: ['transactions', 'today'],
+        queryFn: async () => {
+            const today = new Date().toISOString().split('T')[0];
+            const { data } = await api.get('/transactions', { 
+                params: { 
+                    date: today,
+                    status: 'completed',
+                    per_page: 50 
+                } 
+            });
+            return data.data as Transaction[];
+        },
+    });
+};

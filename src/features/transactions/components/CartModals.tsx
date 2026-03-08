@@ -391,7 +391,12 @@ export const PaymentModal = ({
                                 return (
                                     <button
                                         key={m.id}
-                                        onClick={() => setPaymentMethod(m.id)}
+                                        onClick={() => {
+                                            setPaymentMethod(m.id);
+                                            if (m.id !== 'cash') {
+                                                setPaidAmount(grandTotal);
+                                            }
+                                        }}
                                         className={`flex flex-col items-center gap-1.5 sm:gap-2 py-3 sm:py-4 rounded-2xl border transition-all duration-300 ${isActive
                                             ? `bg-${colorClass}-50 border-${colorClass}-200 text-${colorClass}-600 shadow-sm scale-[1.02]`
                                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600'

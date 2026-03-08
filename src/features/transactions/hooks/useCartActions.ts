@@ -56,6 +56,7 @@ export const useCartActions = () => {
         setDiscountType('fixed');
         setNotes('');
         setActiveTransactionId(null);
+        setPaymentMethod('cash');
     };
 
     const handleCheckout = () => {
@@ -189,6 +190,8 @@ export const useCartActions = () => {
         setDiscountType('fixed'); // Recalled discounts are stored as final values
         setNotes(tx.notes || '');
         setActiveTransactionId(tx.id);
+        if (tx.payment_method) setPaymentMethod(tx.payment_method);
+        if (tx.paid_amount) setPaidAmount(parseFloat(tx.paid_amount));
     };
 
     const handleCancelOrder = (reason: string) => {
@@ -233,9 +236,9 @@ export const useCartActions = () => {
             tax_rate: (outlet?.tax_rate || 0),
             service_charge: service_charge,
             grand_total: grandTotal,
-            paid_amount: 0,
-            change_amount: 0,
-            payment_method: '-',
+            paid_amount: paidAmount > 0 ? paidAmount : grandTotal,
+            change_amount: paidAmount > grandTotal ? paidAmount - grandTotal : 0,
+            payment_method: paymentMethod,
             status: 'unpaid',
             receipt_settings: outlet?.receipt_settings
         };
