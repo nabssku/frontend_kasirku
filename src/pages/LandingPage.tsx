@@ -11,7 +11,6 @@ import {
     Play,
     Store,
     ChevronDown,
-    HelpCircle,
     Star,
     Quote
 } from 'lucide-react';
