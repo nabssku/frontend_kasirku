@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, Store, TrendingUp, TrendingDown, DollarSign, ReceiptText, FileText } from 'lucide-react';
 import { useAuthStore } from '../../app/store/useAuthStore';
@@ -12,12 +12,20 @@ export default function ProfitLossReport() {
         start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
         end: new Date().toISOString().split('T')[0]
     });
-    const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(undefined);
-
     const { user } = useAuthStore();
-    const isOwnerOrAdmin = user?.roles?.some(r => ['owner', 'super_admin', 'admin'].includes(r.slug));
+    const isOwnerOrSuperAdmin = user?.roles?.some(r => ['owner', 'super_admin'].includes(r.slug));
+    const isAdmin = user?.roles?.some(r => r.slug === 'admin');
+    const showOutletDropdown = isOwnerOrSuperAdmin || isAdmin;
+    const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(user?.outlet_id || undefined);
 
     const { data: outlets } = useOutlets();
+    const filteredOutlets = outlets?.filter(o => isOwnerOrSuperAdmin ? true : o.id === user?.outlet_id) || [];
+
+    useEffect(() => {
+        if (!selectedOutletId && filteredOutlets.length > 0) {
+            setSelectedOutletId(filteredOutlets[0].id);
+        }
+    }, [filteredOutlets, selectedOutletId]);
     const { exportProfitLoss } = useExportTransactions();
 
     const { data: report, isLoading } = useQuery({
@@ -55,7 +63,7 @@ export default function ProfitLossReport() {
                         <input type="date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} className="text-sm outline-none bg-transparent" />
                     </div>
 
-                    {isOwnerOrAdmin && (
+                    {showOutletDropdown && (
                         <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm min-w-[200px]">
                             <Store size={18} className="text-slate-400" />
                             <select
@@ -63,8 +71,7 @@ export default function ProfitLossReport() {
                                 onChange={(e) => setSelectedOutletId(e.target.value || undefined)}
                                 className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none w-full"
                             >
-                                <option value="">Semua Outlet</option>
-                                {outlets?.map((outlet) => (
+                                {filteredOutlets.map((outlet) => (
                                     <option key={outlet.id} value={outlet.id}>{outlet.name}</option>
                                 ))}
                             </select>

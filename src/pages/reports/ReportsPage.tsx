@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, TrendingUp, DollarSign, Download, Store } from 'lucide-react';
 import { useTopProducts, useExportTransactions } from '../../hooks/useReports';
 import { useAuthStore } from '../../app/store/useAuthStore';
@@ -34,10 +34,19 @@ export default function ReportsPage() {
     };
 
     const { user } = useAuthStore();
-    const isOwnerOrAdmin = user?.roles?.some(r => r.slug === 'owner' || r.slug === 'super_admin' || r.slug === 'admin');
-    const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(undefined);
+    const isOwnerOrSuperAdmin = user?.roles?.some(r => ['owner', 'super_admin'].includes(r.slug));
+    const isAdmin = user?.roles?.some(r => r.slug === 'admin');
+    const showOutletDropdown = isOwnerOrSuperAdmin || isAdmin;
+    const [selectedOutletId, setSelectedOutletId] = useState<string | undefined>(user?.outlet_id || undefined);
 
     const { data: outlets } = useOutlets();
+    const filteredOutlets = outlets?.filter(o => isOwnerOrSuperAdmin ? true : o.id === user?.outlet_id) || [];
+
+    useEffect(() => {
+        if (!selectedOutletId && filteredOutlets.length > 0) {
+            setSelectedOutletId(filteredOutlets[0].id);
+        }
+    }, [filteredOutlets, selectedOutletId]);
     const { data: topProducts } = useTopProducts(selectedOutletId);
     const { exportCsv } = useExportTransactions();
 
@@ -90,7 +99,7 @@ export default function ReportsPage() {
                         <input type="date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} className="text-sm outline-none bg-transparent" />
                     </div>
 
-                    {isOwnerOrAdmin && (
+                    {showOutletDropdown && (
                         <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm min-w-[200px]">
                             <Store size={18} className="text-slate-400" />
                             <select
@@ -98,8 +107,7 @@ export default function ReportsPage() {
                                 onChange={(e) => setSelectedOutletId(e.target.value || undefined)}
                                 className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none w-full"
                             >
-                                <option value="">Semua Outlet</option>
-                                {outlets?.map((outlet) => (
+                                {filteredOutlets.map((outlet) => (
                                     <option key={outlet.id} value={outlet.id}>
                                         {outlet.name}
                                     </option>
@@ -175,8 +183,8 @@ export default function ReportsPage() {
                                             <td className="px-6 py-4 text-right font-bold text-indigo-600">{formatRp(p.profit)}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${margin >= 50 ? 'bg-emerald-50 text-emerald-600' :
-                                                        margin >= 25 ? 'bg-indigo-50 text-indigo-600' :
-                                                            'bg-amber-50 text-amber-600'
+                                                    margin >= 25 ? 'bg-indigo-50 text-indigo-600' :
+                                                        'bg-amber-50 text-amber-600'
                                                     }`}>
                                                     {margin.toFixed(1)}%
                                                 </span>
