@@ -460,7 +460,7 @@ export default function ExpensesPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex justify-end gap-1 transition-opacity">
                                             <button
                                                 onClick={() => handleDelete(expense.id)}
                                                 className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"

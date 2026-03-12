@@ -194,7 +194,7 @@ const AuditLogPage: React.FC = () => {
                                         <td className="px-6 py-4 text-right">
                                             <button
                                                 onClick={() => setSelectedLog(log)}
-                                                className="p-2 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                                                className="p-2 text-gray-400 hover:text-primary transition-colors"
                                             >
                                                 <Eye className="w-5 h-5" />
                                             </button>

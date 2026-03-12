@@ -81,7 +81,7 @@ export default function DashboardPage() {
                 <StatCard
                     icon={ShoppingCart}
                     label="Total Penjualan Hari Ini"
-                    value={fmtRp(daily?.total_sales)}
+                    value={String(daily?.total_sales || 0)}
                     color="bg-indigo-500"
                     isLoading={loadingDaily}
                 />

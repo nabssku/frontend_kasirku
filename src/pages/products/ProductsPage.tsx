@@ -146,7 +146,7 @@ export default function ProductsPage() {
                                         <div className={`w-2 h-2 rounded-full mx-auto ${product.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-end gap-1 transition-opacity">
                                             {isFnb && (
                                                 <Link
                                                     to={`/products/${product.id}/recipe`}

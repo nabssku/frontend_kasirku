@@ -186,7 +186,7 @@ export default function ReceiptSettingsPage() {
                                             <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
                                             <button
                                                 onClick={removeLogo}
-                                                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity"
                                             >
                                                 <Trash2 size={18} className="text-white" />
                                             </button>

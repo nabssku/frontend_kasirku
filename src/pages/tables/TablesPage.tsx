@@ -181,7 +181,7 @@ export default function TablesPage() {
                                             </div>
 
                                             {/* Action Buttons */}
-                                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute top-2 right-2 flex gap-1 transition-opacity">
                                                 <button onClick={(e) => { e.stopPropagation(); openEdit(table); }} className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 shadow-sm transition-colors">
                                                     <Pencil size={12} />
                                                 </button>

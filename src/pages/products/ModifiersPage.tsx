@@ -106,7 +106,7 @@ export default function ModifiersPage() {
                                                 <p className="text-xs text-slate-400">{formatRp(m.price)}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-1 transition-opacity">
                                             <button onClick={() => { setActiveGroupId(group.id); setEditMod(m); setModForm({ name: m.name, price: m.price, is_available: m.is_available }); setShowModForm(true); }} className="p-1 px-2 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 rounded">Edit</button>
                                             <button onClick={() => deleteMod.mutate({ groupId: group.id, modifierId: m.id })} className="p-1 px-2 text-[10px] font-bold text-red-500 hover:bg-red-50 rounded">Hapus</button>
                                         </div>

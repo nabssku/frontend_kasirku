@@ -50,7 +50,7 @@ export const CartItemList = ({
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => removeItem(item.cartId)}
-                                        className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                        className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
                                     >
                                         <Trash2 size={16} />
                                     </button>
