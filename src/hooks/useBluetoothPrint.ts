@@ -166,6 +166,7 @@ async function buildEscPosData(receipt: PrinterReceiptData): Promise<Uint8Array>
         separator,
         ...receipt.items.flatMap(item => [
             textToBytes(`${item.name}\n`),
+            ...(item.modifiers || []).map(m => textToBytes(`  - ${m.name}\n`)),
             textToBytes(padLine(`  ${item.quantity} x ${formatCurrency(item.price)}`, formatCurrency(item.subtotal), paperWidth) + '\n'),
         ] as Uint8Array[]),
         separator,

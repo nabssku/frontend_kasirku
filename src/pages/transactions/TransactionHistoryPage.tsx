@@ -286,12 +286,21 @@ export default function TransactionHistoryPage() {
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-wider border-b border-slate-100 pb-2">Produk</p>
                                 <div className="space-y-3">
                                     {selectedTransaction.items?.map((item: any) => (
-                                        <div key={item.id} className="flex justify-between items-start gap-4 text-sm">
-                                            <div className="space-y-0.5">
-                                                <p className="font-semibold text-slate-800">{item.product_name}</p>
-                                                <p className="text-xs text-slate-500">{item.quantity} x {fmtRp(item.price)}</p>
+                                        <div key={item.id} className="space-y-1">
+                                            <div className="flex justify-between items-start gap-4 text-sm">
+                                                <div className="space-y-0.5">
+                                                    <p className="font-semibold text-slate-800">{item.product_name}</p>
+                                                    <p className="text-xs text-slate-500">{item.quantity} x {fmtRp(item.price)}</p>
+                                                </div>
+                                                <p className="font-bold text-slate-900">{fmtRp(item.subtotal)}</p>
                                             </div>
-                                            <p className="font-bold text-slate-900">{fmtRp(item.subtotal)}</p>
+                                            {item.modifiers && item.modifiers.length > 0 && (
+                                                <div className="ml-4 space-y-0.5">
+                                                    {item.modifiers.map((m: any, midx: number) => (
+                                                        <p key={midx} className="text-[10px] text-slate-500 font-medium italic">- {m.name}</p>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

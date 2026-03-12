@@ -56,9 +56,13 @@ export function ReceiptModal({ receipt, onClose, autoPrint = false }: ReceiptMod
         if (!receipt) return;
 
         const storeName = receipt.receipt_settings?.store_name || receipt.store_name;
-        const itemsText = receipt.items.map(item =>
-            `${item.name}\n${item.quantity} x ${fmt(item.price)} = ${fmt(item.subtotal)}`
-        ).join('\n');
+        const itemsText = receipt.items.map(item => {
+            let text = `${item.name}\n${item.quantity} x ${fmt(item.price)} = ${fmt(item.subtotal)}`;
+            if (item.modifiers && item.modifiers.length > 0) {
+                text += '\n' + item.modifiers.map(m => `  - ${m.name}`).join('\n');
+            }
+            return text;
+        }).join('\n');
 
         const shareText = `
 *${storeName}*
@@ -156,6 +160,13 @@ Terima kasih!
                         {receipt.items.map((item, idx) => (
                             <div key={idx}>
                                 <p className="font-semibold">{item.name}</p>
+                                {item.modifiers && item.modifiers.length > 0 && (
+                                    <div className="text-[10px] text-slate-500 ml-2 mb-1">
+                                        {item.modifiers.map((m, midx) => (
+                                            <p key={midx}>- {m.name}</p>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-slate-500">{item.quantity} x {fmt(item.price)}</span>
                                     <span>{fmt(item.subtotal)}</span>

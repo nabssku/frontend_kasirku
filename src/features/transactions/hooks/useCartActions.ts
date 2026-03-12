@@ -228,7 +228,8 @@ export const useCartActions = () => {
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price,
-                subtotal: item.price * item.quantity
+                subtotal: item.price * item.quantity,
+                modifiers: item.modifiers
             })),
             subtotal: total,
             discount: calculatedDiscount,
@@ -240,6 +241,7 @@ export const useCartActions = () => {
             change_amount: paidAmount > grandTotal ? paidAmount - grandTotal : 0,
             payment_method: paymentMethod,
             status: 'unpaid',
+            notes: notes,
             receipt_settings: outlet?.receipt_settings
         };
 

@@ -438,6 +438,10 @@ export interface PrinterReceiptItem {
   quantity: number;
   price: number;
   subtotal: number;
+  modifiers?: {
+    name: string;
+    price: number;
+  }[];
 }
 
 export interface PrinterReceiptData {
