@@ -81,6 +81,7 @@ export interface Outlet {
   service_charge: number;
   is_active: boolean;
   receipt_settings?: ReceiptSettings;
+  google_review_link?: string;
   created_at: string;
   updated_at: string;
 }

@@ -22,6 +22,7 @@ interface OrderStatus {
     payment_url?: string;
     payment_checking: boolean;
     message: string;
+    google_review_link?: string | null;
     items?: OrderItem[];
 }
 
@@ -59,6 +60,79 @@ export default function OrderStatusPage() {
         const interval = setInterval(fetchStatus, 5000);
         return () => clearInterval(interval);
     }, [sessionToken]);
+
+    const handlePrintReceipt = async () => {
+        try {
+            const res = await api.get(`/public/self-order/${sessionToken}/receipt`);
+            const data = res.data.data;
+
+            // Simple HTML for printing
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) return;
+
+            const itemsHtml = data.items.map((item: any) => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span>${item.quantity}x ${item.name}</span>
+                    <span>Rp ${new Intl.NumberFormat('id-ID').format(item.subtotal)}</span>
+                </div>
+                ${item.modifiers && item.modifiers.length > 0 ? `
+                    <div style="font-size:0.8rem; color:#666; margin-left:10px; margin-bottom:4px;">
+                        ${item.modifiers.map((m: any) => `+ ${m.name}`).join('<br>')}
+                    </div>
+                ` : ''}
+            `).join('');
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Receipt - ${data.invoice_number}</title>
+                    <style>
+                        body { font-family: 'Courier New', Courier, monospace; width: 300px; margin: 0 auto; padding: 20px; }
+                        .text-center { text-align: center; }
+                        .header { margin-bottom: 20px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+                        .footer { margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; }
+                        .flex { display: flex; justify-content: space-between; }
+                        .font-bold { font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header text-center">
+                        <h2 style="margin:0;">${data.store_name}</h2>
+                        <div style="font-size:0.8rem;">${data.store_address}</div>
+                        <div style="font-size:0.8rem;">${data.store_phone}</div>
+                    </div>
+                    <div style="font-size:0.8rem; margin-bottom:10px;">
+                        <div class="flex"><span>Invoice:</span> <span>${data.invoice_number}</span></div>
+                        <div class="flex"><span>Tanggal:</span> <span>${data.date}</span></div>
+                        <div class="flex"><span>Pelanggan:</span> <span>${data.customer}</span></div>
+                        <div class="flex"><span>Meja:</span> <span>${data.table_name || '-'}</span></div>
+                    </div>
+                    <div style="border-bottom: 1px dashed #000; margin-bottom: 10px;"></div>
+                    <div style="font-size:0.8rem;">
+                        ${itemsHtml}
+                    </div>
+                    <div style="border-top: 1px dashed #000; margin-top: 10px; padding-top:10px; font-size:0.8rem;">
+                        <div class="flex"><span>Subtotal</span> <span>Rp ${new Intl.NumberFormat('id-ID').format(data.subtotal)}</span></div>
+                        <div class="flex"><span>Pajak</span> <span>Rp ${new Intl.NumberFormat('id-ID').format(data.tax)}</span></div>
+                        <div class="flex"><span>Service</span> <span>Rp ${new Intl.NumberFormat('id-ID').format(data.service_charge)}</span></div>
+                        <div class="flex font-bold" style="font-size:1rem; margin-top:5px;"><span>TOTAL</span> <span>Rp ${new Intl.NumberFormat('id-ID').format(data.grand_total)}</span></div>
+                    </div>
+                    <div class="footer text-center" style="font-size:0.8rem;">
+                        ${data.receipt_settings?.footer_text || 'Terima kasih atas kunjungan Anda!'}
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        } catch (err) {
+            console.error('Print error:', err);
+            alert('Gagal mengambil data struk.');
+        }
+    };
 
     const getCurrentStepIdx = () => {
         if (!status) return -1;
@@ -224,13 +298,36 @@ export default function OrderStatusPage() {
                             </div>
                         </div>
 
-                        <button
-                            className="menu-cat-btn"
-                            style={{ margin: '24px auto', display: 'block' }}
-                            onClick={() => { setLoading(true); fetchStatus(); }}
-                        >
-                            🔄 Perbarui Status
-                        </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
+                            {currentStepIdx >= 1 && (
+                                <button
+                                    className="menu-add-btn"
+                                    style={{ background: '#444' }}
+                                    onClick={handlePrintReceipt}
+                                >
+                                    📄 Cetak Struk
+                                </button>
+                            )}
+
+                            {status?.google_review_link && (currentStepIdx === 3 || currentStepIdx === 4) && (
+                                <a
+                                    href={status.google_review_link}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="menu-add-btn"
+                                    style={{ background: '#4285F4', textDecoration: 'none', textAlign: 'center' }}
+                                >
+                                    ⭐ Beri Ulasan di Google
+                                </a>
+                            )}
+
+                            <button
+                                className="menu-cat-btn"
+                                onClick={() => { setLoading(true); fetchStatus(); }}
+                            >
+                                🔄 Perbarui Status
+                            </button>
+                        </div>
 
                         <div style={{ height: '40px' }} />
                     </>

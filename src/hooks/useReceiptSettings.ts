@@ -15,10 +15,13 @@ export const useReceiptSettings = (outletId?: string) => {
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async ({ settings, logo }: { settings: ReceiptSettings, logo?: File }) => {
+    mutationFn: async ({ settings, logo, googleReviewLink }: { settings: ReceiptSettings, logo?: File, googleReviewLink?: string }) => {
       const formData = new FormData();
       formData.append('_method', 'PUT'); // Laravel spoofing
       formData.append('receipt_settings', JSON.stringify(settings));
+      if (googleReviewLink !== undefined) {
+        formData.append('google_review_link', googleReviewLink);
+      }
       if (logo) {
         formData.append('logo', logo);
       }

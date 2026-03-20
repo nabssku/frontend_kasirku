@@ -25,6 +25,7 @@ export default function ReceiptSettingsPage() {
     const isOwnerOnly = user?.roles?.some(r => r.slug === 'owner') && !user?.roles?.some(r => r.slug === 'admin' || r.slug === 'super_admin');
     const outletId = user?.outlet_id;
     const { outlet, isLoading, isUpdating, updateSettings } = useReceiptSettings(outletId);
+    const [googleReviewLink, setGoogleReviewLink] = useState('');
     const { printReceipt } = useBluetoothPrint();
     const [isTestPrinting, setIsTestPrinting] = useState(false);
 
@@ -52,6 +53,10 @@ export default function ReceiptSettingsPage() {
         } else if (outlet) {
             setForm(prev => ({ ...prev, store_name: outlet.name }));
         }
+        
+        if (outlet?.google_review_link) {
+            setGoogleReviewLink(outlet.google_review_link);
+        }
     }, [outlet]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +78,7 @@ export default function ReceiptSettingsPage() {
     };
 
     const handleSave = () => {
-        updateSettings({ settings: form, logo: logoFile || undefined }, {
+        updateSettings({ settings: form, logo: logoFile || undefined, googleReviewLink }, {
             onSuccess: () => {
                 toast.success('Pengaturan struk berhasil disimpan');
                 setLogoFile(null);
@@ -336,10 +341,27 @@ export default function ReceiptSettingsPage() {
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                                         placeholder="Contoh: Terima Kasih, Datang Kembali!"
                                     />
-                                </div>
+                                </div >
+                            </div >
+                        </section >
+
+                        <section className="space-y-4 pt-4 border-t border-slate-50">
+                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <Store size={14} /> Google Review
+                            </h3>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-slate-700">Link Review Google</label>
+                                <input
+                                    type="url"
+                                    value={googleReviewLink}
+                                    onChange={e => setGoogleReviewLink(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                    placeholder="https://g.page/r/your-id/review"
+                                />
+                                <p className="text-[10px] text-slate-400">Link ini akan ditampilkan kepada pelanggan setelah pesanan selesai.</p>
                             </div>
                         </section>
-                    </div>
+                    </div >
                 </div>
 
                 {/* Preview Section */}
