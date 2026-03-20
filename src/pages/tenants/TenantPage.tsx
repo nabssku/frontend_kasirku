@@ -57,7 +57,7 @@ export default function TenantPage() {
                 setPaymentUrl(result.payment_url);
                 setPendingInvoice(result.invoice_id);
                 setShowPaymentModal(true);
-                // Open bayar.gg payment page in new tab
+                // Open payment gateway page in new tab
                 window.open(result.payment_url, '_blank');
             }
         } catch {
@@ -86,7 +86,7 @@ export default function TenantPage() {
 
     return (
         <div className="space-y-8">
-            {/* bayar.gg Payment Status Modal */}
+            {/* Payment Status Modal */}
             {showPaymentModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 text-center space-y-6">
@@ -125,7 +125,7 @@ export default function TenantPage() {
                                 </div>
                                 <h2 className="text-2xl font-bold text-slate-900">Menunggu Pembayaran</h2>
                                 <p className="text-slate-500">
-                                    Halaman pembayaran bayar.gg telah dibuka di tab baru. Selesaikan pembayaran di sana, halaman ini akan otomatis diperbarui.
+                                    Halaman pembayaran telah dibuka di tab baru. Selesaikan pembayaran di sana, halaman ini akan otomatis diperbarui.
                                 </p>
                                 <a
                                     href={paymentUrl ?? '#'}

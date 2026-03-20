@@ -134,15 +134,15 @@ export default function PaymentPage() {
 
                             <p className="payment-hint">Scan QR di bawah atau ketuk tombol bayar</p>
 
-                            {/* QRIS via BayarGG payment URL */}
-                            {/* <a
+                            {/* Payment Redirect Button */}
+                            <a
                                 href={paymentData.payment_url}
                                 target="_top"
                                 className="menu-add-btn payment-pay-btn"
                                 rel="noreferrer"
                             >
-                                Bayar Sekarang dengan QRIS
-                            </a> */}
+                                Bayar Sekarang
+                            </a>
 
                             <p className="payment-or">— atau —</p>
 

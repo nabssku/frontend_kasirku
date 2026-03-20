@@ -48,7 +48,7 @@ export default function SuperAdminDashboard() {
                 </div>
             </div>
 
-            {/* BayarGg Stats */}
+            {/* Payment Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 border-l-4 border-l-amber-500">
                     <div className="flex items-center gap-4">
@@ -56,7 +56,7 @@ export default function SuperAdminDashboard() {
                             <TrendingUp size={20} className="text-amber-400" />
                         </div>
                         <div>
-                            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Bayar.gg Revenue</p>
+                            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Total Revenue</p>
                             <p className="text-xl font-bold text-white mt-0.5">
                                 {formatRp(paymentStats?.total_revenue ?? 0)}
                             </p>

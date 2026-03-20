@@ -35,6 +35,7 @@ import SuperAdminAppVersion from '../../pages/super-admin/SuperAdminAppVersion';
 import LandingPage from '../../pages/LandingPage';
 import AuditLogPage from '../../pages/settings/AuditLogPage';
 import AppInformationPage from '../../pages/settings/AppInformationPage';
+import PaymentSettingsPage from '../../pages/settings/PaymentSettingsPage';
 
 const IncomeReport = lazy(() => import('../../pages/reports/IncomeReport'));
 const ExpenseReport = lazy(() => import('../../pages/reports/ExpenseReport'));
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
             { path: 'plans', element: <SuperAdminPlans /> },
             { path: 'orders', element: <SuperAdminOrders /> },
             { path: 'app-versions', element: <SuperAdminAppVersion /> },
+            { path: 'settings/payment', element: <PaymentSettingsPage isSuperAdmin /> },
         ],
     },
     // ─── Landing Page ─────────────────────────────────────────────────────────
@@ -234,6 +236,7 @@ export const router = createBrowserRouter([
                 )
             },
             { path: 'settings/info', element: <ProtectedRoute><AppInformationPage /></ProtectedRoute> },
+            { path: 'settings/payment', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><PaymentSettingsPage /></ProtectedRoute> },
         ],
     },
 ]);
