@@ -297,7 +297,7 @@ export const DashboardLayout = () => {
     };
 
     return (
-        <div className="min-h-full h-full bg-slate-50 flex overflow-hidden">
+        <div className="flex-1 bg-slate-50 flex overflow-hidden">
             {/* Sidebar Backdrop (Mobile/Tablet) */}
             {(isMobileMenuOpen || (isSidebarOpen && window.innerWidth < 1024)) && (
                 <div

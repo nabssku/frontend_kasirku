@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AuthLayout } from '../../components/shared/AuthLayout';
 import { DashboardLayout } from '../../components/shared/DashboardLayout';
 import { SuperAdminLayout } from '../../components/shared/SuperAdminLayout';
+import { PublicLayout } from '../../components/shared/PublicLayout';
 import LoginPage from '../../pages/auth/LoginPage';
 import RegisterPage from '../../pages/auth/RegisterPage';
 import DashboardPage from '../../pages/dashboard/DashboardPage';
@@ -32,7 +33,9 @@ import SuperAdminSubscriptions from '../../pages/super-admin/SuperAdminSubscript
 import SuperAdminPlans from '../../pages/super-admin/SuperAdminPlans';
 import SuperAdminOrders from '../../pages/super-admin/SuperAdminOrders';
 import SuperAdminAppVersion from '../../pages/super-admin/SuperAdminAppVersion';
+import SuperAdminPageBuilder from '../../pages/super-admin/SuperAdminPageBuilder';
 import LandingPage from '../../pages/LandingPage';
+import DynamicPublicPage from '../../pages/public/DynamicPublicPage';
 import AuditLogPage from '../../pages/settings/AuditLogPage';
 import AppInformationPage from '../../pages/settings/AppInformationPage';
 import PaymentSettingsPage from '../../pages/settings/PaymentSettingsPage';
@@ -75,6 +78,16 @@ export const router = createBrowserRouter([
             { path: '/register', element: <RegisterPage /> },
         ],
     },
+    // ─── Public Pages ─────────────────────────────────────────────────────────
+    {
+        element: <PublicLayout />,
+        children: [
+            { path: '/help-center', element: <DynamicPublicPage /> },
+            { path: '/contact', element: <DynamicPublicPage /> },
+            { path: '/privacy-policy', element: <DynamicPublicPage /> },
+            { path: '/terms-conditions', element: <DynamicPublicPage /> },
+        ],
+    },
     // ─── Super Admin Panel ────────────────────────────────────────────────────
     {
         path: '/super-admin',
@@ -92,6 +105,7 @@ export const router = createBrowserRouter([
             { path: 'plans', element: <SuperAdminPlans /> },
             { path: 'orders', element: <SuperAdminOrders /> },
             { path: 'app-versions', element: <SuperAdminAppVersion /> },
+            { path: 'page-builder', element: <SuperAdminPageBuilder /> },
             { path: 'settings/payment', element: <PaymentSettingsPage isSuperAdmin /> },
         ],
     },

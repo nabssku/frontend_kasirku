@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { usePlans } from '../hooks/useSubscription';
 import { useAuthStore } from '../app/store/useAuthStore';
-import { getDefaultPage } from '../lib/auth';
 import type { Plan } from '../types';
 import { SEO } from '../components/SEO';
 import { formatRp } from '../lib/format';
@@ -113,61 +112,42 @@ const faqs = [
     }
 ];
 
+import { useEffect } from 'react';
+import { PublicNavbar } from '../components/shared/PublicNavbar';
+import { PublicFooter } from '../components/shared/PublicFooter';
+
 export default function LandingPage() {
     const { data: plans, isLoading } = usePlans();
-    const { isAuthenticated, user } = useAuthStore();
-    const dashboardLink = getDefaultPage(user?.roles);
+    const { isAuthenticated } = useAuthStore();
+
+    // Support for scrolling to section from other pages (e.g., /contact -> /#features)
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash) {
+            const id = hash.replace('#', '');
+            setTimeout(() => {
+                const element = document.getElementById(id);
+                if (element) {
+                    window.scrollTo({
+                        top: element.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 100);
+        }
+    }, []);
 
     return (
-        <div className="min-h-full h-full bg-[#fdfdfd] overflow-x-hidden selection:bg-amber-100 selection:text-amber-900 font-sans">
+        <div className="w-full min-w-full h-full overflow-y-auto overflow-x-hidden bg-[#fdfdfd] selection:bg-amber-100 selection:text-amber-900 font-sans" style={{ scrollBehavior: 'smooth' }}>
             <SEO
                 title="Solusi Kasir Pintar #1 di Indonesia"
                 description="JagoKasir adalah aplikasi POS cloud terbaik untuk UMKM. Kelola transaksi, stok, dan outlet dengan mudah."
             />
-            {/* ─── Navigation ─────────────────────────────────────────────────── */}
-            <nav className="fixed top-0 left-0 right-0 z-50 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200/50 shadow-sm transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <img src="/JagoKasir.png" alt="JagoKasir Logo" className="w-8 h-8 object-contain" />
-                            <span className="text-xl font-extrabold text-slate-800 tracking-tight">
-                                JagoKasir
-                            </span>
-                        </div>
-
-                        <div className="hidden md:flex items-center gap-10 text-[15px] font-medium text-slate-500">
-                            <div className="relative">
-                                <a href="#" className="text-slate-900 font-bold">Home</a>
-                                <div className="absolute -bottom-1.5 left-0 right-0 h-[3px] bg-indigo-600 rounded-full"></div>
-                            </div>
-                            <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
-                            <a href="#how-it-works" className="hover:text-slate-900 transition-colors">How it Works</a>
-                            <a href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</a>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            {isAuthenticated ? (
-                                <Link
-                                    to={dashboardLink}
-                                    className="bg-amber-400 text-slate-900 px-6 py-2.5 rounded-xl font-bold hover:bg-amber-500 transition-colors shadow-sm"
-                                >
-                                    Dashboard
-                                </Link>
-                            ) : (
-                                <Link
-                                    to="/register"
-                                    className="bg-amber-400 text-slate-900 px-6 py-2.5 rounded-xl font-bold hover:bg-amber-500 transition-colors shadow-sm"
-                                >
-                                    Coba Gratis
-                                </Link>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </nav>
+            
+            <PublicNavbar />
 
             {/* ─── Hero Section ───────────────────────────────────────────────── */}
-            <section className="relative pt-32 lg:pt-40 pb-0 overflow-hidden">
+            <section id="home" className="relative pt-32 lg:pt-40 pb-0 overflow-hidden bg-white">
                 {/* Floating Elements */}
                 <div className="hidden lg:block absolute inset-0 pointer-events-none z-10">
                     <div className="relative w-full h-full max-w-7xl mx-auto">
@@ -480,49 +460,7 @@ export default function LandingPage() {
             </section>
 
             {/* ─── Footer ─────────────────────────────────────────────────────── */}
-            <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid md:grid-cols-4 gap-12 mb-12">
-                        <div className="col-span-2">
-                            <div className="flex items-center gap-3 mb-6">
-                                <img src="/JagoKasir.png" alt="JagoKasir Logo" className="w-8 h-8 object-contain opacity-90" />
-                                <span className="text-xl font-bold text-white tracking-tight">
-                                    JagoKasir
-                                </span>
-                            </div>
-                            <p className="text-sm leading-relaxed max-w-sm">
-                                Solusi manajemen bisnis dan kasir cloud terlengkap di Indonesia. Memberdayakan UMKM dengan teknologi mutakhir untuk efisiensi operasional.
-                            </p>
-                        </div>
-                        <div>
-                            <h5 className="text-white font-bold mb-6">Produk</h5>
-                            <ul className="space-y-4 text-sm font-medium">
-                                <li><a href="#" className="hover:text-white transition-colors">POS Terminal</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Inventori</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Laporan</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Harga</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h5 className="text-white font-bold mb-6">Dukungan</h5>
-                            <ul className="space-y-4 text-sm font-medium">
-                                <li><a href="#" className="hover:text-white transition-colors">Pusat Bantuan</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Kontak</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Kebijakan Privasi</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Syarat & Ketentuan</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="pt-8 border-t border-slate-800/50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-medium">
-                        <p>&copy; 2026 JagoKasir POS.</p>
-                        <div className="flex gap-6">
-                            <a href="#" className="hover:text-white transition-colors">Instagram</a>
-                            <a href="#" className="hover:text-white transition-colors">YouTube</a>
-                            <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-                        </div>
-                    </div>
-                </div>
-            </footer>
+            <PublicFooter />
         </div>
     );
 }

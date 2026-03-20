@@ -12,6 +12,7 @@ import {
     Shield,
     ExternalLink,
     Receipt,
+    FileText,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -48,6 +49,7 @@ const navGroups: NavGroup[] = [
             { name: 'Orders', path: '/super-admin/orders', icon: Receipt },
             { name: 'App Versions', path: '/super-admin/app-versions', icon: ExternalLink },
             { name: 'Payment Settings', path: '/super-admin/settings/payment', icon: Shield },
+            { name: 'Page Builder', path: '/super-admin/page-builder', icon: FileText },
         ],
     },
 ];
@@ -190,7 +192,7 @@ export const SuperAdminLayout = () => {
     );
 
     return (
-        <div className="min-h-full h-full bg-slate-950 flex overflow-hidden">
+        <div className="flex-1 bg-slate-950 flex overflow-hidden">
             {/* Desktop Sidebar */}
             <aside className={`
                 hidden lg:flex flex-col flex-shrink-0 bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out
@@ -220,36 +222,38 @@ export const SuperAdminLayout = () => {
             {/* Content Container */}
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 {/* Global Header */}
-                <header className="h-16 bg-slate-900/60 border-b border-slate-800/80 flex items-center px-4 lg:px-8 shrink-0 backdrop-blur-md sticky top-0 z-40">
-                    <button
-                        onClick={() => setIsMobileMenuOpen(true)}
-                        className="lg:hidden p-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 mr-4"
-                    >
-                        <Menu size={24} />
-                    </button>
+                {!isActive('/super-admin/page-builder') && (
+                    <header className="h-16 bg-slate-900/60 border-b border-slate-800/80 flex items-center px-4 lg:px-8 shrink-0 backdrop-blur-md sticky top-0 z-40">
+                        <button
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="lg:hidden p-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 mr-4"
+                        >
+                            <Menu size={24} />
+                        </button>
 
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
-                        <span className="text-xs font-bold text-amber-500/70 uppercase tracking-widest lg:hidden">
-                            Super Admin
-                        </span>
-                        <h2 className="text-lg font-bold text-white tracking-tight">
-                            {currentPageName}
-                        </h2>
-                    </div>
-
-                    <div className="ml-auto flex items-center gap-4">
-                        <div className="hidden sm:flex flex-col items-end">
-                            <span className="text-xs text-slate-500 font-medium">JagoKasir Platform</span>
-                            <span className="text-[10px] text-emerald-500 font-bold px-1.5 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20 mt-0.5">
-                                Systems Active
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
+                            <span className="text-xs font-bold text-amber-500/70 uppercase tracking-widest lg:hidden">
+                                Super Admin
                             </span>
+                            <h2 className="text-lg font-bold text-white tracking-tight">
+                                {currentPageName}
+                            </h2>
                         </div>
-                    </div>
-                </header>
+
+                        <div className="ml-auto flex items-center gap-4">
+                            <div className="hidden sm:flex flex-col items-end">
+                                <span className="text-xs text-slate-500 font-medium">JagoKasir Platform</span>
+                                <span className="text-[10px] text-emerald-500 font-bold px-1.5 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20 mt-0.5">
+                                    Systems Active
+                                </span>
+                            </div>
+                        </div>
+                    </header>
+                )}
 
                 {/* Main Content Area */}
-                <main className="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950 to-slate-950">
-                    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+                <main className={`flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950 to-slate-950 ${isActive('/super-admin/page-builder') ? 'h-full overflow-hidden' : ''}`}>
+                    <div className={`${isActive('/super-admin/page-builder') ? 'p-0 max-w-none h-full' : 'p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full'}`}>
                         <Outlet />
                     </div>
                 </main>
