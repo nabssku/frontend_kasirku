@@ -6,10 +6,6 @@ import './menu.css';
 interface PaymentResponse {
     data: {
         final_amount: number;
-        qris_converter: {
-            converted_qris: string;
-            original_qris: string;
-        };
         invoice_id?: string;
         payment_url?: string;
     };
@@ -38,7 +34,15 @@ export default function PaymentPage() {
     useEffect(() => {
         const stored = sessionStorage.getItem('self_order_payment');
         if (stored) {
-            setPaymentData(JSON.parse(stored));
+            const data = JSON.parse(stored);
+            setPaymentData(data);
+            
+            // Auto redirect to payment gateway
+            if (data.payment_url) {
+                setTimeout(() => {
+                    window.location.href = data.payment_url;
+                }, 1500);
+            }
         } else {
             navigate(`/menu/table/${sessionToken}`, { replace: true });
         }
@@ -132,27 +136,15 @@ export default function PaymentPage() {
                                 </div>
                             )}
 
-                            <p className="payment-hint">Scan QR di bawah atau ketuk tombol bayar</p>
+                            <p className="payment-hint">Ketuk tombol di bawah jika Anda tidak diarahkan secara otomatis</p>
 
                             {/* Payment Redirect Button */}
                             <a
                                 href={paymentData.payment_url}
-                                target="_top"
                                 className="menu-add-btn payment-pay-btn"
-                                rel="noreferrer"
                             >
                                 Bayar Sekarang
                             </a>
-
-                            <p className="payment-or">— atau —</p>
-
-                            <div className="payment-qr-wrap">
-                                <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(paymentData.payment_response.data.qris_converter.converted_qris)}`}
-                                    alt="QR Pembayaran"
-                                    className="payment-qr-img"
-                                />
-                            </div>
                         </div>
 
                         {/* Manual check button */}
