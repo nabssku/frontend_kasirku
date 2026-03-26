@@ -14,7 +14,7 @@ export function useSuperAdminStats() {
 }
 
 // ─── Tenants ──────────────────────────────────────────────────────────────────
-export function useSuperAdminTenants(params?: { search?: string; status?: string; page?: number }) {
+export function useSuperAdminTenants(params?: { search?: string; status?: string; page?: number; per_page?: number }) {
   return useQuery<PaginatedResponse<TenantDetail>>({
     queryKey: ['super-admin', 'tenants', params],
     queryFn: async () => {
@@ -63,7 +63,7 @@ export function useDeleteTenant() {
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────
-export function useSuperAdminUsers(params?: { search?: string; tenant_id?: string; role?: string; page?: number }) {
+export function useSuperAdminUsers(params?: { search?: string; tenant_id?: string; role?: string; page?: number; per_page?: number }) {
   return useQuery<PaginatedResponse<User>>({
     queryKey: ['super-admin', 'users', params],
     queryFn: async () => {

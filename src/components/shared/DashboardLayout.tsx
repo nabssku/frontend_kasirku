@@ -26,6 +26,7 @@ import {
     WifiOff,
     ShieldAlert,
     Info,
+    MessageSquare,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Network } from '@capacitor/network';
@@ -138,6 +139,13 @@ const allNavGroups: NavGroup[] = [
             { name: 'Informasi Aplikasi', path: '/settings/info', icon: Info, roles: [...ADMIN_ROLES, 'cashier'] },
             { name: 'Payment Gateway', path: '/settings/payment', icon: CreditCard, roles: OWNER_ROLES },
             { name: 'Audit Log', path: '/settings/audit-log', icon: ShieldAlert, roles: OWNER_ROLES, feature: 'audit_log' },
+        ],
+    },
+    {
+        label: 'Bantuan',
+        items: [
+            { name: 'Support / Tiket', path: '/support', icon: MessageSquare, roles: [...ADMIN_ROLES, 'cashier'] },
+            { name: 'Manajemen Tiket', path: '/super-admin/tickets', icon: MessageSquare, roles: ['super_admin'] },
         ],
     },
 ];
@@ -271,9 +279,14 @@ export const DashboardLayout = () => {
             .filter((group) => group.items.length > 0);
     }, [userRoleSlugs, isRetail, isOwner, isSuperAdmin]);
 
+    const isChatPage = useMemo(() => {
+        return location.pathname.startsWith('/support') || location.pathname.startsWith('/super-admin/tickets');
+    }, [location.pathname]);
+
     const showAiButton = useMemo(() => {
+        if (isChatPage) return false;
         return userRoleSlugs.some(role => ADMIN_ROLES.includes(role));
-    }, [userRoleSlugs]);
+    }, [userRoleSlugs, isChatPage]);
 
     const isActive = (path: string) =>
         location.pathname === path;
@@ -487,10 +500,14 @@ export const DashboardLayout = () => {
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-8 shrink-0">
                     <button
                         onClick={() => {
-                            setIsMobileMenuOpen(true);
-                            setIsSidebarOpen(true);
+                            if (window.innerWidth < 1024) {
+                                setIsMobileMenuOpen(true);
+                                setIsSidebarOpen(true);
+                            } else {
+                                setIsSidebarOpen(!isSidebarOpen);
+                            }
                         }}
-                        className="p-2 -ml-2 mr-4 rounded-lg hover:bg-slate-100 text-slate-500 lg:hidden"
+                        className="p-2 -ml-2 mr-4 rounded-lg hover:bg-slate-100 text-slate-500"
                     >
                         <Menu size={24} />
                     </button>

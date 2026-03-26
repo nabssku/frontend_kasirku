@@ -6,6 +6,7 @@ import { SuperAdminLayout } from '../../components/shared/SuperAdminLayout';
 import { PublicLayout } from '../../components/shared/PublicLayout';
 import LoginPage from '../../pages/auth/LoginPage';
 import RegisterPage from '../../pages/auth/RegisterPage';
+import ForgotPasswordPage from '../../pages/auth/ForgotPasswordPage';
 import DashboardPage from '../../pages/dashboard/DashboardPage';
 import ProductsPage from '../../pages/products/ProductsPage';
 import ProductFormPage from '../../pages/products/ProductFormPage';
@@ -39,6 +40,9 @@ import DynamicPublicPage from '../../pages/public/DynamicPublicPage';
 import AuditLogPage from '../../pages/settings/AuditLogPage';
 import AppInformationPage from '../../pages/settings/AppInformationPage';
 import PaymentSettingsPage from '../../pages/settings/PaymentSettingsPage';
+import SupportPage from '../../pages/support/SupportPage';
+import TicketDetailsPage from '../../pages/support/TicketDetailsPage';
+import AdminTicketsPage from '../../pages/super-admin/AdminTicketsPage';
 
 const IncomeReport = lazy(() => import('../../pages/reports/IncomeReport'));
 const ExpenseReport = lazy(() => import('../../pages/reports/ExpenseReport'));
@@ -76,6 +80,7 @@ export const router = createBrowserRouter([
         children: [
             { path: '/login', element: <LoginPage /> },
             { path: '/register', element: <RegisterPage /> },
+            { path: '/forgot-password', element: <ForgotPasswordPage /> },
         ],
     },
     // ─── Public Pages ─────────────────────────────────────────────────────────
@@ -106,6 +111,8 @@ export const router = createBrowserRouter([
             { path: 'orders', element: <SuperAdminOrders /> },
             { path: 'app-versions', element: <SuperAdminAppVersion /> },
             { path: 'page-builder', element: <SuperAdminPageBuilder /> },
+            { path: 'tickets', element: <AdminTicketsPage /> },
+            { path: 'tickets/:id', element: <TicketDetailsPage /> },
             { path: 'settings/payment', element: <PaymentSettingsPage isSuperAdmin /> },
         ],
     },
@@ -251,6 +258,8 @@ export const router = createBrowserRouter([
             },
             { path: 'settings/info', element: <ProtectedRoute><AppInformationPage /></ProtectedRoute> },
             { path: 'settings/payment', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><PaymentSettingsPage /></ProtectedRoute> },
+            { path: 'support', element: <ProtectedRoute><SupportPage /></ProtectedRoute> },
+            { path: 'support/tickets/:id', element: <ProtectedRoute><TicketDetailsPage /></ProtectedRoute> },
         ],
     },
 ]);

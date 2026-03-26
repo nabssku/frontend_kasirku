@@ -34,6 +34,7 @@ export interface User {
   outlet_id?: string;
   name: string;
   email: string;
+  image?: string | null;
   is_active: boolean;
   email_verified_at?: string;
   created_at: string;
