@@ -74,13 +74,31 @@ export function usePlans() {
 export function useSubscribe() {
     const queryClient = useQueryClient();
 
-    return useMutation<SubscribeResponse, Error, { plan_id: number; billing_cycle?: string }>({
+    return useMutation<SubscribeResponse, Error, { plan_id: number; billing_cycle?: string; discount_code?: string | null }>({
         mutationFn: async (payload) => {
             const { data } = await api.post('/subscriptions/subscribe', payload);
             return data.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['subscription'] });
+        },
+    });
+}
+
+export function useValidateDiscount() {
+    return useMutation<{
+        success: boolean;
+        data: {
+            code: string;
+            type: 'percentage' | 'fixed';
+            value: number;
+            discount_amount: number;
+            final_price: number;
+        }
+    }, Error, { code: string; plan_id: number }>({
+        mutationFn: async (payload) => {
+            const { data } = await api.post('/subscriptions/validate-discount', payload);
+            return data;
         },
     });
 }

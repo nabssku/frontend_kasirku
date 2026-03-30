@@ -415,6 +415,35 @@ export interface SuperAdminStats {
   recent_tenants: Tenant[];
 }
 
+export interface Discount {
+  id: number;
+  code: string;
+  name: string;
+  description?: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  min_purchase_amount: number;
+  max_uses_total?: number;
+  uses_count: number;
+  max_uses_per_user: number;
+  applicable_plan_ids?: number[];
+  valid_from?: string;
+  valid_until?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DiscountUsage {
+  id: number;
+  discount_id: number;
+  tenant_id: string;
+  user_id: string;
+  payment_transaction_id?: string;
+  created_at: string;
+  discount?: Discount;
+}
+
 export interface TenantDetail extends Tenant {
   users_count: number;
   subscription?: Subscription;

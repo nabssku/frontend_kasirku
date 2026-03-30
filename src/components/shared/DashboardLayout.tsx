@@ -27,6 +27,7 @@ import {
     ShieldAlert,
     Info,
     MessageSquare,
+    Tag,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Network } from '@capacitor/network';
@@ -145,6 +146,7 @@ const allNavGroups: NavGroup[] = [
         label: 'Bantuan',
         items: [
             { name: 'Support / Tiket', path: '/support', icon: MessageSquare, roles: [...ADMIN_ROLES, 'cashier'] },
+            { name: 'Manajemen Diskon', path: '/super-admin/discounts', icon: Tag, roles: ['super_admin'] },
             { name: 'Manajemen Tiket', path: '/super-admin/tickets', icon: MessageSquare, roles: ['super_admin'] },
         ],
     },

@@ -7,6 +7,7 @@ import {
     ExternalLink, RefreshCw, BarChart3, Monitor,
     History, Receipt,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const FEATURE_MAP: Record<string, { label: string; icon: any }> = {
     'pos_basic': { label: 'Kasir POS Dasar', icon: ShoppingBag },
@@ -28,7 +29,6 @@ export default function TenantPage() {
     const subscribe = useSubscribe();
     const [expandHistory, setExpandHistory] = useState(false);
     const [selectedCycle, setSelectedCycle] = useState<'monthly' | 'yearly'>('monthly');
-    const [payingPlanId, setPayingPlanId] = useState<number | null>(null);
     const [pendingInvoice, setPendingInvoice] = useState<string | null>(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
@@ -45,26 +45,10 @@ export default function TenantPage() {
     const daysRemaining = sub?.days_remaining ?? 0;
     const trialEndsAt = sub?.trial_ends_at ? new Date(sub.trial_ends_at) : null;
 
-    const handleSubscribe = async (planId: number) => {
-        setPayingPlanId(planId);
-        try {
-            const result = await subscribe.mutateAsync({
-                plan_id: planId,
-                billing_cycle: selectedCycle,
-            });
+    const navigate = useNavigate();
 
-            if (result.payment_url && result.invoice_id) {
-                setPaymentUrl(result.payment_url);
-                setPendingInvoice(result.invoice_id);
-                setShowPaymentModal(true);
-                // Open payment gateway page in new tab
-                window.open(result.payment_url, '_blank');
-            }
-        } catch {
-            alert('Gagal membuat transaksi. Silakan coba lagi.');
-        } finally {
-            setPayingPlanId(null);
-        }
+    const handleSubscribe = (planId: number) => {
+        navigate(`/subscription/checkout?planId=${planId}&cycle=${selectedCycle}`);
     };
 
     const handleCloseModal = () => {
@@ -412,7 +396,7 @@ export default function TenantPage() {
 
                                     <button
                                         onClick={() => handleSubscribe(plan.id)}
-                                        disabled={isCurrentPlan || payingPlanId === plan.id || subscribe.isPending}
+                                        disabled={isCurrentPlan || subscribe.isPending}
                                         className={`w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 transform active:scale-95 shadow-md ${isCurrentPlan
                                             ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
                                             : isPro
@@ -420,7 +404,7 @@ export default function TenantPage() {
                                                 : 'bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 shadow-indigo-100/50'
                                             }`}
                                     >
-                                        {payingPlanId === plan.id ? (
+                                        {subscribe.isPending ? (
                                             <span className="flex items-center justify-center gap-2">
                                                 <Loader2 size={18} className="animate-spin" />
                                                 Menyiapkan Pembayaran...

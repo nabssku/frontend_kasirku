@@ -43,6 +43,8 @@ import PaymentSettingsPage from '../../pages/settings/PaymentSettingsPage';
 import SupportPage from '../../pages/support/SupportPage';
 import TicketDetailsPage from '../../pages/support/TicketDetailsPage';
 import AdminTicketsPage from '../../pages/super-admin/AdminTicketsPage';
+import SuperAdminDiscounts from '../../pages/super-admin/SuperAdminDiscounts';
+import CheckoutPage from '../../pages/subscriptions/CheckoutPage';
 
 const IncomeReport = lazy(() => import('../../pages/reports/IncomeReport'));
 const ExpenseReport = lazy(() => import('../../pages/reports/ExpenseReport'));
@@ -113,6 +115,7 @@ export const router = createBrowserRouter([
             { path: 'page-builder', element: <SuperAdminPageBuilder /> },
             { path: 'tickets', element: <AdminTicketsPage /> },
             { path: 'tickets/:id', element: <TicketDetailsPage /> },
+            { path: 'discounts', element: <SuperAdminDiscounts /> },
             { path: 'settings/payment', element: <PaymentSettingsPage isSuperAdmin /> },
         ],
     },
@@ -246,6 +249,7 @@ export const router = createBrowserRouter([
                 ]
             },
             { path: 'subscription', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><TenantPage /></ProtectedRoute> },
+            { path: 'subscription/checkout', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><CheckoutPage /></ProtectedRoute> },
             { path: 'settings/printer', element: <ProtectedRoute allowedRoles={CONFIG_ROLES}><PrinterSettingsPage /></ProtectedRoute> },
             { path: 'settings/receipt', element: <ProtectedRoute allowedRoles={CONFIG_ROLES}><ReceiptSettingsPage /></ProtectedRoute> },
             {
