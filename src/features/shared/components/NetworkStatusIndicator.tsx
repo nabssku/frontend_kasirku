@@ -28,6 +28,8 @@ export const NetworkStatusIndicator = ({ isSyncing: externalSyncing }: NetworkSt
         setIsManualSyncing(false);
     };
 
+    if (isOnline && pendingCount === 0) return null;
+
     return (
         <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[9999] flex flex-col items-end gap-2">
             <AnimatePresence>

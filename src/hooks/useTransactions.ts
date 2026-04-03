@@ -101,16 +101,17 @@ export const useCancelTransaction = () => {
     },
   });
 };
-export const useTodayTransactions = () => {
+export const useTodayTransactions = (outletId?: string) => {
     return useQuery({
-        queryKey: ['transactions', 'today'],
+        queryKey: ['transactions', 'today', outletId],
         queryFn: async () => {
             const today = new Date().toISOString().split('T')[0];
             const { data } = await api.get('/transactions', { 
                 params: { 
                     date: today,
                     status: 'completed',
-                    per_page: 50 
+                    per_page: 50,
+                    outlet_id: outletId
                 } 
             });
             return data.data as Transaction[];
