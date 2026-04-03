@@ -55,42 +55,44 @@ export function ModifierPicker({ product, onClose, onConfirm }: ModifierPickerPr
     };
 
     return (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4 safe-area-padding">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[60] p-0 sm:p-4 safe-area-padding animate-in fade-in duration-300">
+            <div className="bg-white rounded-t-[32px] sm:rounded-[28px] shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden mt-auto sm:mt-0 animate-in slide-in-from-bottom sm:zoom-in-95 duration-300">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                <div className="p-4 sm:p-5 border-b border-slate-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
                             {product.image ? (
-                                <img src={getImageUrl(product.image)} className="w-full h-full object-cover rounded-2xl" alt="" />
+                                <img src={getImageUrl(product.image)} className="w-full h-full object-cover" alt="" />
                             ) : (
-                                <div className="text-xl font-bold text-indigo-600">{product.name.charAt(0)}</div>
+                                <div className="text-lg font-black text-slate-300">{product.name.charAt(0)}</div>
                             )}
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-900">{product.name}</h3>
-                            <p className="text-sm text-slate-500">Pilih tambahan / opsi</p>
+                            <h3 className="font-black text-slate-800 text-sm leading-tight uppercase tracking-tight">{product.name}</h3>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Pilih Tambahan</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">
-                        <X size={20} />
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-full transition-all">
+                        <X size={18} strokeWidth={2.5} />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6 no-scrollbar">
                     {groups.map(group => (
-                        <div key={group.id} className="space-y-4">
-                            <div className="flex items-center justify-between">
+                        <div key={group.id} className="space-y-3">
+                            <div className="flex items-center justify-between px-1">
                                 <div>
-                                    <h4 className="font-bold text-slate-900">{group.name}</h4>
-                                    <p className="text-xs text-slate-400">
+                                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">{group.name}</h4>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
                                         {group.min_select > 0 ? `Wajib pilih min. ${group.min_select}` : 'Opsional'}
                                         {group.max_select > 1 ? ` (Maks. ${group.max_select})` : ''}
                                     </p>
                                 </div>
                                 {(selections[group.id]?.length || 0) >= group.min_select && (
-                                    <span className="text-emerald-500 bg-emerald-50 p-1 rounded-full"><Check size={12} /></span>
+                                    <div className="w-5 h-5 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center">
+                                        <Check size={12} strokeWidth={3} />
+                                    </div>
                                 )}
                             </div>
                             <div className="grid grid-cols-1 gap-2">
@@ -101,20 +103,20 @@ export function ModifierPicker({ product, onClose, onConfirm }: ModifierPickerPr
                                             key={m.id}
                                             onClick={() => handleToggle(group, m)}
                                             className={`
-                        flex items-center justify-between p-4 rounded-2xl border-2 transition-all text-left
-                        ${isSelected ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 hover:border-slate-200'}
-                      `}
+                                                flex items-center justify-between p-3 rounded-2xl border transition-all text-left
+                                                ${isSelected ? 'border-indigo-600 bg-indigo-50/30' : 'border-slate-100 hover:border-slate-200'}
+                                            `}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={`
-                          w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
-                          ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}
-                        `}>
-                                                    {isSelected && <Check size={12} className="text-white" />}
+                                                    w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all
+                                                    ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}
+                                                `}>
+                                                    {isSelected && <Check size={10} className="text-white" strokeWidth={4} />}
                                                 </div>
-                                                <span className={`font-semibold text-sm ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>{m.name}</span>
+                                                <span className={`font-bold text-xs ${isSelected ? 'text-indigo-900 font-black' : 'text-slate-600'}`}>{m.name}</span>
                                             </div>
-                                            <span className="text-sm font-bold text-slate-500">+ {formatRp(m.price)}</span>
+                                            <span className={`text-[10px] font-black ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>+ {formatRp(m.price)}</span>
                                         </button>
                                     );
                                 })}
@@ -124,18 +126,21 @@ export function ModifierPicker({ product, onClose, onConfirm }: ModifierPickerPr
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 bg-slate-50 border-t border-slate-100">
-                    <div className="flex items-center justify-between pt-2">
-                        <p className="font-bold text-indigo-600">{formatRp(product.price)}</p>
-                        <span className="text-lg font-bold text-slate-900">{formatRp(product.price + totalExtra)}</span>
+                <div className="p-4 sm:p-5 bg-white border-t border-slate-50 space-y-4 pb-8 sm:pb-5">
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Harga</span>
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] text-slate-300 line-through font-bold">{formatRp(product.price)}</span>
+                            <span className="text-lg font-black text-slate-900 tracking-tight">{formatRp(product.price + totalExtra)}</span>
+                        </div>
                     </div>
                     <button
                         onClick={handleConfirm}
                         disabled={!isValid}
                         className={`
-              w-full py-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-95
-              ${isValid ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100' : 'bg-slate-300 cursor-not-allowed shadow-none'}
-            `}
+                            w-full h-12 rounded-2xl font-black uppercase tracking-[0.15em] text-[11px] shadow-xl transition-all active:scale-95
+                            ${isValid ? 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'}
+                        `}
                     >
                         Tambah ke Keranjang
                     </button>

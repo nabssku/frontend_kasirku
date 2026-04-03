@@ -4,11 +4,17 @@
   :root {
     --brand-indigo: 79, 70, 229;
     --brand-amber: 245, 158, 11;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+    --safe-right: env(safe-area-inset-right);
   }
 
   /* Global Safe Area and Viewport Configuration */
   html, body {
     @apply h-full bg-slate-50;
+    /* Prevent overscroll bounce that can hide state */
+    overscroll-behavior-y: none;
   }
 
   #root {
@@ -16,17 +22,21 @@
     /* Use 100dvh for proper mobile browser sizing, fallback to 100vh */
     height: 100vh;
     height: 100dvh;
-    
-    /* Apply safe area padding globally (Vertical only to prevent horizontal gaps on desktop) */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .safe-area-padding {
-    padding-top: env(safe-area-inset-top) !important;
-    padding-bottom: env(safe-area-inset-bottom) !important;
-    padding-left: env(safe-area-inset-left) !important;
-    padding-right: env(safe-area-inset-right) !important;
+  .safe-padding {
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .safe-padding-x {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  .safe-area-spacing {
+    margin-top: var(--safe-top);
+    margin-bottom: var(--safe-bottom);
   }
 
   section {

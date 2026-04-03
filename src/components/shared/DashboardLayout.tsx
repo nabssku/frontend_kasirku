@@ -205,8 +205,20 @@ export const DashboardLayout = () => {
         };
     }, []);
 
+    const handleNavigate = (path: string) => {
+        setIsMobileMenuOpen(false);
+        setIsSidebarOpen(false);
+        
+        // Use requestAnimationFrame to ensure the sidebar closes before navigating
+        // which helps preventing the "stuck blur" issue on Android
+        requestAnimationFrame(() => {
+            navigate(path);
+        });
+    };
+
     const handleLogout = async () => {
         setIsMobileMenuOpen(false);
+        setIsSidebarOpen(false);
         await logout();
         navigate('/login');
     };
@@ -406,7 +418,10 @@ export const DashboardLayout = () => {
                                         ) : (
                                             <Link
                                                 to={item.path}
-                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleNavigate(item.path);
+                                                }}
                                                 title={!isSidebarOpen ? `${item.name}${locked ? ' (Premium)' : ''}` : undefined}
                                                 className={`
                                                     flex items-center p-2.5 rounded-xl transition-all duration-200 group
@@ -441,7 +456,10 @@ export const DashboardLayout = () => {
                                                         <Link
                                                             key={child.path}
                                                             to={child.path}
-                                                            onClick={() => setIsMobileMenuOpen(false)}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleNavigate(child.path);
+                                                            }}
                                                             className={`
                                                                 flex items-center p-2 rounded-lg text-xs font-medium transition-all duration-200 justify-between
                                                                 ${isActive(child.path)
@@ -499,7 +517,7 @@ export const DashboardLayout = () => {
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-8 shrink-0">
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-8 shrink-0 safe-padding-x">
                     <button
                         onClick={() => {
                             if (window.innerWidth < 1024) {
@@ -555,7 +573,7 @@ export const DashboardLayout = () => {
                         </div>
                     </div>
                 </header>
-                <div className={`flex-1 overflow-y-auto ${location.pathname === '/pos' ? '' : 'p-4 md:p-8'}`}>
+                <div className={`flex-1 overflow-y-auto safe-padding-x pb-[var(--safe-bottom)] ${location.pathname === '/pos' ? '' : 'p-4 md:p-8'}`}>
                     <Outlet />
                 </div>
 
@@ -566,6 +584,7 @@ export const DashboardLayout = () => {
                             onClick={() => setIsAiOpen(!isAiOpen)}
                             className={`
                                 fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 ring-4 ring-white z-50
+                                mb-[var(--safe-bottom)] mr-[var(--safe-right)]
                                 ${isAiOpen
                                     ? 'bg-red-500 hover:bg-red-600 rotate-90'
                                     : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-110 active:scale-95'}

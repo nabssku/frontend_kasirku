@@ -11,6 +11,8 @@ import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
 import { toast } from 'sonner';
 import type { Shift } from '../../types';
 import { formatRp } from '../../lib/format';
+import { useOverlayStore } from '../../app/store/useOverlayStore';
+import { useEffect } from 'react';
 
 function DiscrepancyBadge({ status }: { status?: string }) {
     if (!status || status === 'OK') return null;
@@ -49,19 +51,19 @@ function ShiftSummaryCard({ shift }: { shift: Shift }) {
                             </span>
                             <DiscrepancyBadge status={report.discrepancy_status} />
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-600 mt-1">
+                        <div className="flex items-center gap-4 text-slate-600 mt-1">
                             <div className="flex items-center gap-1.5">
-                                <Clock size={14} className="text-slate-400" />
-                                <span>{new Date(shift.opened_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <Clock size={16} className="text-slate-400" />
+                                <span className="text-base font-bold">{new Date(shift.opened_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
                                 <span className="text-slate-300">-</span>
-                                <span>{shift.closed_at ? new Date(shift.closed_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Sekarang'}</span>
+                                <span className="text-base font-bold">{shift.closed_at ? new Date(shift.closed_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Sekarang'}</span>
                             </div>
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 text-sm">
                                 <UserIcon size={14} className="text-slate-400" />
                                 <span>{report.opened_by_name ?? 'Kasir'}</span>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-400">{new Date(shift.opened_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        <p className="text-xs font-bold text-slate-500 mt-1">{new Date(shift.opened_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
                     <button
                         onClick={() => printShiftReport(shift)}
@@ -162,6 +164,35 @@ function ShiftSummaryCard({ shift }: { shift: Shift }) {
                             </div>
                         </div>
 
+                        {/* Product Sales Breakdown */}
+                        {report.product_sales && report.product_sales.length > 0 && (
+                            <div className="space-y-3">
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">Produk Terjual</h4>
+                                <div className="overflow-x-auto rounded-xl border border-slate-100 bg-white">
+                                    <table className="w-full text-xs text-left">
+                                        <thead>
+                                            <tr className="bg-slate-50 text-slate-500 uppercase text-[9px] font-black">
+                                                <th className="px-3 py-2">Produk</th>
+                                                <th className="px-3 py-2 text-center">Qty</th>
+                                                <th className="px-3 py-2 text-right">Harga</th>
+                                                <th className="px-3 py-2 text-right">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {report.product_sales.map((ps, idx) => (
+                                                <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-3 py-2 font-bold text-slate-700">{ps.product_name}</td>
+                                                    <td className="px-3 py-2 text-center text-slate-600">{ps.quantity}</td>
+                                                    <td className="px-3 py-2 text-right text-slate-500">{formatRp(ps.price)}</td>
+                                                    <td className="px-3 py-2 text-right font-black text-slate-900">{formatRp(ps.total)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Recent Logs toggle */}
                         {shift.cash_drawer_logs && shift.cash_drawer_logs.length > 0 && (
                             <div className="space-y-2">
@@ -253,6 +284,30 @@ function ShiftSummaryCard({ shift }: { shift: Shift }) {
                     </div>
                 </div>
 
+                {report.product_sales && report.product_sales.length > 0 && (
+                    <div className="space-y-2">
+                        <h2 className="text-sm font-bold border-l-4 border-black pl-2">DETAIL PRODUK TERJUAL</h2>
+                        <table className="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr className="border-b border-black">
+                                    <th className="py-1">Produk</th>
+                                    <th className="py-1 text-center">Qty</th>
+                                    <th className="py-1 text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {report.product_sales.map((ps, idx) => (
+                                    <tr key={idx} className="border-b border-slate-100">
+                                        <td className="py-1">{ps.product_name}</td>
+                                        <td className="py-1 text-center">{ps.quantity}</td>
+                                        <td className="py-1 text-right font-bold">{formatRp(ps.total)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
                 <div className="space-y-2 pt-4 border-t-2 border-black">
                     <div className="flex justify-between text-sm"><span>EKSPEKTASI KAS LACI</span><span className="font-bold">{formatRp(report.expected_cash)}</span></div>
                     <div className="flex justify-between text-lg font-black bg-slate-100 p-2"><span>KAS AKTUAL</span><span>{formatRp(report.actual_cash)}</span></div>
@@ -290,6 +345,27 @@ export default function ShiftPage() {
     const [openingCash, setOpeningCash] = useState('0');
     const [closingCash, setClosingCash] = useState('0');
     const [cashLogForm, setCashLogForm] = useState({ type: 'in' as 'in' | 'out', amount: '0', reason: '' });
+
+    const { registerOverlay } = useOverlayStore();
+
+    // Register overlays for back button handling
+    useEffect(() => {
+        if (showOpenForm) {
+            return registerOverlay(() => setShowOpenForm(false));
+        }
+    }, [showOpenForm, registerOverlay]);
+
+    useEffect(() => {
+        if (showCloseForm) {
+            return registerOverlay(() => setShowCloseForm(false));
+        }
+    }, [showCloseForm, registerOverlay]);
+
+    useEffect(() => {
+        if (showCashLog) {
+            return registerOverlay(() => setShowCashLog(false));
+        }
+    }, [showCashLog, registerOverlay]);
 
     const { user } = useAuthStore();
     const outletId = user?.outlet_id;
@@ -447,29 +523,29 @@ export default function ShiftPage() {
 
             {/* Modals remained same but updated styles slightly */}
             {showOpenForm && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm p-8 space-y-6">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 safe-padding">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar no-scrollbar">
                         <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <h2 className="text-xl font-black text-slate-900 leading-tight">Mulai Shift</h2>
-                                <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Persiapan Laci Kas</p>
+                            <div className="space-y-0.5">
+                                <h2 className="text-lg font-black text-slate-900 leading-tight">Mulai Shift</h2>
+                                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Persiapan Laci Kas</p>
                             </div>
-                            <button onClick={() => setShowOpenForm(false)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={20} /></button>
+                            <button onClick={() => setShowOpenForm(false)} className="w-8 h-8 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={18} /></button>
                         </div>
                         <div className="space-y-4">
                             <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Modal Kas Awal (Rp)</label>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Modal Kas Awal (Rp)</label>
                                 <input
                                     type="number"
                                     autoFocus
                                     value={openingCash}
                                     onChange={e => setOpeningCash(e.target.value)}
-                                    className="w-full border-2 border-slate-100 rounded-2xl px-5 py-4 text-lg font-black bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+                                    className="w-full border-2 border-slate-100 rounded-xl px-4 py-3 text-lg font-black bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
                                     placeholder="0"
                                 />
                             </div>
                         </div>
-                        <button onClick={handleOpen} disabled={openShift.isPending} className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none">
+                        <button onClick={handleOpen} disabled={openShift.isPending} className="w-full bg-indigo-600 text-white py-3.5 rounded-xl text-xs font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none">
                             {openShift.isPending ? 'Menginisialisasi...' : 'BUKA SHIFT SEKARANG'}
                         </button>
                     </div>
@@ -478,37 +554,37 @@ export default function ShiftPage() {
 
             {/* Close Shift Modal */}
             {showCloseForm && (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm p-8 space-y-6">
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xl flex items-center justify-center z-[100] p-4 safe-padding">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar no-scrollbar">
                         <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <h2 className="text-xl font-black text-slate-900 leading-tight">Akhiri Shift</h2>
-                                <p className="text-xs font-bold text-red-500 uppercase tracking-widest">Penghitungan Kas Terakhir</p>
+                            <div className="space-y-0.5">
+                                <h2 className="text-lg font-black text-slate-900 leading-tight">Akhiri Shift</h2>
+                                <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Penghitungan Kas Terakhir</p>
                             </div>
-                            <button onClick={() => setShowCloseForm(false)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={20} /></button>
+                            <button onClick={() => setShowCloseForm(false)} className="w-8 h-8 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={18} /></button>
                         </div>
                         <div className="space-y-4">
-                            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                                <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
-                                    <AlertCircle size={14} />
+                            <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                <div className="flex items-center gap-2 text-amber-900 font-bold text-[10px]">
+                                    <AlertCircle size={12} />
                                     <span>Peringatan</span>
                                 </div>
-                                <p className="text-[10px] text-amber-700 mt-1 font-medium leading-relaxed">
+                                <p className="text-[9px] text-amber-700 mt-1 font-medium leading-relaxed">
                                     Pastikan Anda sudah menghitung uang fisik dalam laci secara manual sebelum menutup shift ini.
                                 </p>
                             </div>
                             <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Total Uang Fisik Terhitung (Rp)</label>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Total Uang Fisik Terhitung (Rp)</label>
                                 <input
                                     type="number"
                                     autoFocus
                                     value={closingCash}
                                     onChange={e => setClosingCash(e.target.value)}
-                                    className="w-full border-2 border-slate-100 rounded-2xl px-5 py-4 text-lg font-black bg-slate-50 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-50 outline-none transition-all"
+                                    className="w-full border-2 border-slate-100 rounded-xl px-4 py-3 text-lg font-black bg-slate-50 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-50 outline-none transition-all"
                                 />
                             </div>
                         </div>
-                        <button onClick={handleClose} disabled={closeShift.isPending} className="w-full bg-red-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-red-700 shadow-xl shadow-red-100 transition-all active:scale-[0.98] disabled:opacity-60">
+                        <button onClick={handleClose} disabled={closeShift.isPending} className="w-full bg-red-600 text-white py-3.5 rounded-xl text-xs font-black hover:bg-red-700 shadow-xl shadow-red-100 transition-all active:scale-[0.98] disabled:opacity-60">
                             {closeShift.isPending ? 'Memproses Penutupan...' : 'KONFIRMASI TUTUP SHIFT'}
                         </button>
                     </div>
@@ -517,32 +593,32 @@ export default function ShiftPage() {
 
             {/* Cash Log Modal */}
             {showCashLog && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm p-8 space-y-6">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 safe-padding">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar no-scrollbar">
                         <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <h2 className="text-xl font-black text-slate-900 leading-tight">Pergerakan Kas</h2>
-                                <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Input Penambahan / Pengeluaran</p>
+                            <div className="space-y-0.5">
+                                <h2 className="text-lg font-black text-slate-900 leading-tight">Pergerakan Kas</h2>
+                                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Input Penambahan / Pengeluaran</p>
                             </div>
-                            <button onClick={() => setShowCashLog(false)} className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={20} /></button>
+                            <button onClick={() => setShowCashLog(false)} className="w-8 h-8 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-all"><X size={18} /></button>
                         </div>
                         <div className="space-y-4">
-                            <div className="flex p-1 bg-slate-100 rounded-2xl">
+                            <div className="flex p-1 bg-slate-100 rounded-xl">
                                 <button
                                     onClick={() => setCashLogForm(f => ({ ...f, type: 'in' }))}
-                                    className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${cashLogForm.type === 'in' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${cashLogForm.type === 'in' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
                                     KAS MASUK (+)
                                 </button>
                                 <button
                                     onClick={() => setCashLogForm(f => ({ ...f, type: 'out' }))}
-                                    className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${cashLogForm.type === 'out' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${cashLogForm.type === 'out' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
                                     KAS KELUAR (-)
                                 </button>
                             </div>
                             <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Nominal (Rp)</label>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Nominal (Rp)</label>
                                 <input
                                     type="number"
                                     autoFocus
@@ -552,7 +628,7 @@ export default function ShiftPage() {
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Keterangan / Alasan</label>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Keterangan / Alasan</label>
                                 <input
                                     value={cashLogForm.reason}
                                     onChange={e => setCashLogForm(f => ({ ...f, reason: e.target.value }))}
@@ -561,7 +637,7 @@ export default function ShiftPage() {
                                 />
                             </div>
                         </div>
-                        <button onClick={handleCashLog} disabled={addCashLog.isPending} className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-60">
+                        <button onClick={handleCashLog} disabled={addCashLog.isPending} className="w-full bg-indigo-600 text-white py-3.5 rounded-xl text-xs font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-60">
                             {addCashLog.isPending ? 'Menyimpan...' : 'SIMPAN PERUBAHAN'}
                         </button>
                     </div>

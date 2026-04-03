@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, Building2, CheckCircle2, AlertCircle, LogIn, Clock, Receipt, Loader2, Trash2 } from 'lucide-react';
+import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, CheckCircle2, AlertCircle, LogIn, Clock, Receipt, Loader2, Trash2, Armchair, QrCode, Percent, Gift, StickyNote } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatRp } from '../../../lib/format';
 
@@ -8,11 +8,11 @@ export const NoShiftModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[120] p-4 text-left safe-area-padding">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[120] p-4 text-left safe-padding">
             <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
-                <div className="p-8 text-center space-y-6">
-                    <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto ring-8 ring-amber-50/50">
-                        <AlertCircle size={40} className="text-amber-500" strokeWidth={2.5} />
+                <div className="p-6 text-center space-y-5">
+                    <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto ring-8 ring-amber-50/50">
+                        <AlertCircle size={32} className="text-amber-500" strokeWidth={2.5} />
                     </div>
                     <div className="space-y-2">
                         <h3 className="text-xl font-black text-slate-800 tracking-tight">Shift Belum Dibuka</h3>
@@ -54,7 +54,7 @@ export const ResumeOrderModal = ({ isOpen, onClose, pendingTransactions, onResum
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 safe-area-padding" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 safe-padding" onClick={onClose}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                     <h3 className="font-bold text-slate-800">Lanjutkan Pesanan</h3>
@@ -144,27 +144,20 @@ interface OrderModalProps {
     customerId: string;
     setCustomerId: (id: string) => void;
     customersData: any;
-    discount: number;
-    setDiscount: (val: number) => void;
-    discountType: 'fixed' | 'percent';
-    setDiscountType: (type: 'fixed' | 'percent') => void;
-    notes: string;
-    setNotes: (val: string) => void;
     isFnb: boolean;
 }
 
 export const OrderModal = ({
     isOpen, onClose, orderType, setOrderType, tableId, setTable, tables,
-    customerId, setCustomerId, customersData, discount, setDiscount,
-    discountType, setDiscountType, notes, setNotes,
+    customerId, setCustomerId, customersData,
     isFnb
 }: OrderModalProps) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-4 animate-in fade-in duration-300 text-left safe-area-padding">
-            <div className="bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300">
-                <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-white to-slate-50">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-4 animate-in fade-in duration-300 text-left safe-padding">
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-white to-slate-50">
                     <div>
                         <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">Informasi Pesanan</h3>
                         <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 sm:mt-1">Sesuaikan detail transaksi Anda</p>
@@ -174,11 +167,11 @@ export const OrderModal = ({
                     </button>
                 </div>
 
-                <div className="p-6 sm:p-8 space-y-6 sm:space-y-8 max-h-[70vh] overflow-y-auto no-scrollbar text-left">
+                <div className="p-5 sm:p-6 space-y-4 sm:space-y-5 max-h-[70vh] overflow-y-auto no-scrollbar text-left">
                     {/* Order Type Selector */}
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Tipe Pesanan</label>
-                        <div className="flex bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 shadow-inner">
+                        <div className="flex bg-slate-100/40 p-1 rounded-xl border border-slate-200/40 shadow-inner">
                             {isFnb ? (
                                 // FNB order types
                                 [
@@ -189,12 +182,12 @@ export const OrderModal = ({
                                     <button
                                         key={t.id}
                                         onClick={() => setOrderType(t.id as any)}
-                                        className={`flex-1 flex flex-col items-center gap-1 sm:gap-1.5 py-3 sm:py-4 rounded-xl transition-all duration-300 ${orderType === t.id
-                                            ? 'bg-white text-indigo-600 shadow-md sm:shadow-lg scale-[1.02] border border-indigo-100/50'
-                                            : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'} `}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all duration-300 ${orderType === t.id
+                                            ? 'bg-white text-indigo-600 shadow-sm border border-indigo-100/50'
+                                            : 'text-slate-500 hover:text-slate-700 hover:bg-white/40'} `}
                                     >
-                                        <t.icon size={20} strokeWidth={orderType === t.id ? 2.5 : 2} />
-                                        <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${orderType === t.id ? 'opacity-100' : 'opacity-60'} `}>{t.label}</span>
+                                        <t.icon size={14} strokeWidth={orderType === t.id ? 2.5 : 2} />
+                                        <span className={`text-[10px] font-black uppercase tracking-widest`}>{t.label}</span>
                                     </button>
                                 ))
                             ) : (
@@ -206,12 +199,12 @@ export const OrderModal = ({
                                     <button
                                         key={t.id}
                                         onClick={() => setOrderType(t.id as any)}
-                                        className={`flex-1 flex flex-col items-center gap-1 sm:gap-1.5 py-3 sm:py-4 rounded-xl transition-all duration-300 ${orderType === t.id
-                                            ? 'bg-white text-indigo-600 shadow-md sm:shadow-lg scale-[1.02] border border-indigo-100/50'
-                                            : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'} `}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all duration-300 ${orderType === t.id
+                                            ? 'bg-white text-indigo-600 shadow-sm border border-indigo-100/50'
+                                            : 'text-slate-500 hover:text-slate-700 hover:bg-white/40'} `}
                                     >
-                                        <t.icon size={20} strokeWidth={orderType === t.id ? 2.5 : 2} />
-                                        <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${orderType === t.id ? 'opacity-100' : 'opacity-60'} `}>{t.label}</span>
+                                        <t.icon size={14} strokeWidth={orderType === t.id ? 2.5 : 2} />
+                                        <span className={`text-[10px] font-black uppercase tracking-widest`}>{t.label}</span>
                                     </button>
                                 ))
                             )}
@@ -221,8 +214,8 @@ export const OrderModal = ({
                     {/* Table Selection (Dine In, FNB only) */}
                     {isFnb && orderType === 'dine_in' && (
                         <div className="space-y-3 animate-in slide-in-from-top-4 duration-500 text-left">
-                            <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nomor Meja</label>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+                            <label className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Nomor Meja</label>
+                            <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
                                 {tables.map((t) => {
                                     const isSelected = tableId === t.id;
                                     const isAvailable = t.status === 'available' || isSelected;
@@ -233,7 +226,7 @@ export const OrderModal = ({
                                             disabled={!isAvailable}
                                             onClick={() => setTable(t.id)}
                                             className={`
-                                                relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300
+                                                relative flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border-2 transition-all duration-300
                                                 ${isSelected
                                                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105 z-10'
                                                     : isAvailable
@@ -242,8 +235,8 @@ export const OrderModal = ({
                                                 }
                                             `}
                                         >
-                                            <Table2 size={isSelected ? 18 : 16} strokeWidth={isSelected ? 3 : 2} className="mb-1" />
-                                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight line-clamp-1">{t.name}</span>
+                                            <Armchair size={isSelected ? 18 : 16} strokeWidth={isSelected ? 3 : 2} className="mb-1" />
+                                            <span className="text-[11px] font-black uppercase tracking-tight truncate w-full text-center">{t.name}</span>
                                             {isSelected && (
                                                 <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-indigo-600 rounded-full flex items-center justify-center shadow-md ring-2 ring-indigo-600">
                                                     <CheckCircle2 size={12} strokeWidth={4} />
@@ -261,80 +254,171 @@ export const OrderModal = ({
                         </div>
                     )}
 
-                    {/* Customer & Details */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-left">
-                        <div className="space-y-3 sm:col-span-2">
-                            <label className="flex items-center gap-2 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
-                                <User size={12} strokeWidth={3} className="text-indigo-400" /> Pelanggan
-                            </label>
-                            <div className="relative group">
-                                <select
-                                    value={customerId}
-                                    onChange={(e) => setCustomerId(e.target.value)}
-                                    className="w-full h-12 sm:h-14 pl-4 pr-10 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold bg-slate-50/50 group-hover:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all appearance-none text-slate-700 shadow-sm"
+                    {/* Customer Selection */}
+                    <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">
+                            <User size={12} strokeWidth={3} className="text-indigo-400" /> Pelanggan
+                        </label>
+                        <div className="relative group">
+                            <select
+                                value={customerId}
+                                onChange={(e) => setCustomerId(e.target.value)}
+                                className="w-full h-10 sm:h-12 pl-4 pr-10 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold bg-slate-50/50 group-hover:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all appearance-none text-slate-700 shadow-sm"
+                            >
+                                <option value="">Guest / Umum</option>
+                                {customersData?.data.map((c: any) => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
+                                <ChevronDown size={16} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-5 sm:p-6 bg-slate-50/50 border-t border-slate-100">
+                    <button
+                        onClick={onClose}
+                        className="w-full h-11 sm:h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] sm:text-sm shadow-xl shadow-indigo-200/50 transition-all active:scale-95"
+                    >
+                        Simpan Informasi
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Discount Order Modal ---
+interface DiscountOrderModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    discount: number;
+    setDiscount: (val: number) => void;
+    discountType: 'fixed' | 'percent';
+    setDiscountType: (type: 'fixed' | 'percent') => void;
+}
+
+export const DiscountOrderModal = ({
+    isOpen, onClose, discount, setDiscount, discountType, setDiscountType
+}: DiscountOrderModalProps) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-4 animate-in fade-in duration-300 text-left safe-padding">
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl w-full max-w-xs overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-white to-slate-50">
+                    <div>
+                        <h3 className="text-lg font-black text-slate-800 tracking-tight">Diskon Pesanan</h3>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Potongan harga total</p>
+                    </div>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all">
+                        <X size={16} strokeWidth={2.5} />
+                    </button>
+                </div>
+
+                <div className="p-5 sm:p-6 space-y-4 text-left">
+                    <div className="space-y-3">
+                        <label className="flex items-center justify-between text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">
+                            <span>Tipe & Nominal</span>
+                            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                                <button
+                                    onClick={() => setDiscountType('fixed')}
+                                    className={`px-3 py-1 rounded-md text-[10px] transition-all ${discountType === 'fixed' ? 'bg-white text-indigo-600 shadow-sm font-black' : 'text-slate-400'}`}
                                 >
-                                    <option value="">Guest / Umum</option>
-                                    {customersData?.data.map((c: any) => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
-                                    <ChevronDown size={16} />
-                                </div>
+                                    RP
+                                </button>
+                                <button
+                                    onClick={() => setDiscountType('percent')}
+                                    className={`px-3 py-1 rounded-md text-[10px] transition-all ${discountType === 'percent' ? 'bg-white text-indigo-600 shadow-sm font-black' : 'text-slate-400'}`}
+                                >
+                                    %
+                                </button>
                             </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="flex items-center justify-between text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
-                                <span>Diskon</span>
-                                <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                                    <button
-                                        onClick={() => setDiscountType('fixed')}
-                                        className={`px-2 py-0.5 rounded-md transition-all ${discountType === 'fixed' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-400'}`}
-                                    >
-                                        Rp
-                                    </button>
-                                    <button
-                                        onClick={() => setDiscountType('percent')}
-                                        className={`px-2 py-0.5 rounded-md transition-all ${discountType === 'percent' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-400'}`}
-                                    >
-                                        %
-                                    </button>
-                                </div>
-                            </label>
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
-                                    {discountType === 'fixed' ? 'Rp' : '%'}
-                                </div>
-                                <input
-                                    type="number"
-                                    value={discount || ''}
-                                    onChange={(e) => setDiscount(Number(e.target.value))}
-                                    className="w-full h-12 sm:h-14 pl-10 pr-4 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold bg-slate-50/50 group-hover:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-700 placeholder:text-slate-300 shadow-sm"
-                                    placeholder="0"
-                                />
+                        </label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-500 font-black text-xs">
+                                {discountType === 'fixed' ? 'Rp' : '%'}
                             </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Catatan</label>
                             <input
-                                type="text"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-200 text-xs sm:text-sm font-bold bg-slate-50/50 hover:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-700 placeholder:text-slate-300 shadow-sm"
-                                placeholder="Add notes..."
+                                autoFocus
+                                type="number"
+                                value={discount || ''}
+                                onChange={(e) => setDiscount(Number(e.target.value))}
+                                className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-black bg-slate-50/50 group-hover:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-700 placeholder:text-slate-300"
+                                placeholder="0"
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="p-6 sm:p-8 bg-slate-50/50 border-t border-slate-100">
+                <div className="p-5 sm:p-6 bg-slate-50/50 border-t border-slate-100">
                     <button
                         onClick={onClose}
-                        className="w-full h-12 sm:h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] sm:text-sm shadow-xl shadow-indigo-200/50 transition-all active:scale-95"
+                        className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-indigo-200/50 transition-all active:scale-95"
                     >
-                        Simpan Detail
+                        Terapkan Diskon
+                    </button>
+                    {discount > 0 && (
+                        <button
+                            onClick={() => { setDiscount(0); onClose(); }}
+                            className="w-full mt-2 py-2 text-red-500 text-[9px] font-black uppercase tracking-widest hover:underline"
+                        >
+                            Hapus Diskon
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Order Notes Modal ---
+interface OrderNotesModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    notes: string;
+    setNotes: (val: string) => void;
+}
+
+export const OrderNotesModal = ({
+    isOpen, onClose, notes, setNotes
+}: OrderNotesModalProps) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-4 animate-in fade-in duration-300 text-left safe-padding">
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-white to-slate-50">
+                    <div>
+                        <h3 className="text-lg font-black text-slate-800 tracking-tight">Catatan Pesanan</h3>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Instruksi khusus transaksi</p>
+                    </div>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all">
+                        <X size={16} strokeWidth={2.5} />
+                    </button>
+                </div>
+
+                <div className="p-5 sm:p-6 text-left">
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">Isi Catatan</label>
+                        <textarea
+                            autoFocus
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-bold text-slate-700 min-h-[120px] no-scrollbar shadow-inner"
+                            placeholder="Contoh: No sedotan, pisahkan sambal..."
+                        />
+                    </div>
+                </div>
+
+                <div className="p-5 sm:p-6 bg-slate-50/50 border-t border-slate-100">
+                    <button
+                        onClick={onClose}
+                        className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-indigo-200/50 transition-all active:scale-95"
+                    >
+                        Simpan Catatan
                     </button>
                 </div>
             </div>
@@ -359,9 +443,9 @@ export const PaymentModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-0 sm:p-4 animate-in fade-in duration-300 safe-area-padding">
-            <div className="bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 flex flex-col max-h-[95vh] sm:max-h-[90vh] mt-auto sm:mt-0">
-                <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-white to-slate-50">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-0 sm:p-4 animate-in fade-in duration-300 safe-padding">
+            <div className="bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 flex flex-col max-h-[95vh] sm:max-h-[90vh] mt-auto sm:mt-0">
+                <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-white to-slate-50">
                     <div className="text-left">
                         <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">Pembayaran</h3>
                         <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
@@ -374,15 +458,14 @@ export const PaymentModal = ({
                     </button>
                 </div>
 
-                <div className="p-6 sm:p-8 overflow-y-auto space-y-6 sm:space-y-8 flex-1 no-scrollbar no-scrollbar">
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4 flex-1 no-scrollbar no-scrollbar">
                     {/* Payment Method selection */}
                     <div className="space-y-3 sm:space-y-4 text-left">
                         <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Metode Pembayaran</label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
                             {[
                                 { id: 'cash', label: 'Tunai', icon: Store, color: 'emerald' },
-                                { id: 'bank_transfer', label: 'Transfer', icon: Building2, color: 'blue' },
-                                { id: 'e-wallet', label: 'E-Wallet', icon: Bike, color: 'purple' }
+                                { id: 'e-wallet', label: 'QRIS', icon: QrCode, color: 'purple' }
                             ].map((m) => {
                                 const Icon = m.icon;
                                 const isActive = paymentMethod === m.id;
@@ -397,48 +480,49 @@ export const PaymentModal = ({
                                                 setPaidAmount(grandTotal);
                                             }
                                         }}
-                                        className={`flex flex-col items-center gap-1.5 sm:gap-2 py-3 sm:py-4 rounded-2xl border transition-all duration-300 ${isActive
+                                        className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-2xl border transition-all duration-300 ${isActive
                                             ? `bg-${colorClass}-50 border-${colorClass}-200 text-${colorClass}-600 shadow-sm scale-[1.02]`
                                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600'
                                             }`}
                                     >
-                                        <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{m.label}</span>
+                                        <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{m.label}</span>
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* Paid Amount Input */}
-                    <div className="space-y-3 sm:space-y-4 text-left">
-                        <div className="flex justify-between items-end pl-1">
-                            <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Nominal Bayar</label>
-                            {paidAmount > 0 && (
-                                <button
-                                    onClick={() => setPaidAmount(0)}
-                                    className="text-[9px] sm:text-[10px] font-bold text-red-500 hover:underline uppercase tracking-widest"
-                                >
-                                    Reset
-                                </button>
-                            )}
-                        </div>
-                        <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-5 sm:pl-6 flex items-center pointer-events-none text-slate-400 font-black text-base sm:text-lg">Rp</div>
-                            <input
-                                type="number"
-                                value={paidAmount || ''}
-                                onChange={(e) => setPaidAmount(Number(e.target.value))}
-                                className={`w-full h-16 sm:h-20 pl-14 sm:pl-16 pr-5 sm:pr-6 rounded-[20px] sm:rounded-[24px] text-2xl sm:text-3xl font-black transition-all shadow-inner outline-none ${paidAmount < grandTotal && paidAmount > 0
-                                    ? 'bg-red-50 border-red-200 text-red-600 focus:ring-red-500/10 focus:border-red-400'
-                                    : 'bg-slate-50 border-slate-100 text-indigo-600 focus:ring-indigo-500/10 focus:border-indigo-400'
-                                    }`}
-                                placeholder="0"
-                            />
-                        </div>
+                    {/* Paid Amount Input (Only for Cash) */}
+                    {paymentMethod === 'cash' && (
+                        <div className="space-y-3 sm:space-y-4 text-left animate-in fade-in zoom-in-95 duration-300">
+                            <div className="flex justify-between items-end pl-1">
+                                <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Nominal Bayar</label>
+                                {paidAmount > 0 && (
+                                    <button
+                                        onClick={() => setPaidAmount(0)}
+                                        className="text-[9px] sm:text-[10px] font-bold text-red-500 hover:underline uppercase tracking-widest"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+                            </div>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-5 sm:pl-6 flex items-center pointer-events-none text-slate-400 font-black text-base sm:text-lg">Rp</div>
+                                <input
+                                    autoFocus
+                                    type="number"
+                                    value={paidAmount || ''}
+                                    onChange={(e) => setPaidAmount(Number(e.target.value))}
+                                    className={`w-full h-12 sm:h-14 pl-12 sm:pl-14 pr-4 sm:pr-5 rounded-[18px] sm:rounded-[22px] text-lg sm:text-xl font-black transition-all shadow-inner outline-none ${paidAmount < grandTotal && paidAmount > 0
+                                        ? 'bg-red-50 border-red-200 text-red-600 focus:ring-red-500/10 focus:border-red-400'
+                                        : 'bg-slate-50 border-slate-100 text-indigo-600 focus:ring-indigo-500/10 focus:border-indigo-400'
+                                        }`}
+                                    placeholder="0"
+                                />
+                            </div>
 
-                        {/* Quick amounts (only for cash) */}
-                        {paymentMethod === 'cash' && (
+                            {/* Quick amounts */}
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                                 {[
                                     { label: 'PAS', value: grandTotal },
@@ -459,18 +543,31 @@ export const PaymentModal = ({
                                                 setPaidAmount(q.value);
                                             }
                                         }}
-                                        className="h-10 sm:h-12 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-600 text-[9px] font-black uppercase tracking-wider transition-all active:scale-90"
+                                        className="h-9 sm:h-10 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-600 text-[9px] font-black uppercase tracking-wider transition-all active:scale-90"
                                     >
                                         {q.label}
                                     </button>
                                 ))}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
+
+                    {/* Digital Payment Info (Non-Cash) */}
+                    {paymentMethod !== 'cash' && (
+                        <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center gap-4 animate-in slide-in-from-top-2 duration-300">
+                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-sm">
+                                <QrCode size={20} />
+                            </div>
+                            <div className="flex flex-col text-left">
+                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Digital Payment</span>
+                                <span className="text-sm font-black text-indigo-700">Nominal akan disesuaikan otomatis</span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Change / Status info */}
                     {paymentMethod === 'cash' && paidAmount > grandTotal && (
-                        <div className="p-4 sm:p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex justify-between items-center animate-in slide-in-from-top-4 duration-500">
+                        <div className="p-3 sm:p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex justify-between items-center animate-in slide-in-from-top-4 duration-500">
                             <div className="flex flex-col text-left">
                                 <span className="text-[9px] sm:text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5 sm:mb-1">Kembalian</span>
                                 <span className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">{formatRp(paidAmount - grandTotal)}</span>
@@ -494,11 +591,11 @@ export const PaymentModal = ({
                     )}
                 </div>
 
-                <div className="p-6 sm:p-8 bg-slate-50 border-t border-slate-100 pb-10 sm:pb-8">
+                <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 pb-10 sm:pb-5">
                     <button
                         onClick={onClose}
                         disabled={paidAmount < grandTotal}
-                        className={`w-full h-14 sm:h-16 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] sm:text-sm shadow-xl transition-all active:scale-95 ${paidAmount < grandTotal
+                        className={`w-full h-11 sm:h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs shadow-xl transition-all active:scale-95 ${paidAmount < grandTotal
                             ? 'bg-slate-200 text-slate-400 shadow-none cursor-not-allowed'
                             : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200/50'
                             }`}
@@ -525,7 +622,7 @@ export const CancelOrderModal = ({ isOpen, onClose, onConfirm, isPending }: Canc
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[130] p-4 text-left safe-area-padding">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[130] p-4 text-left safe-padding">
             <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
                 <div className="p-8 space-y-6">
                     <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto ring-8 ring-red-50/50">
@@ -569,3 +666,125 @@ export const CancelOrderModal = ({ isOpen, onClose, onConfirm, isPending }: Canc
         </div>
     );
 };
+
+
+// --- Product Item Config Modal ---
+interface ProductItemModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    item: any;
+    onUpdate: (cartId: string, config: { discount?: number; is_free?: boolean; notes?: string }) => void;
+}
+
+export const ProductItemModal = ({ isOpen, onClose, item, onUpdate }: ProductItemModalProps) => {
+    const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('fixed');
+    const [discountValue, setDiscountValue] = useState(item?.discount || 0);
+    const [isFree, setIsFree] = useState(item?.is_free || false);
+    const [notes, setNotes] = useState(item?.notes || '');
+
+    if (!isOpen || !item) return null;
+
+    const handleApply = () => {
+        let finalDiscount = isFree ? (item.price * item.quantity) : Number(discountValue);
+        if (!isFree && discountType === 'percent') {
+            finalDiscount = (item.price * item.quantity) * (finalDiscount / 100);
+        }
+        onUpdate(item.cartId, { 
+            discount: Math.min(finalDiscount, item.price * item.quantity), 
+            is_free: isFree,
+            notes: notes 
+        });
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-0 sm:p-4 animate-in fade-in duration-300 safe-padding">
+            <div className="bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 flex flex-col max-h-[95vh] sm:max-h-[90vh] mt-auto sm:mt-0">
+                <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="text-left">
+                        <h3 className="text-lg font-black text-slate-800 tracking-tight">Atur Produk</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{item.name}</p>
+                    </div>
+                    <button onClick={onClose} className="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all">
+                        <X size={18} strokeWidth={2.5} />
+                    </button>
+                </div>
+
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-5 flex-1 no-scrollbar">
+                    {/* Free Toggle Option */}
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group transition-all">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isFree ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white text-slate-400 border border-slate-100'}`}>
+                                <Gift size={20} />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-sm font-black text-slate-700 capitalize">Produk Gratis</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Jadikan total Rp 0</span>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setIsFree(!isFree)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all outline-none ${isFree ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                        >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all ${isFree ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                    </div>
+
+                    {/* Discount Section */}
+                    <div className={`space-y-3 transition-all duration-300 ${isFree ? 'opacity-30 pointer-events-none scale-95' : 'opacity-100'}`}>
+                        <div className="flex justify-between items-center px-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <Percent size={14} className="text-indigo-500" /> Diskon Produk
+                            </label>
+                            <div className="flex bg-slate-100 p-0.5 rounded-lg">
+                                <button 
+                                    onClick={() => setDiscountType('fixed')}
+                                    className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${discountType === 'fixed' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
+                                >Rp</button>
+                                <button 
+                                    onClick={() => setDiscountType('percent')}
+                                    className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${discountType === 'percent' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
+                                >%</button>
+                            </div>
+                        </div>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-black">
+                                {discountType === 'fixed' ? 'Rp' : '%'}
+                            </div>
+                            <input
+                                type="number"
+                                value={discountValue || ''}
+                                onChange={(e) => setDiscountValue(Number(e.target.value))}
+                                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 border border-slate-100 text-slate-700 font-bold outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all placeholder:text-slate-300"
+                                placeholder="0"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Notes Section */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                            <StickyNote size={14} className="text-indigo-500" /> Catatan Masakan
+                        </label>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            className="w-full h-24 p-4 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all resize-none placeholder:text-slate-300"
+                            placeholder="Contoh: Sangat pedas, tanpa seledri..."
+                        />
+                    </div>
+                </div>
+
+                <div className="p-4 sm:p-5 bg-white border-t border-slate-100 pb-10 sm:pb-5">
+                    <button
+                        onClick={handleApply}
+                        className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-[0.15em] text-[11px] shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+                    >
+                        Simpan Konfigurasi
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+

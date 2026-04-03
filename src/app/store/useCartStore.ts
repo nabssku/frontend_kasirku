@@ -12,6 +12,9 @@ export interface CartItem {
     name: string;
     price: number;
   }[];
+  discount: number;
+  is_free: boolean;
+  notes: string;
 }
 
 interface CartState {
@@ -21,6 +24,7 @@ interface CartState {
   addItem: (item: Omit<CartItem, 'quantity' | 'cartId'>) => void;
   removeItem: (cartId: string) => void;
   updateQuantity: (cartId: string, quantity: number) => void;
+  updateItemConfig: (cartId: string, config: { discount?: number; is_free?: boolean; notes?: string }) => void;
   setOrderType: (type: CartState['orderType']) => void;
   setTable: (id: string | null) => void;
   clearCart: () => void;
@@ -54,7 +58,7 @@ export const useCartStore = create<CartState>()(
             ),
           });
         } else {
-          set({ items: [...items, { ...newItem, cartId, price: totalPrice, quantity: 1 }] });
+          set({ items: [...items, { ...newItem, cartId, price: totalPrice, quantity: 1, discount: 0, is_free: false, notes: '' }] });
         }
       },
       removeItem: (cartId) =>
@@ -65,13 +69,19 @@ export const useCartStore = create<CartState>()(
             item.cartId === cartId ? { ...item, quantity: Math.max(1, quantity) } : item
           ),
         }),
+      updateItemConfig: (cartId, config) =>
+        set({
+          items: get().items.map((item) =>
+            item.cartId === cartId ? { ...item, ...config } : item
+          ),
+        }),
       setOrderType: (orderType) => set({ orderType, tableId: orderType !== 'dine_in' ? null : get().tableId }),
       setTable: (tableId) => set({ tableId }),
       clearCart: () => set({ items: [], tableId: null }),
       setItems: (items) => set({ items }),
       resetCart: (data) => set({ items: data.items, orderType: data.orderType, tableId: data.tableId }),
       getTotal: () =>
-        get().items.reduce((total, item) => total + item.price * item.quantity, 0),
+        get().items.reduce((total, item) => total + (item.price * item.quantity) - (item.discount || 0), 0),
     }),
     {
       name: 'cart-storage',

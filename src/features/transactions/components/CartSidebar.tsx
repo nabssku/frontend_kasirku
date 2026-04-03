@@ -7,12 +7,13 @@ import { ReceiptModal } from './ReceiptModal';
 import { useTransactionReceipt } from '../../../hooks/usePrinters';
 import { CartItemList } from './CartItemList';
 import { CartFooter } from './CartFooter';
-import { ResumeOrderModal, OrderModal, PaymentModal, NoShiftModal, CancelOrderModal } from './CartModals';
+import { ResumeOrderModal, OrderModal, PaymentModal, NoShiftModal, CancelOrderModal, DiscountOrderModal, OrderNotesModal, ProductItemModal } from './CartModals';
 import { useCartActions } from '../hooks/useCartActions';
 import { CartHeader } from './CartHeader';
 import { CartSuccessView } from './CartSuccessView';
 import { useBusinessType } from '../../../hooks/useBusinessType';
 import { toast } from 'sonner';
+import { useOverlayStore } from '../../../app/store/useOverlayStore';
 
 interface CartSidebarProps {
     isOpen?: boolean;
@@ -20,7 +21,7 @@ interface CartSidebarProps {
 }
 
 export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
-    const { items, updateQuantity, removeItem, orderType, setOrderType, tableId, setTable } = useCartStore();
+    const { items, updateQuantity, removeItem, updateItemConfig, orderType, setOrderType, tableId, setTable } = useCartStore();
     const { data: pendingTransactions = [] } = usePendingTransactions();
     const { data: customersData } = useCustomers(1, '');
     const { data: tables = [] } = useTables();
@@ -39,6 +40,10 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [showDiscountModal, setShowDiscountModal] = useState(false);
+    const [showNotesModal, setShowNotesModal] = useState(false);
+    const [showProductModal, setShowProductModal] = useState(false);
+    const [selectedProductItem, setSelectedProductItem] = useState<any>(null);
 
     const {
         paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
@@ -50,6 +55,48 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
         showNoShiftModal, setShowNoShiftModal,
         taxRate, serviceChargeRate
     } = useCartActions();
+
+    const { registerOverlay } = useOverlayStore();
+
+    // Register sidebar itself as an overlay when open on mobile
+    useEffect(() => {
+        if (isOpen && window.innerWidth < 768 && onClose) {
+            return registerOverlay(onClose);
+        }
+    }, [isOpen, registerOverlay, onClose]);
+
+    // Register modals
+    useEffect(() => {
+        if (showResumeModal) return registerOverlay(() => setShowResumeModal(false));
+    }, [showResumeModal, registerOverlay]);
+
+    useEffect(() => {
+        if (showOrderModal) return registerOverlay(() => setShowOrderModal(false));
+    }, [showOrderModal, registerOverlay]);
+
+    useEffect(() => {
+        if (showPaymentModal) return registerOverlay(() => setShowPaymentModal(false));
+    }, [showPaymentModal, registerOverlay]);
+
+    useEffect(() => {
+        if (showCancelModal) return registerOverlay(() => setShowCancelModal(false));
+    }, [showCancelModal, registerOverlay]);
+
+    useEffect(() => {
+        if (showDiscountModal) return registerOverlay(() => setShowDiscountModal(false));
+    }, [showDiscountModal, registerOverlay]);
+
+    useEffect(() => {
+        if (showNotesModal) return registerOverlay(() => setShowNotesModal(false));
+    }, [showNotesModal, registerOverlay]);
+
+    useEffect(() => {
+        if (showNoShiftModal) return registerOverlay(() => setShowNoShiftModal(false));
+    }, [showNoShiftModal, registerOverlay]);
+
+    useEffect(() => {
+        if (printTransactionId) return registerOverlay(() => setPrintTransactionId(null));
+    }, [printTransactionId, registerOverlay, setPrintTransactionId]);
 
     const validateOrderInfo = () => {
         if (isFnb && orderType === 'dine_in' && !tableId) {
@@ -89,8 +136,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 fixed inset-y-0 left-0 z-50 w-full xs:w-[26rem] max-w-[95vw] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                 md:relative md:translate-x-0 md:z-0 md:w-[450px]
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]
-                md:pt-0 md:pb-0 md:pl-0
+                safe-padding md:pt-0 md:pb-0 md:pl-0
             `}>
                 <CartHeader
                     orderType={orderType}
@@ -112,6 +158,10 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                             items={items}
                             updateQuantity={updateQuantity}
                             removeItem={removeItem}
+                            onLongPressItem={(item) => {
+                                setSelectedProductItem(item);
+                                setShowProductModal(true);
+                            }}
                             tax={tax}
                             serviceCharge={service_charge}
                             taxRate={taxRate}
@@ -131,8 +181,9 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                         currentShift={currentShift}
                         activeTransactionId={activeTransactionId}
                         setShowCancelModal={setShowCancelModal}
-                        setShowOrderModal={setShowOrderModal}
                         setShowPaymentModal={setShowPaymentModal}
+                        setShowDiscountModal={setShowDiscountModal}
+                        setShowNotesModal={setShowNotesModal}
                     />
                 </div>
             </div>
@@ -156,13 +207,23 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 customerId={customerId}
                 setCustomerId={setCustomerId}
                 customersData={customersData}
+                isFnb={isFnb}
+            />
+
+            <DiscountOrderModal
+                isOpen={showDiscountModal}
+                onClose={() => setShowDiscountModal(false)}
                 discount={discount}
                 setDiscount={setDiscount}
                 discountType={discountType}
                 setDiscountType={setDiscountType}
+            />
+
+            <OrderNotesModal
+                isOpen={showNotesModal}
+                onClose={() => setShowNotesModal(false)}
                 notes={notes}
                 setNotes={setNotes}
-                isFnb={isFnb}
             />
 
             <PaymentModal
@@ -185,6 +246,16 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     setShowCancelModal(false);
                 }}
                 isPending={isPending}
+            />
+
+            <ProductItemModal
+                isOpen={showProductModal}
+                onClose={() => {
+                    setShowProductModal(false);
+                    setSelectedProductItem(null);
+                }}
+                item={selectedProductItem}
+                onUpdate={updateItemConfig}
             />
         </>
     );

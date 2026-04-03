@@ -75,7 +75,13 @@ export const useCartActions = () => {
                 product_id: item.id,
                 quantity: item.quantity,
                 price: item.price,
-                modifiers: item.modifiers,
+                discount: item.discount || 0,
+                notes: item.notes || '',
+            modifiers: (item.modifiers || []).map((m: any) => ({
+                modifier_id: m.modifier_id || m.id,
+                name: m.name,
+                price: m.price
+            })),
             })),
             paid_amount: paidAmount,
             payment_method: paymentMethod,
@@ -135,7 +141,13 @@ export const useCartActions = () => {
                 product_id: item.id,
                 quantity: item.quantity,
                 price: item.price,
-                modifiers: item.modifiers,
+                discount: item.discount || 0,
+                notes: item.notes || '',
+                modifiers: (item.modifiers || []).map((m: any) => ({
+                    modifier_id: m.modifier_id || m.id,
+                    name: m.name,
+                    price: m.price
+                })),
             })),
             customer_id: customerId || undefined,
             discount: calculatedDiscount || 0,
@@ -180,6 +192,9 @@ export const useCartActions = () => {
                 name: item.product_name,
                 price: parseFloat(item.price),
                 quantity: item.quantity,
+                discount: parseFloat(item.discount) || 0,
+                is_free: parseFloat(item.discount) >= (parseFloat(item.price) * item.quantity),
+                notes: item.notes || '',
                 modifiers: item.modifiers || []
             })),
             orderType: tx.type,
@@ -228,7 +243,9 @@ export const useCartActions = () => {
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price,
-                subtotal: item.price * item.quantity,
+                discount: item.discount || 0,
+                subtotal: (item.price * item.quantity) - (item.discount || 0),
+                notes: item.notes || '',
                 modifiers: item.modifiers
             })),
             subtotal: total,

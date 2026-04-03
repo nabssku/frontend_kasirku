@@ -164,11 +164,19 @@ async function buildEscPosData(receipt: PrinterReceiptData): Promise<Uint8Array>
         receipt.table_name ? textToBytes(`Meja: ${receipt.table_name}\n`) : (receipt.table_id ? textToBytes(`Meja ID: ${receipt.table_id}\n`) : new Uint8Array(0)),
         receipt.type ? textToBytes(`Tipe: ${typeLabel[receipt.type] ?? receipt.type}\n`) : new Uint8Array(0),
         separator,
-        ...receipt.items.flatMap(item => [
-            textToBytes(`${item.name}\n`),
-            ...(item.modifiers || []).map(m => textToBytes(`  - ${m.name}\n`)),
-            textToBytes(padLine(`  ${item.quantity} x ${formatCurrency(item.price)}`, formatCurrency(item.subtotal), paperWidth) + '\n'),
-        ] as Uint8Array[]),
+        ...receipt.items.flatMap(item => {
+            const isFree = item.discount >= (item.price * item.quantity);
+            const nameLine = isFree ? `${item.name} (FREE)` : item.name;
+            return [
+                textToBytes(`${nameLine}\n`),
+                ...(item.notes ? [textToBytes(`  * ${item.notes}\n`)] : []),
+                ...(item.modifiers || []).map(m => textToBytes(`  - ${m.name}\n`)),
+                item.discount > 0 && !isFree 
+                    ? textToBytes(padLine(`  Disc: -${formatCurrency(item.discount)}`, '', paperWidth) + '\n')
+                    : new Uint8Array(0),
+                textToBytes(padLine(`  ${item.quantity} x ${formatCurrency(item.price)}`, formatCurrency(item.subtotal), paperWidth) + '\n'),
+            ] as Uint8Array[];
+        }),
         separator,
         textToBytes(padLine('Subtotal', formatCurrency(receipt.subtotal), paperWidth) + '\n'),
         receipt.discount > 0
@@ -267,6 +275,7 @@ function buildKitchenEscPosData(order: any): Uint8Array {
         separator, leftOn,
         ...order.items.flatMap((item: any) => [
             boldMedium, textToBytes(`${item.quantity}x ${item.name || item.product_name}\n`),
+            ...(item.notes ? [sizeSmall, textToBytes(`  * ${item.notes}\n`), boldMedium] : []),
             ...(item.modifiers || []).map((m: any) => textToBytes(`  - ${m.name}\n`)),
         ]),
         separator,

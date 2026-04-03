@@ -220,6 +220,13 @@ export interface CashDrawerLog {
   expense?: Expense;
 }
 
+export interface ProductSale {
+  product_name: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
 export interface Shift {
   id: string;
   outlet_id: string;
@@ -247,6 +254,7 @@ export interface Shift {
     discrepancy_status: 'OK' | 'Shortage' | 'Over' | 'Requires Approval';
     opened_by_name?: string;
     closed_by_name?: string;
+    product_sales?: ProductSale[];
   };
 }
 
@@ -323,6 +331,8 @@ export interface TransactionItem {
   quantity: number;
   price: number;
   subtotal: number;
+  discount: number;
+  notes: string;
   modifiers: {
     modifier_id: string;
     name: string;
@@ -469,6 +479,8 @@ export interface PrinterReceiptItem {
   quantity: number;
   price: number;
   subtotal: number;
+  discount: number;
+  notes: string;
   modifiers?: {
     name: string;
     price: number;

@@ -1,4 +1,5 @@
-import { ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Percent, StickyNote } from 'lucide-react';
+import { useRef } from 'react';
 import type { CartItem } from '../../../app/store/useCartStore';
 import { formatCurrency } from '../../../lib/format';
 
@@ -6,6 +7,7 @@ interface CartItemListProps {
     items: CartItem[];
     updateQuantity: (cartId: string, quantity: number) => void;
     removeItem: (cartId: string) => void;
+    onLongPressItem: (item: CartItem) => void;
     tax: number;
     serviceCharge: number;
     taxRate: number;
@@ -13,9 +15,25 @@ interface CartItemListProps {
 }
 
 export const CartItemList = ({
-    items, updateQuantity, removeItem,
+    items, updateQuantity, removeItem, onLongPressItem,
     tax, serviceCharge, taxRate, serviceChargeRate
 }: CartItemListProps) => {
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleStart = (item: CartItem) => {
+        timerRef.current = setTimeout(() => {
+            onLongPressItem(item);
+            timerRef.current = null;
+        }, 700);
+    };
+
+    const handleEnd = () => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+    };
+
     if (items.length === 0) {
         return (
             <div className="h-full flex flex-col items-center justify-center py-20 px-10 text-center space-y-4 opacity-40">
@@ -30,7 +48,7 @@ export const CartItemList = ({
         );
     }
 
-    const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity) - (item.discount || 0), 0);
     const rounding = 0; // Simplified for now
 
     return (
@@ -45,36 +63,70 @@ export const CartItemList = ({
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                     {items.map((item) => (
-                        <tr key={item.cartId} className="group hover:bg-slate-50 transition-colors">
+                        <tr 
+                            key={item.cartId} 
+                            className="group hover:bg-slate-50 transition-colors cursor-pointer select-none active:bg-slate-100"
+                            onMouseDown={() => handleStart(item)}
+                            onMouseUp={handleEnd}
+                            onMouseLeave={handleEnd}
+                            onTouchStart={() => handleStart(item)}
+                            onTouchEnd={handleEnd}
+                        >
                             <td className="px-4 py-4">
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => removeItem(item.cartId)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeItem(item.cartId);
+                                        }}
                                         className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
                                     >
                                         <Trash2 size={16} />
                                     </button>
                                     <div className="flex flex-col">
-                                        <span className="text-[14px] font-bold text-slate-700">{item.name}</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[14px] font-bold text-slate-700">{item.name}</span>
+                                            {item.is_free && (
+                                                <span className="bg-amber-100 text-amber-600 p-0.5 rounded text-[8px] font-black uppercase">Free</span>
+                                            )}
+                                        </div>
                                         {item.modifiers.length > 0 && (
                                             <span className="text-[11px] text-slate-400">
                                                 {item.modifiers.map(m => m.name).join(', ')}
                                             </span>
                                         )}
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            {item.discount > 0 && (
+                                                <span className="flex items-center gap-0.5 text-[10px] text-red-500 font-bold bg-red-50 px-1.5 rounded">
+                                                    <Percent size={10} /> {formatCurrency(item.discount)}
+                                                </span>
+                                            )}
+                                            {item.notes && (
+                                                <span className="flex items-center gap-0.5 text-[10px] text-indigo-500 font-bold bg-indigo-50 px-1.5 rounded">
+                                                    <StickyNote size={10} /> {item.notes}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td className="px-4 py-4">
                                 <div className="flex items-center justify-center gap-2">
                                     <button
-                                        onClick={() => updateQuantity(item.cartId, Math.max(0, item.quantity - 1))}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            updateQuantity(item.cartId, Math.max(0, item.quantity - 1));
+                                        }}
                                         className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition-colors"
                                     >
                                         <Minus size={14} />
                                     </button>
                                     <span className="text-[14px] font-bold text-slate-700 w-6 text-center">{item.quantity}</span>
                                     <button
-                                        onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            updateQuantity(item.cartId, item.quantity + 1);
+                                        }}
                                         className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition-colors"
                                     >
                                         <Plus size={14} />
@@ -83,7 +135,9 @@ export const CartItemList = ({
                             </td>
                             <td className="px-4 py-4 text-right">
                                 <div className="flex flex-col">
-                                    <span className="text-[14px] font-black text-slate-800">{formatCurrency(item.price * item.quantity)}</span>
+                                    <span className="text-[14px] font-black text-slate-800">
+                                        {formatCurrency((item.price * item.quantity) - (item.discount || 0))}
+                                    </span>
                                     <span className="text-[11px] text-slate-400">{formatCurrency(item.price)}</span>
                                 </div>
                             </td>

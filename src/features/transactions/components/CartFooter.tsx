@@ -1,4 +1,4 @@
-import { Printer, Percent, ClipboardList, Send, X } from 'lucide-react';
+import { Printer, Percent, ClipboardList, Send, X, Wallet } from 'lucide-react';
 import { formatRp } from '../../../lib/format';
 import type { CartItem } from '../../../app/store/useCartStore';
 
@@ -14,20 +14,22 @@ interface CartFooterProps {
     currentShift: any;
     activeTransactionId: string | null;
     setShowCancelModal: (show: boolean) => void;
-    setShowOrderModal: (show: boolean) => void;
     setShowPaymentModal: (show: boolean) => void;
+    setShowDiscountModal: (show: boolean) => void;
+    setShowNotesModal: (show: boolean) => void;
     isPending: boolean;
 }
 
 export const CartFooter = ({
-    grandTotal, paidAmount, items, handleCheckout, handleSaveOrder, handlePrintCheck, currentShift, activeTransactionId, setShowCancelModal, setShowOrderModal, setShowPaymentModal, isPending
+    grandTotal, paidAmount, items, handleCheckout, handleSaveOrder, handlePrintCheck, currentShift, activeTransactionId, setShowCancelModal, setShowPaymentModal, setShowDiscountModal, setShowNotesModal, isPending
 }: CartFooterProps) => {
 
     const actionButtons = [
         { icon: <Printer size={20} />, label: 'Print Check', onClick: () => handlePrintCheck() },
-        { icon: <Percent size={20} />, label: 'Disc. Order', onClick: () => setShowOrderModal(true) },
-        { icon: <ClipboardList size={20} />, label: 'Order Notes', onClick: () => setShowOrderModal(true) },
-        { icon: <Send size={20} />, label: 'Send to Kitchen', onClick: () => handleSaveOrder() },
+        { icon: <Percent size={20} />, label: 'Disc. Order', onClick: () => setShowDiscountModal(true) },
+        { icon: <ClipboardList size={20} />, label: 'Order Notes', onClick: () => setShowNotesModal(true) },
+        { icon: <Wallet size={20} />, label: 'Metode Bayar', onClick: () => setShowPaymentModal(true) },
+        { icon: <Send size={20} />, label: 'Ke Dapur', onClick: () => handleSaveOrder() },
     ];
 
     const handleMainAction = () => {
@@ -40,8 +42,8 @@ export const CartFooter = ({
 
     return (
         <div className="mt-auto bg-white border-t border-slate-100 flex flex-col">
-            <div className="p-4 grid grid-cols-4 gap-4 items-center">
-                <div className="col-span-3 grid grid-cols-2 gap-2">
+            <div className="p-3 sm:p-4 grid grid-cols-4 gap-3 sm:gap-4 items-center">
+                <div className="col-span-3 grid grid-cols-3 gap-2">
                     {actionButtons.map((btn, idx) => (
                         <button
                             key={idx}

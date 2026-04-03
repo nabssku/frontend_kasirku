@@ -120,7 +120,7 @@ export default function POSPage() {
                     animate={{ scale: itemsCount > 0 ? [1, 1.1, 1] : 1 }}
                     transition={{ duration: 0.3 }}
                     onClick={() => setIsCartOpen(true)}
-                    className="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 transition-all active:scale-90 z-30"
+                    className="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 transition-all active:scale-90 z-30 mb-[var(--safe-bottom)] mr-[var(--safe-right)]"
                 >
                     <div className="relative">
                         <ShoppingCart size={24} />

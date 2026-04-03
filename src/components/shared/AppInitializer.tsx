@@ -5,6 +5,7 @@ import type { AppVersionInfo } from '../../services/UpdateService';
 import { UpdateService } from '../../services/UpdateService';
 import { UpdateModal } from './UpdateModal';
 import { Capacitor } from '@capacitor/core';
+import { initializeBackHandler } from '../../hooks/useBackHandler';
 
 export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
     const { token, checkAuth } = useAuthStore();
@@ -15,7 +16,8 @@ export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
             await Promise.all([
                 initializeBluetooth(),
                 lockOrientationLandscape(),
-                requestStoragePermissions()
+                requestStoragePermissions(),
+                initializeBackHandler()
             ]);
 
             // Check for updates if on native platform
