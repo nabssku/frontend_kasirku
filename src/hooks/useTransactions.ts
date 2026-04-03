@@ -24,13 +24,28 @@ interface CreateTransactionPayload {
   status?: 'pending' | 'completed';
 }
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const retry = async <T>(fn: () => Promise<T>, retries = 3, interval = 2000): Promise<T> => {
+  try {
+    return await fn();
+  } catch (e) {
+    if (retries <= 0) throw e;
+    await delay(interval);
+    return retry(fn, retries - 1, interval);
+  }
+};
+
 export const useCreateTransaction = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: CreateTransactionPayload) => {
-      const { data } = await api.post<Transaction>('/transactions', payload);
-      return data;
+    mutationFn: async (payload: CreateTransactionPayload & { local_id?: string }) => {
+      // Use the retry utility for better reliability
+      return await retry(async () => {
+        const { data } = await api.post<Transaction>('/transactions', payload);
+        return data;
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] }); // Refresh stock
@@ -38,6 +53,8 @@ export const useCreateTransaction = () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] }); // Refresh history
       queryClient.invalidateQueries({ queryKey: ['tables'] }); // Refresh tables
     },
+    // If mutation fails after all retries, react-query will handle it.
+    // For specialized offline handling, we can add logic in onError if needed.
   });
 };
 

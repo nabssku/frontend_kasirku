@@ -71,6 +71,7 @@ export const useCartActions = () => {
         }
 
         const payload: any = {
+            local_id: `trx-local-${crypto.randomUUID()}`,
             items: items.map((item: CartItem) => ({
                 product_id: item.id,
                 quantity: item.quantity,
@@ -137,6 +138,7 @@ export const useCartActions = () => {
         }
 
         const payload: any = {
+            local_id: `trx-local-${crypto.randomUUID()}`,
             items: items.map((item: CartItem) => ({
                 product_id: item.id,
                 quantity: item.quantity,

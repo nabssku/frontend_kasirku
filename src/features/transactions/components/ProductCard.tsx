@@ -1,19 +1,46 @@
 import { Plus, Package } from 'lucide-react';
 import { useCartStore } from '../../../app/store/useCartStore';
 import type { Product, Modifier } from '../../../types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ModifierPicker } from './ModifierPicker';
 import { triggerHaptic } from '../../../utils/capacitor';
 import { formatRp } from '../../../lib/format';
 import { getImageUrl } from '../../../utils/url';
+import { ImageCacheService } from '../../../services/ImageCacheService';
 
 interface ProductCardProps {
-    product: Product;
+    product?: Product;
+    isLoading?: boolean;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({ product, isLoading }: ProductCardProps) => {
     const { addItem } = useCartStore();
     const [showModifiers, setShowModifiers] = useState(false);
+    const [localImage, setLocalImage] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (product?.id) {
+            ImageCacheService.getLocalUri(product.id).then(uri => {
+                if (uri) setLocalImage(uri);
+            });
+        }
+    }, [product?.id]);
+
+    if (isLoading || !product) {
+        return (
+            <div className="bg-white rounded-2xl border border-slate-100 p-3 md:p-4 shadow-sm animate-pulse">
+                <div className="aspect-square rounded-xl bg-slate-100 mb-4" />
+                <div className="space-y-2">
+                    <div className="h-4 bg-slate-100 rounded w-3/4" />
+                    <div className="h-3 bg-slate-50 rounded w-1/2" />
+                    <div className="flex justify-between items-center pt-2">
+                        <div className="h-5 bg-slate-100 rounded w-1/3" />
+                        <div className="w-8 h-8 bg-slate-100 rounded-lg" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const handleAddToCart = () => {
         if (product.modifier_groups && product.modifier_groups.length > 0) {
@@ -25,6 +52,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 name: product.name,
                 price: product.price,
                 modifiers: [],
+                discount: 0,
+                is_free: false,
+                notes: '',
             });
         }
     };
@@ -36,11 +66,15 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             name: product.name,
             price: product.price,
             modifiers: mods.map(m => ({ modifier_id: m.id, name: m.name, price: m.price })),
+            discount: 0,
+            is_free: false,
+            notes: '',
         });
         setShowModifiers(false);
     };
 
     const isLowStock = product.stock <= product.min_stock;
+    const displayImage = localImage || getImageUrl(product.image) || '/placeholder.png';
 
     return (
         <>
@@ -52,11 +86,19 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 onClick={() => product.is_active && product.stock > 0 && handleAddToCart()}
             >
                 <div className="relative aspect-square rounded-xl bg-slate-50 mb-4 overflow-hidden">
-                    {product.image ? (
+                    {product.image || localImage ? (
                         <img
-                            src={getImageUrl(product.image)}
+                            src={displayImage}
                             alt={product.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => {
+                                // If local image fails, fallback to network
+                                if (localImage) {
+                                    setLocalImage(null);
+                                } else {
+                                    (e.target as HTMLImageElement).src = '/placeholder.png';
+                                }
+                            }}
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">

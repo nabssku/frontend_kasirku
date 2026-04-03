@@ -127,11 +127,20 @@ export const setStatusBarStyle = async (darkMode: boolean) => {
  */
 export const onNetworkChange = (callback: (status: { connected: boolean }) => void) => {
     if (isNative) {
-        Network.addListener('networkStatusChange', (status) => {
+        const handler = Network.addListener('networkStatusChange', (status) => {
             callback({ connected: status.connected });
         });
+        return () => {
+            handler.then(h => h.remove());
+        };
     } else {
-        window.addEventListener('online', () => callback({ connected: true }));
-        window.addEventListener('offline', () => callback({ connected: false }));
+        const onlineHandler = () => callback({ connected: true });
+        const offlineHandler = () => callback({ connected: false });
+        window.addEventListener('online', onlineHandler);
+        window.addEventListener('offline', offlineHandler);
+        return () => {
+            window.removeEventListener('online', onlineHandler);
+            window.removeEventListener('offline', offlineHandler);
+        };
     }
 };

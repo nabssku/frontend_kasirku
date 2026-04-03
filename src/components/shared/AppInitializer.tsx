@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { initializeBluetooth, lockOrientationLandscape, requestStoragePermissions } from '../../utils/capacitor';
+import { initializeBluetooth, lockOrientationLandscape, requestStoragePermissions, onNetworkChange } from '../../utils/capacitor';
 import { useAuthStore } from '../../app/store/useAuthStore';
 import type { AppVersionInfo } from '../../services/UpdateService';
 import { UpdateService } from '../../services/UpdateService';
@@ -8,10 +8,33 @@ import { Capacitor } from '@capacitor/core';
 import { initializeBackHandler } from '../../hooks/useBackHandler';
 
 export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
-    const { token, checkAuth } = useAuthStore();
+    const { token, checkAuth, setOnline } = useAuthStore();
     const [updateInfo, setUpdateInfo] = useState<AppVersionInfo | null>(null);
 
     useEffect(() => {
+        // Initial Network Status Check
+        if (Capacitor.isNativePlatform()) {
+            import('@capacitor/network').then(({ Network }) => {
+                Network.getStatus().then(status => {
+                    setOnline(status.connected);
+                });
+            });
+        } else {
+            setOnline(navigator.onLine);
+        }
+
+        // Listen for Network Changes
+        const cleanup = onNetworkChange(({ connected }) => {
+            const wasOffline = !useAuthStore.getState().isOnline;
+            setOnline(connected);
+            
+            // Online Recovery: If we just came back online and have a token, revalidate
+            if (connected && wasOffline && token) {
+                console.log('Back online, revalidating session...');
+                checkAuth();
+            }
+        });
+
         const init = async () => {
             await Promise.all([
                 initializeBluetooth(),
@@ -36,7 +59,11 @@ export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
             }
         };
         init();
-    }, [token, checkAuth]);
+
+        return () => {
+            if (typeof cleanup === 'function') cleanup();
+        };
+    }, [token, checkAuth, setOnline]);
 
     return (
         <>

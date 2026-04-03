@@ -80,9 +80,10 @@ export default function POSPage() {
                 {/* Product Grid Area */}
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-hide no-scrollbar">
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
-                            <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-                            <p className="font-bold text-xs uppercase tracking-widest animate-pulse">Menghubungkan ke pusat data...</p>
+                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6 pb-24">
+                            {[...Array(10)].map((_, i) => (
+                                <ProductCard key={i} isLoading />
+                            ))}
                         </div>
                     ) : error ? (
                         <div className="flex flex-col items-center justify-center h-full text-red-500 gap-3">

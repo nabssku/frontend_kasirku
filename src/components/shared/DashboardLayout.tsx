@@ -40,6 +40,8 @@ import type { PlanFeature } from '../../types';
 import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
 import { usePrinters } from '../../hooks/usePrinters';
 import { toast } from 'sonner';
+import { NetworkStatusIndicator } from '../../features/shared/components/NetworkStatusIndicator';
+import { useProductSync } from '../../hooks/useProductSync';
 
 interface NavItem {
     name: string;
@@ -153,7 +155,8 @@ const allNavGroups: NavGroup[] = [
 ];
 
 export const DashboardLayout = () => {
-    const { user, logout } = useAuthStore();
+    const { user, isOnline, logout } = useAuthStore();
+    const { syncImages, isSyncing } = useProductSync();
     const navigate = useNavigate();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -198,12 +201,24 @@ export const DashboardLayout = () => {
 
         const listener = Network.addListener('networkStatusChange', (status) => {
             setNetworkStatus(status);
+            
+            // Trigger image sync when coming back online
+            if (status.connected) {
+                syncImages();
+            }
         });
 
         return () => {
             listener.then(l => l.remove());
         };
-    }, []);
+    }, [syncImages]);
+
+    // Initial sync on mount if online
+    useEffect(() => {
+        if (isOnline) {
+            syncImages();
+        }
+    }, []); // Only once on mount
 
     const handleNavigate = (path: string) => {
         setIsMobileMenuOpen(false);
@@ -325,6 +340,7 @@ export const DashboardLayout = () => {
 
     return (
         <div className="flex-1 bg-slate-50 flex overflow-hidden">
+            <NetworkStatusIndicator isSyncing={isSyncing} />
             {/* Sidebar Backdrop (Mobile/Tablet) */}
             {(isMobileMenuOpen || (isSidebarOpen && window.innerWidth < 1024)) && (
                 <div
