@@ -6,10 +6,14 @@ import { UpdateService } from '../../services/UpdateService';
 import { UpdateModal } from './UpdateModal';
 import { Capacitor } from '@capacitor/core';
 import { initializeBackHandler } from '../../hooks/useBackHandler';
+import { useSyncWorker } from '../../hooks/useSyncWorker';
 
 export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
     const { token, checkAuth, setOnline } = useAuthStore();
     const [updateInfo, setUpdateInfo] = useState<AppVersionInfo | null>(null);
+
+    // Initialize synchronization worker
+    useSyncWorker();
 
     useEffect(() => {
         // Initial Network Status Check

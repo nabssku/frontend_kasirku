@@ -19,12 +19,30 @@ export const CartItemList = ({
     tax, serviceCharge, taxRate, serviceChargeRate
 }: CartItemListProps) => {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const startPosRef = useRef<{ x: number, y: number } | null>(null);
 
-    const handleStart = (item: CartItem) => {
+    const handleStart = (item: CartItem, e: React.MouseEvent | React.TouchEvent) => {
+        // Record starting position
+        const pos = 'touches' in e ? e.touches[0] : e;
+        startPosRef.current = { x: pos.clientX, y: pos.clientY };
+
         timerRef.current = setTimeout(() => {
             onLongPressItem(item);
             timerRef.current = null;
         }, 700);
+    };
+
+    const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
+        if (!timerRef.current || !startPosRef.current) return;
+
+        const pos = 'touches' in e ? e.touches[0] : e;
+        const deltaX = Math.abs(pos.clientX - startPosRef.current.x);
+        const deltaY = Math.abs(pos.clientY - startPosRef.current.y);
+
+        // If moved more than 10px, it's a scroll/swipe, not a long press
+        if (deltaX > 10 || deltaY > 10) {
+            handleEnd();
+        }
     };
 
     const handleEnd = () => {
@@ -32,6 +50,7 @@ export const CartItemList = ({
             clearTimeout(timerRef.current);
             timerRef.current = null;
         }
+        startPosRef.current = null;
     };
 
     if (items.length === 0) {
@@ -66,10 +85,12 @@ export const CartItemList = ({
                         <tr 
                             key={item.cartId} 
                             className="group hover:bg-slate-50 transition-colors cursor-pointer select-none active:bg-slate-100"
-                            onMouseDown={() => handleStart(item)}
+                            onMouseDown={(e) => handleStart(item, e)}
+                            onMouseMove={handleMove}
                             onMouseUp={handleEnd}
                             onMouseLeave={handleEnd}
-                            onTouchStart={() => handleStart(item)}
+                            onTouchStart={(e) => handleStart(item, e)}
+                            onTouchMove={handleMove}
                             onTouchEnd={handleEnd}
                         >
                             <td className="px-4 py-4">

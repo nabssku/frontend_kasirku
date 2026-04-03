@@ -11,8 +11,9 @@ export const useProductSync = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [progress, setProgress] = useState({ current: 0, total: 0 });
 
-    const syncImages = useCallback(async () => {
+    const syncImages = useCallback(async (options: { silent?: boolean } = {}) => {
         if (!products || products.length === 0 || isSyncing) return;
+        const { silent = false } = options;
 
         setIsSyncing(true);
         const total = products.length;
@@ -47,10 +48,10 @@ export const useProductSync = () => {
             const activeIds = products.map(p => p.id);
             await ImageCacheService.cleanupUnusedImages(activeIds);
 
-            toast.success('Gambar produk berhasil disinkronkan');
+            if (!silent) toast.success('Gambar produk berhasil disinkronkan');
         } catch (error) {
             console.error('Image sync failed:', error);
-            toast.error('Gagal menyinkronkan gambar produk');
+            if (!silent) toast.error('Gagal menyinkronkan gambar produk');
         } finally {
             setIsSyncing(false);
         }

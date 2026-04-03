@@ -204,7 +204,7 @@ export const DashboardLayout = () => {
             
             // Trigger image sync when coming back online
             if (status.connected) {
-                syncImages();
+                syncImages({ silent: true });
             }
         });
 
@@ -216,7 +216,7 @@ export const DashboardLayout = () => {
     // Initial sync on mount if online
     useEffect(() => {
         if (isOnline) {
-            syncImages();
+            syncImages({ silent: true });
         }
     }, []); // Only once on mount
 

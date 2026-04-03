@@ -123,6 +123,23 @@ export const useCartActions = () => {
             toast.error(error?.response?.data?.message || 'Transaksi gagal.');
         };
 
+        // Offline handling
+        if (!useAuthStore.getState().isOnline) {
+            import('../../../app/store/useSyncStore').then(({ useSyncStore }) => {
+                useSyncStore.getState().addToQueue(payload);
+                toast.success('Offline: Transaksi disimpan secara lokal.');
+                
+                // Show success view and reset cart even though it's offline
+                setShowSuccess(true);
+                setTimeout(() => {
+                    setShowSuccess(false);
+                    handleResetAll();
+                    refetchPending(); // This will fail but that's fine
+                }, 2000);
+            });
+            return;
+        }
+
         if (activeTransactionId) {
             updateTransaction({ id: activeTransactionId, payload }, { onSuccess, onError });
         } else {
@@ -179,10 +196,25 @@ export const useCartActions = () => {
             refetchPending();
         };
 
+        const onError = (error: any) => {
+            toast.error(error?.response?.data?.message || 'Gagal menyimpan pesanan.');
+        };
+
+        // Offline handling
+        if (!useAuthStore.getState().isOnline) {
+            import('../../../app/store/useSyncStore').then(({ useSyncStore }) => {
+                useSyncStore.getState().addToQueue(payload);
+                toast.success('Offline: Pesanan disimpan sementara secara lokal.');
+                handleResetAll();
+                refetchPending();
+            });
+            return;
+        }
+
         if (activeTransactionId) {
-            updateTransaction({ id: activeTransactionId, payload }, { onSuccess });
+            updateTransaction({ id: activeTransactionId, payload }, { onSuccess, onError });
         } else {
-            createTransaction(payload, { onSuccess });
+            createTransaction(payload, { onSuccess, onError });
         }
     };
 
