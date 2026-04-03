@@ -102,8 +102,8 @@ export default function ReceiptSettingsPage() {
                 customer: 'Pelanggan Umum',
                 type: 'dine_in' as const,
                 items: [
-                    { name: 'Produk Contoh 1', quantity: 2, price: 50000, subtotal: 100000 },
-                    { name: 'Produk Contoh 2', quantity: 1, price: 25000, subtotal: 25000 },
+                    { name: 'Produk Contoh 1', quantity: 2, price: 50000, subtotal: 100000, discount: 0, notes: '' },
+                    { name: 'Produk Contoh 2', quantity: 1, price: 25000, subtotal: 25000, discount: 0, notes: '' },
                 ],
                 subtotal: 125000,
                 discount: 0,
