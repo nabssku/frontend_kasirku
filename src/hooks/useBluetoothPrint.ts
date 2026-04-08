@@ -316,14 +316,20 @@ export function useBluetoothPrint() {
                 await BleClient.initialize();
                 
                 // If we have a config list, use it to determine which IDs to connect
-                const cashierId = configList?.find(p => p.type === 'cashier' || p.type === 'both')?.mac_address || lastCashierPrinterId;
-                const kitchenId = configList?.find(p => p.type === 'kitchen' || p.type === 'both')?.mac_address || lastKitchenPrinterId;
+                const cashierId = configList 
+                    ? configList.find(p => p.type === 'cashier' || p.type === 'both')?.mac_address 
+                    : lastCashierPrinterId;
+                const kitchenId = configList 
+                    ? configList.find(p => p.type === 'kitchen' || p.type === 'both')?.mac_address 
+                    : lastKitchenPrinterId;
 
                 if (cashierId) {
                     try {
                         await BleClient.connect(cashierId, onDisconnected);
                         setCashierDevice({ id: cashierId, name: 'Kasir Printer', native: true });
                     } catch (e) { console.warn('Native Cashier connect failed', e); }
+                } else {
+                    setCashierDevice(null);
                 }
 
                 if (kitchenId && kitchenId !== cashierId) {
@@ -331,6 +337,10 @@ export function useBluetoothPrint() {
                         await BleClient.connect(kitchenId, onDisconnected);
                         setKitchenDevice({ id: kitchenId, name: 'Dapur Printer', native: true });
                     } catch (e) { console.warn('Native Kitchen connect failed', e); }
+                } else if (kitchenId === cashierId && cashierId) {
+                    setKitchenDevice({ id: cashierId, name: 'Dapur Printer', native: true });
+                } else {
+                    setKitchenDevice(null);
                 }
                 
                 setIsConnected(!!(cashierId || kitchenId));
@@ -363,6 +373,8 @@ export function useBluetoothPrint() {
                     cDev.addEventListener('gattserverdisconnected', onDisconnected);
                     setCashierDevice(cDev);
                 } catch (e) { console.warn('Web Cashier connect failed', e); }
+            } else {
+                setCashierDevice(null);
             }
             
             if (kDev && kDev.id !== cDev?.id) {
@@ -372,6 +384,10 @@ export function useBluetoothPrint() {
                     kDev.addEventListener('gattserverdisconnected', onDisconnected);
                     setKitchenDevice(kDev);
                 } catch (e) { console.warn('Web Kitchen connect failed', e); }
+            } else if (kDev && kDev.id === cDev?.id) {
+                setKitchenDevice(kDev);
+            } else {
+                setKitchenDevice(null);
             }
             setIsConnected(!!(cDev || kDev));
         } catch (err) {
@@ -379,7 +395,7 @@ export function useBluetoothPrint() {
         }
     }, [lastCashierPrinterId, lastKitchenPrinterId, setCashierDevice, setKitchenDevice, setIsConnected, onDisconnected]);
 
-    const connectPrinter = useCallback(async (role: 'cashier' | 'kitchen' | 'both' = 'cashier'): Promise<any | null> => {
+    const connectPrinter = useCallback(async (role: 'cashier' | 'kitchen' | 'both' = 'both'): Promise<any | null> => {
         setLastError(null);
         if (isNative) {
             try {
@@ -501,21 +517,21 @@ export function useBluetoothPrint() {
     };
 
     const printReceipt = useCallback(async (receipt: PrinterReceiptData): Promise<boolean> => {
-        const target = cashierDevice || kitchenDevice; // Fallback to whatever is connected
+        const target = cashierDevice; // Strictly use cashier printer
         if (!target) { if (!isNative) window.print(); return false; }
         const data = await buildEscPosData(receipt);
         return printRaw(data, target);
     }, [cashierDevice, kitchenDevice]);
 
     const printShiftReport = useCallback(async (shift: Shift): Promise<boolean> => {
-        const target = cashierDevice || kitchenDevice;
+        const target = cashierDevice;
         if (!target) return false;
         const data = buildShiftEscPosData(shift);
         return printRaw(data, target);
     }, [cashierDevice, kitchenDevice]);
 
     const printKitchenOrder = useCallback(async (order: any): Promise<boolean> => {
-        const target = kitchenDevice || cashierDevice;
+        const target = kitchenDevice;
         if (!target) return false;
         const data = buildKitchenEscPosData(order);
         return printRaw(data, target);

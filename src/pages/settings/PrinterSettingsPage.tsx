@@ -30,10 +30,9 @@ export default function PrinterSettingsPage() {
     const { isConnecting, cashierDevice, kitchenDevice } = usePrinterStore();
 
     useEffect(() => {
-        if (printers.length > 0 && !cashierDevice && !kitchenDevice) {
-            autoConnect(printers);
-        }
-    }, [printers, cashierDevice, kitchenDevice, autoConnect]);
+        // Automatically sync printer connections and roles based on the latest config
+        autoConnect(printers);
+    }, [printers, autoConnect]);
 
     const handleReconnect = async () => {
         try {
@@ -51,7 +50,7 @@ export default function PrinterSettingsPage() {
         }
 
         try {
-            const result = await connectPrinter();
+            const result = await connectPrinter('both');
             if (!result) {
                 toast.info('Pencarian printer dibatalkan.');
                 return;
