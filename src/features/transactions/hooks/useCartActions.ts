@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { generateId } from '../../../utils/id';
 import { useCartStore } from '../../../app/store/useCartStore';
 import type { CartItem } from '../../../app/store/useCartStore';
 import { useCreateTransaction, useUpdateTransaction, usePendingTransactions, useCancelTransaction } from '../../../hooks/useTransactions';
@@ -10,9 +11,21 @@ import { useTables } from '../../../hooks/useTables';
 import { toast } from 'sonner';
 
 export const useCartActions = () => {
-    const {
-        items, clearCart, getTotal, orderType, tableId, resetCart
-    } = useCartStore();
+    const items = useCartStore(state => state.items);
+    const clearCart = useCartStore(state => state.clearCart);
+    const orderType = useCartStore(state => state.orderType);
+    const tableId = useCartStore(state => state.tableId);
+    const resetCart = useCartStore(state => state.resetCart);
+    const activeTransactionId = useCartStore(state => state.activeTransactionId);
+    const setActiveTransactionId = useCartStore(state => state.setActiveTransactionId);
+    const customerId = useCartStore(state => state.customerId);
+    const setCustomerId = useCartStore(state => state.setCustomerId);
+    const notes = useCartStore(state => state.notes);
+    const setNotes = useCartStore(state => state.setNotes);
+    const discount = useCartStore(state => state.discount);
+    const setDiscount = useCartStore(state => state.setDiscount);
+    const discountType = useCartStore(state => state.discountType);
+    const setDiscountType = useCartStore(state => state.setDiscountType);
 
     const { mutate: createTransaction, isPending: isCreating } = useCreateTransaction();
     const { mutate: updateTransaction, isPending: isUpdating } = useUpdateTransaction();
@@ -26,40 +39,37 @@ export const useCartActions = () => {
 
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [paidAmount, setPaidAmount] = useState<number>(0);
-    const [customerId, setCustomerId] = useState<string>('');
-    const [discount, setDiscount] = useState<number>(0);
-    const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('fixed');
-    const [notes, setNotes] = useState<string>('');
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
+    const [lastChangeAmount, setLastChangeAmount] = useState(0);
     const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
     const [showNoShiftModal, setShowNoShiftModal] = useState(false);
 
     const isPending = isCreating || isUpdating || isCancelling;
 
-    const total = getTotal();
-    const calculatedDiscount = discountType === 'percent' ? (total * (discount / 100)) : discount;
-    const subtotalAfterDiscount = total - calculatedDiscount;
-    const serviceChargeRate = Number(outlet?.service_charge || 0) / 100;
-    const taxRate = Number(outlet?.tax_rate || 0) / 100;
-    
-    const service_charge = subtotalAfterDiscount * serviceChargeRate;
-    const tax = (subtotalAfterDiscount + service_charge) * taxRate;
-    const grandTotal = subtotalAfterDiscount + service_charge + tax;
+    const total = useCartStore(state => state.total);
+
+    const { calculatedDiscount, service_charge, tax, grandTotal } = useMemo(() => {
+        const t = Number(total) || 0;
+        const dValue = Number(discount) || 0;
+        const cd = discountType === 'percent' ? (t * (dValue / 100)) : dValue;
+        const sad = t - cd;
+        const scr = Number(outlet?.service_charge || 0) / 100;
+        const tr = Number(outlet?.tax_rate || 0) / 100;
+        const sc = sad * scr;
+        const tx = (sad + sc) * tr;
+        const gt = sad + sc + tx;
+        
+        return { calculatedDiscount: cd, subtotalAfterDiscount: sad, service_charge: sc, tax: tx, grandTotal: gt };
+    }, [items, total, discount, discountType, outlet]);
+
     const changeAmount = paidAmount > grandTotal ? paidAmount - grandTotal : 0;
 
     const handleResetAll = () => {
         clearCart();
         setPaidAmount(0);
-        setCustomerId('');
-        setDiscount(0);
-        setDiscountType('fixed');
-        setNotes('');
-        setActiveTransactionId(null);
         setPaymentMethod('cash');
     };
 
-    const handleCheckout = () => {
+    const handleCheckout = (options?: { onSuccess?: () => void }) => {
         if (items.length === 0) return;
         if (!currentShift || currentShift.status !== 'open') {
             setShowNoShiftModal(true);
@@ -71,7 +81,7 @@ export const useCartActions = () => {
         }
 
         const payload: any = {
-            local_id: `trx-local-${crypto.randomUUID()}`,
+            local_id: `trx-local-${generateId()}`,
             items: items.map((item: CartItem) => ({
                 product_id: item.id,
                 quantity: item.quantity,
@@ -100,8 +110,10 @@ export const useCartActions = () => {
 
         const onSuccess = (data: any) => {
             const newTxId: string = data?.data?.id ?? data?.id ?? null;
-            setShowSuccess(true);
             
+            // Record change for the success modal
+            setLastChangeAmount(changeAmount);
+
             // Print to kitchen
             printKitchenOrder({
                 type: orderType,
@@ -111,12 +123,13 @@ export const useCartActions = () => {
                 notes: notes
             });
 
+            // Trigger modal
             if (newTxId) setPrintTransactionId(newTxId);
-            setTimeout(() => {
-                setShowSuccess(false);
-                handleResetAll();
-                refetchPending();
-            }, 2000);
+
+            // Reset cart immediately (modal handles the success message)
+            handleResetAll();
+            refetchPending();
+            if (options?.onSuccess) options.onSuccess();
         };
 
         const onError = (error: any) => {
@@ -129,21 +142,24 @@ export const useCartActions = () => {
                 useSyncStore.getState().addToQueue(payload);
                 toast.success('Offline: Transaksi disimpan secara lokal.');
                 
-                // Show success view and reset cart even though it's offline
-                setShowSuccess(true);
-                setTimeout(() => {
-                    setShowSuccess(false);
-                    handleResetAll();
-                    refetchPending(); // This will fail but that's fine
-                }, 2000);
+                // Reset cart immediately
+                handleResetAll();
+                refetchPending();
+                if (options?.onSuccess) options.onSuccess();
             });
             return;
         }
 
         if (activeTransactionId) {
-            updateTransaction({ id: activeTransactionId, payload }, { onSuccess, onError });
+            updateTransaction({ id: activeTransactionId, payload }, { 
+                onSuccess: (data: any) => onSuccess(data), 
+                onError 
+            });
         } else {
-            createTransaction(payload, { onSuccess, onError });
+            createTransaction(payload, { 
+                onSuccess: (data: any) => onSuccess(data), 
+                onError 
+            });
         }
     };
 
@@ -155,7 +171,7 @@ export const useCartActions = () => {
         }
 
         const payload: any = {
-            local_id: `trx-local-${crypto.randomUUID()}`,
+            local_id: `trx-local-${generateId()}`,
             items: items.map((item: CartItem) => ({
                 product_id: item.id,
                 quantity: item.quantity,
@@ -175,6 +191,8 @@ export const useCartActions = () => {
             type: orderType,
             shift_id: currentShift.id,
             status: 'pending',
+            paid_amount: 0,
+            payment_method: 'cash', // Default for pending
             service_charge: service_charge,
             tax: tax,
             tax_rate: (outlet?.tax_rate || 0).toString()
@@ -232,13 +250,13 @@ export const useCartActions = () => {
                 modifiers: item.modifiers || []
             })),
             orderType: tx.type,
-            tableId: tx.table_id
+            tableId: tx.table_id,
+            activeTransactionId: tx.id,
+            customerId: tx.customer_id || '',
+            notes: tx.notes || '',
+            discount: parseFloat(tx.discount) || 0,
+            discountType: 'fixed',
         });
-        setCustomerId(tx.customer_id || '');
-        setDiscount(parseFloat(tx.discount) || 0);
-        setDiscountType('fixed'); // Recalled discounts are stored as final values
-        setNotes(tx.notes || '');
-        setActiveTransactionId(tx.id);
         if (tx.payment_method) setPaymentMethod(tx.payment_method);
         if (tx.paid_amount) setPaidAmount(parseFloat(tx.paid_amount));
     };
@@ -312,7 +330,7 @@ export const useCartActions = () => {
         discountType, setDiscountType,
         calculatedDiscount,
         notes, setNotes,
-        showSuccess, setShowSuccess,
+        lastChangeAmount,
         activeTransactionId, setActiveTransactionId,
         printTransactionId, setPrintTransactionId,
         isPending,
@@ -320,7 +338,7 @@ export const useCartActions = () => {
         handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder, handlePrintCheck,
         currentShift,
         showNoShiftModal, setShowNoShiftModal,
-        serviceChargeRate: serviceChargeRate * 100,
-        taxRate: taxRate * 100
+        serviceChargeRate: (Number(outlet?.service_charge || 0)),
+        taxRate: (Number(outlet?.tax_rate || 0))
     };
 };

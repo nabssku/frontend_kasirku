@@ -274,6 +274,18 @@ export default function TransactionHistoryPage() {
                                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Metode Bayar</p>
                                     <p className="text-sm font-medium text-slate-700 capitalize">{selectedTransaction.payment_method?.replace('_', ' ') || '-'}</p>
                                 </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Tipe Pesanan</p>
+                                    <p className="text-sm font-medium text-slate-700 capitalize">
+                                        {selectedTransaction.type?.replace('_', ' ') || '-'}
+                                    </p>
+                                </div>
+                                {selectedTransaction.table && (
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Meja</p>
+                                        <p className="text-sm font-medium text-slate-700">{selectedTransaction.table.name}</p>
+                                    </div>
+                                )}
                                 {selectedTransaction.notes && (
                                     <div className="col-span-2 space-y-1 bg-amber-50 p-3 rounded-xl border border-amber-100 italic">
                                         <p className="text-[10px] text-amber-500 uppercase font-bold tracking-wider">Catatan</p>

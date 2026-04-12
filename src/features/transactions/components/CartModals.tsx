@@ -435,12 +435,18 @@ interface PaymentModalProps {
     setPaymentMethod: (method: string) => void;
     paidAmount: number;
     setPaidAmount: (amount: number | ((prev: number) => number)) => void;
+    onConfirm: () => void;
+    isPending?: boolean;
 }
 
 export const PaymentModal = ({
-    isOpen, onClose, grandTotal, paymentMethod, setPaymentMethod, paidAmount, setPaidAmount
+    isOpen, onClose, grandTotal, paymentMethod, setPaymentMethod, paidAmount, setPaidAmount, onConfirm, isPending
 }: PaymentModalProps) => {
     if (!isOpen) return null;
+
+    const handleConfirm = async () => {
+        await onConfirm();
+    };
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-0 sm:p-4 animate-in fade-in duration-300 safe-padding">
@@ -458,9 +464,9 @@ export const PaymentModal = ({
                     </button>
                 </div>
 
-                <div className="p-4 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4 flex-1 no-scrollbar no-scrollbar">
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4 flex-1 no-scrollbar no-scrollbar text-left">
                     {/* Payment Method selection */}
-                    <div className="space-y-3 sm:space-y-4 text-left">
+                    <div className="space-y-3 sm:space-y-4">
                         <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Metode Pembayaran</label>
                         <div className="grid grid-cols-2 gap-2 sm:gap-3">
                             {[
@@ -495,7 +501,7 @@ export const PaymentModal = ({
 
                     {/* Paid Amount Input (Only for Cash) */}
                     {paymentMethod === 'cash' && (
-                        <div className="space-y-3 sm:space-y-4 text-left animate-in fade-in zoom-in-95 duration-300">
+                        <div className="space-y-3 sm:space-y-4 animate-in fade-in zoom-in-95 duration-300">
                             <div className="flex justify-between items-end pl-1">
                                 <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Nominal Bayar</label>
                                 {paidAmount > 0 && (
@@ -558,7 +564,7 @@ export const PaymentModal = ({
                             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-sm">
                                 <QrCode size={20} />
                             </div>
-                            <div className="flex flex-col text-left">
+                            <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Digital Payment</span>
                                 <span className="text-sm font-black text-indigo-700">Nominal akan disesuaikan otomatis</span>
                             </div>
@@ -568,7 +574,7 @@ export const PaymentModal = ({
                     {/* Change / Status info */}
                     {paymentMethod === 'cash' && paidAmount > grandTotal && (
                         <div className="p-3 sm:p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex justify-between items-center animate-in slide-in-from-top-4 duration-500">
-                            <div className="flex flex-col text-left">
+                            <div className="flex flex-col">
                                 <span className="text-[9px] sm:text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5 sm:mb-1">Kembalian</span>
                                 <span className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">{formatRp(paidAmount - grandTotal)}</span>
                             </div>
@@ -580,7 +586,7 @@ export const PaymentModal = ({
 
                     {paidAmount < grandTotal && paidAmount > 0 && (
                         <div className="p-4 sm:p-6 bg-amber-50 rounded-2xl border border-amber-100 flex justify-between items-center animate-in slide-in-from-top-4 duration-500">
-                            <div className="flex flex-col text-left">
+                            <div className="flex flex-col">
                                 <span className="text-[9px] sm:text-[10px] font-black text-amber-600 uppercase tracking-widest mb-0.5 sm:mb-1">Kurang Bayar</span>
                                 <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">{formatRp(grandTotal - paidAmount)}</span>
                             </div>
@@ -593,14 +599,18 @@ export const PaymentModal = ({
 
                 <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 pb-10 sm:pb-5">
                     <button
-                        onClick={onClose}
-                        disabled={paidAmount < grandTotal}
-                        className={`w-full h-11 sm:h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs shadow-xl transition-all active:scale-95 ${paidAmount < grandTotal
+                        onClick={handleConfirm}
+                        disabled={paidAmount < grandTotal || isPending}
+                        className={`w-full h-11 sm:h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${paidAmount < grandTotal
                             ? 'bg-slate-200 text-slate-400 shadow-none cursor-not-allowed'
                             : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200/50'
                             }`}
                     >
-                        {paidAmount < grandTotal ? 'Nominal Kurang' : 'Konfirmasi Pembayaran'}
+                        {isPending ? (
+                            <><Loader2 className="animate-spin" size={16} /> Memproses...</>
+                        ) : (
+                            paidAmount < grandTotal ? 'Nominal Kurang' : 'Selesaikan Pembayaran'
+                        )}
                     </button>
                 </div>
             </div>
@@ -787,4 +797,3 @@ export const ProductItemModal = ({ isOpen, onClose, item, onUpdate }: ProductIte
         </div>
     );
 };
-

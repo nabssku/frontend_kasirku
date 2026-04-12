@@ -20,7 +20,7 @@ interface CreateTransactionPayload {
   notes?: string;
   table_id?: string;
   shift_id: string;
-  type: 'dine_in' | 'takeaway' | 'delivery';
+  type: 'dine_in' | 'takeaway' | 'delivery' | 'walk_in' | 'online';
   status?: 'pending' | 'completed';
 }
 

@@ -3,14 +3,13 @@ import { usePendingTransactions } from '../../../hooks/useTransactions';
 import { useCustomers } from '../../../hooks/useCustomers';
 import { useTables } from '../../../hooks/useTables';
 import { useState, useEffect } from 'react';
-import { ReceiptModal } from './ReceiptModal';
+import { TransactionSuccessModal } from './TransactionSuccessModal';
 import { useTransactionReceipt } from '../../../hooks/usePrinters';
 import { CartItemList } from './CartItemList';
 import { CartFooter } from './CartFooter';
 import { ResumeOrderModal, OrderModal, PaymentModal, NoShiftModal, CancelOrderModal, DiscountOrderModal, OrderNotesModal, ProductItemModal } from './CartModals';
 import { useCartActions } from '../hooks/useCartActions';
 import { CartHeader } from './CartHeader';
-import { CartSuccessView } from './CartSuccessView';
 import { useBusinessType } from '../../../hooks/useBusinessType';
 import { toast } from 'sonner';
 import { useOverlayStore } from '../../../app/store/useOverlayStore';
@@ -49,8 +48,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
         paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
         customerId, setCustomerId, discount, setDiscount, discountType, setDiscountType,
         notes, setNotes,
-        showSuccess, activeTransactionId, printTransactionId, setPrintTransactionId,
-        isPending, total, tax, service_charge, grandTotal, changeAmount,
+        lastChangeAmount, activeTransactionId, printTransactionId, setPrintTransactionId,
+        isPending, tax, service_charge, grandTotal,
         handleCheckout, handleSaveOrder, handleResumeOrder, handleResetAll, handleCancelOrder, handlePrintCheck, currentShift,
         showNoShiftModal, setShowNoShiftModal,
         taxRate, serviceChargeRate
@@ -107,9 +106,10 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
         return true;
     };
 
-    const onValidatedCheckout = () => {
+
+    const onProceedToPayment = () => {
         if (validateOrderInfo()) {
-            handleCheckout();
+            setShowPaymentModal(true);
         }
     };
 
@@ -120,10 +120,6 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     };
 
     const { data: receiptData } = useTransactionReceipt(printTransactionId);
-
-    if (showSuccess) {
-        return <CartSuccessView changeAmount={changeAmount} />;
-    }
 
     return (
         <>
@@ -169,11 +165,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                         />
                     </div>
                     <CartFooter
-                        total={total}
                         grandTotal={grandTotal}
-                        paidAmount={paidAmount}
                         items={items}
-                        handleCheckout={onValidatedCheckout}
                         handleSaveOrder={onValidatedSaveOrder}
                         handlePrintCheck={handlePrintCheck}
                         handleResetAll={handleResetAll}
@@ -181,7 +174,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                         currentShift={currentShift}
                         activeTransactionId={activeTransactionId}
                         setShowCancelModal={setShowCancelModal}
-                        setShowPaymentModal={setShowPaymentModal}
+                        onProceed={onProceedToPayment}
                         setShowDiscountModal={setShowDiscountModal}
                         setShowNotesModal={setShowNotesModal}
                     />
@@ -227,13 +220,24 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
             />
 
             <PaymentModal
-                isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)}
-                grandTotal={grandTotal} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
-                paidAmount={paidAmount} setPaidAmount={setPaidAmount}
+                isOpen={showPaymentModal} 
+                onClose={() => setShowPaymentModal(false)}
+                grandTotal={grandTotal} 
+                paymentMethod={paymentMethod} 
+                setPaymentMethod={setPaymentMethod}
+                paidAmount={paidAmount} 
+                setPaidAmount={setPaidAmount}
+                onConfirm={() => handleCheckout({ onSuccess: () => setShowPaymentModal(false) })}
+                isPending={isPending}
             />
 
             {printTransactionId && receiptData && (
-                <ReceiptModal receipt={receiptData} onClose={() => setPrintTransactionId(null)} autoPrint />
+                <TransactionSuccessModal 
+                    receipt={receiptData} 
+                    changeAmount={lastChangeAmount}
+                    onClose={() => setPrintTransactionId(null)} 
+                    autoPrint 
+                />
             )}
 
             <NoShiftModal isOpen={showNoShiftModal} onClose={() => setShowNoShiftModal(false)} />

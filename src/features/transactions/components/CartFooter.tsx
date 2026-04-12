@@ -1,43 +1,45 @@
-import { Printer, Percent, ClipboardList, Send, X, Wallet } from 'lucide-react';
+import { Printer, Percent, ClipboardList, Send, X, Wallet, Save } from 'lucide-react';
+import { usePrinterStore } from '../../../app/store/usePrinterStore';
 import { formatRp } from '../../../lib/format';
 import type { CartItem } from '../../../app/store/useCartStore';
 
 interface CartFooterProps {
-    total: number;
     grandTotal: number;
-    paidAmount: number;
     items: CartItem[];
-    handleCheckout: () => void;
     handleSaveOrder: () => void;
     handlePrintCheck: () => Promise<void>;
     handleResetAll: () => void;
     currentShift: any;
     activeTransactionId: string | null;
     setShowCancelModal: (show: boolean) => void;
-    setShowPaymentModal: (show: boolean) => void;
+    onProceed: () => void;
     setShowDiscountModal: (show: boolean) => void;
     setShowNotesModal: (show: boolean) => void;
     isPending: boolean;
 }
 
 export const CartFooter = ({
-    grandTotal, paidAmount, items, handleCheckout, handleSaveOrder, handlePrintCheck, currentShift, activeTransactionId, setShowCancelModal, setShowPaymentModal, setShowDiscountModal, setShowNotesModal, isPending
+    grandTotal, items, handleSaveOrder, handlePrintCheck, currentShift, activeTransactionId, setShowCancelModal, onProceed, setShowDiscountModal, setShowNotesModal, isPending
 }: CartFooterProps) => {
+
+    const { kitchenDevice } = usePrinterStore();
+    const isKitchenConnected = !!kitchenDevice;
 
     const actionButtons = [
         { icon: <Printer size={20} />, label: 'Print Check', onClick: () => handlePrintCheck() },
         { icon: <Percent size={20} />, label: 'Disc. Order', onClick: () => setShowDiscountModal(true) },
         { icon: <ClipboardList size={20} />, label: 'Order Notes', onClick: () => setShowNotesModal(true) },
-        { icon: <Wallet size={20} />, label: 'Metode Bayar', onClick: () => setShowPaymentModal(true) },
-        { icon: <Send size={20} />, label: 'Ke Dapur', onClick: () => handleSaveOrder() },
+        { icon: <Wallet size={20} />, label: 'Metode Bayar', onClick: () => onProceed() },
+        { icon: <Save size={20} />, label: 'Simpan Pesanan', onClick: () => handleSaveOrder() },
     ];
 
+    // Only show "Ke Dapur" if kitchen printer is connected
+    if (isKitchenConnected) {
+        actionButtons.push({ icon: <Send size={20} />, label: 'Ke Dapur', onClick: () => handleSaveOrder() });
+    }
+
     const handleMainAction = () => {
-        if (paidAmount < grandTotal) {
-            setShowPaymentModal(true);
-        } else {
-            handleCheckout();
-        }
+        onProceed();
     };
 
     return (
@@ -73,11 +75,11 @@ export const CartFooter = ({
             <button
                 onClick={handleMainAction}
                 disabled={items.length === 0 || isPending || !currentShift}
-                className={`w-full h-20 transition-all flex items-center justify-center active:bg-opacity-90 disabled:grayscale disabled:opacity-50 ${paidAmount >= grandTotal ? 'bg-[#5cb85c] hover:bg-[#4cae4c]' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 transition-all flex items-center justify-center active:bg-opacity-90 disabled:grayscale disabled:opacity-50"
             >
                 <div className="flex flex-col items-center">
                     <span className="text-[11px] font-black text-white/70 uppercase tracking-widest leading-none mb-1">
-                        {paidAmount >= grandTotal ? 'Complete Checkout' : 'Process Payment'}
+                        Proses Pembayaran
                     </span>
                     <span className="text-2xl font-black text-white tracking-wide">
                         {formatRp(grandTotal)}
