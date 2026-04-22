@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
-import type { SuperAdminStats, TenantDetail, Tenant, User, Subscription, Plan, PaginatedResponse } from '../types';
+import type { SuperAdminStats, TenantDetail, Tenant, User, Subscription, Plan, PaginatedResponse, ProductTemplate } from '../types';
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 export function useSuperAdminStats() {
@@ -209,5 +209,48 @@ export function useDeleteAppVersion() {
       await api.delete(`/super-admin/app-versions/${id}`);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['super-admin', 'app-versions'] }),
+  });
+}
+
+// ─── Product Templates ────────────────────────────────────────────────────────
+export function useSuperAdminTemplates() {
+  return useQuery<ProductTemplate[]>({
+    queryKey: ['super-admin', 'templates'],
+    queryFn: async () => {
+      const { data } = await api.get('/super-admin/templates');
+      return data.data;
+    },
+  });
+}
+
+export function useCreateTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Partial<ProductTemplate>) => {
+      const { data } = await api.post('/super-admin/templates', payload);
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['super-admin', 'templates'] }),
+  });
+}
+
+export function useUpdateTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }: { id: string } & Partial<ProductTemplate>) => {
+      const { data } = await api.put(`/super-admin/templates/${id}`, payload);
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['super-admin', 'templates'] }),
+  });
+}
+
+export function useDeleteTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/super-admin/templates/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['super-admin', 'templates'] }),
   });
 }

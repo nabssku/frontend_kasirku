@@ -124,7 +124,7 @@ export default function OutletsPage() {
                                 { label: 'Nama Outlet', key: 'name', placeholder: 'Warung Kopi Pusat' },
                                 { label: 'Alamat', key: 'address', placeholder: 'Jl. Sudirman No. 1' },
                                 { label: 'Telepon', key: 'phone', placeholder: '021-5551234' },
-                                { label: 'Email', key: 'email', placeholder: 'outlet@kasirku.com' },
+                                { label: 'Email', key: 'email', placeholder: 'outlet@jagokasir.store' },
                             ].map(({ label, key, placeholder }) => (
                                 <div key={key}>
                                     <label className="text-xs font-semibold text-slate-500 uppercase">{label}</label>

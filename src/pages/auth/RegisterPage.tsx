@@ -201,13 +201,13 @@ export default function RegisterPage() {
                             placeholder="my-shop"
                         />
                         <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 text-sm font-semibold opacity-50 group-focus-within:opacity-100">
-                            .kasirku.id
+                            .jagokasir.store
                         </div>
                     </div>
                     {errors.domain ? (
                         <p className="mt-1 text-xs text-red-600 px-1">{errors.domain.message}</p>
                     ) : (
-                        <p className="mt-1 text-[10px] text-slate-400 px-1 italic">Opsional. URL unik: domain.kasirku.id</p>
+                        <p className="mt-1 text-[10px] text-slate-400 px-1 italic">Opsional. URL unik: domain.jagokasir.store</p>
                     )}
                 </div>
 

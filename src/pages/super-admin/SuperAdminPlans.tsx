@@ -6,16 +6,19 @@ import type { Plan, PlanFeature } from '../../types';
 
 // ─── Available Features Registry ─────────────────────────────────────────────
 const AVAILABLE_FEATURES: { key: string; label: string; description: string }[] = [
-    { key: 'audit_logs', label: 'Audit Logs', description: 'Track all system activity and changes' },
-    { key: 'multi_outlet', label: 'Multi-Outlet Management', description: 'Manage multiple outlet branches' },
-    { key: 'kitchen_display', label: 'Kitchen Display System', description: 'Real-time kitchen order dashboard' },
-    { key: 'advanced_reports', label: 'Advanced Reports', description: 'Export and detailed analytics' },
-    { key: 'inventory_management', label: 'Inventory Management', description: 'Ingredients & stock tracking' },
-    { key: 'barcode_scanner', label: 'Barcode Scanner', description: 'Scan barcodes to add products' },
-    { key: 'customer_management', label: 'Customer Management', description: 'Customer database & history' },
-    { key: 'modifier_groups', label: 'Modifiers & Add-ons', description: 'Product customization options' },
-    { key: 'receipt_customization', label: 'Receipt Customization', description: 'Custom logo, notes on receipts' },
-    { key: 'pos_terminal', label: 'POS Terminal', description: 'Full POS terminal access' },
+    { key: 'pos_basic', label: 'Basic POS Terminal', description: 'Full access to POS terminal for transactions' },
+    { key: 'inventory_basic', label: 'Basic Inventory', description: 'Stock tracking and low stock alerts' },
+    { key: 'inventory_recipe', label: 'Advanced Inventory (Recipe)', description: 'Product recipes and ingredient auto-deduction' },
+    { key: 'modifiers', label: 'Product Modifiers', description: 'Customization options (e.g. toppings, size, sugar)' },
+    { key: 'customers', label: 'Customer CRM', description: 'Manage customer database and purchase history' },
+    { key: 'expenses', label: 'Expense Tracking', description: 'Record and track operational costs' },
+    { key: 'kitchen_display', label: 'Kitchen Display System', description: 'Live order dashboard for kitchen staff' },
+    { key: 'advanced_reports', label: 'Advanced Analytics', description: 'Detailed sales reports and export options' },
+    { key: 'audit_log', label: 'Audit Activity Logs', description: 'Complete track of all system changes' },
+    { key: 'shift_management', label: 'Shift Management', description: 'Manage cashier shifts and cash drawer logs' },
+    { key: 'qr_self_order', label: 'QR Self-Order', description: 'Scan QR at table to order directly' },
+    { key: 'api_access', label: 'Open API Access', description: 'Access system data via REST API' },
+    { key: 'white_label', label: 'Receipt Customization (Pro)', description: 'Custom branding and receipt layouts' },
 ];
 
 interface PlanForm {
@@ -29,6 +32,8 @@ interface PlanForm {
     max_categories: number;
     max_ingredients: number;
     max_modifiers: number;
+    max_customers: number;
+    max_tables: number;
     trial_days: number;
     description: string;
     is_active: boolean;
@@ -37,7 +42,8 @@ interface PlanForm {
 const defaultForm: PlanForm = {
     name: '', slug: '', price: 0, billing_cycle: 'monthly',
     max_outlets: 1, max_users: 5, max_products: 100,
-    max_categories: 10, max_ingredients: 25, max_modifiers: 10, trial_days: 14,
+    max_categories: 10, max_ingredients: 25, max_modifiers: 10, 
+    max_customers: 100, max_tables: 10, trial_days: 14,
     description: '', is_active: true,
 };
 
@@ -89,6 +95,8 @@ export default function SuperAdminPlans() {
             max_categories: plan.max_categories ?? 10,
             max_ingredients: plan.max_ingredients ?? 25,
             max_modifiers: plan.max_modifiers ?? 10,
+            max_customers: plan.max_customers ?? 100,
+            max_tables: plan.max_tables ?? 10,
             trial_days: plan.trial_days ?? 14,
             description: plan.description ?? '',
             is_active: plan.is_active ?? true,
@@ -243,6 +251,8 @@ export default function SuperAdminPlans() {
                                             { label: 'Max Categories', key: 'max_categories' },
                                             { label: 'Max Ingredients', key: 'max_ingredients' },
                                             { label: 'Max Modifiers', key: 'max_modifiers' },
+                                            { label: 'Max Customers', key: 'max_customers' },
+                                            { label: 'Max Tables', key: 'max_tables' },
                                         ].map(({ label, key }) => (
                                             <div key={key}>
                                                 <label className={labelCls}>{label}</label>
@@ -418,6 +428,8 @@ export default function SuperAdminPlans() {
                                         ['Users', plan.max_users],
                                         ['Products', plan.max_products],
                                         ['Categories', plan.max_categories],
+                                        ['Customers', plan.max_customers],
+                                        ['Tables', plan.max_tables],
                                         ['Trial Days', plan.trial_days],
                                     ].map(([label, val]) => (
                                         <div key={label as string} className="flex justify-between text-slate-400">

@@ -45,6 +45,8 @@ import TicketDetailsPage from '../../pages/support/TicketDetailsPage';
 import AdminTicketsPage from '../../pages/super-admin/AdminTicketsPage';
 import SuperAdminDiscounts from '../../pages/super-admin/SuperAdminDiscounts';
 import CheckoutPage from '../../pages/subscriptions/CheckoutPage';
+import OnboardingPage from '../../pages/onboarding/OnboardingPage';
+import SuperAdminTemplatesPage from '../../pages/super-admin/SuperAdminTemplatesPage';
 
 const IncomeReport = lazy(() => import('../../pages/reports/IncomeReport'));
 const ExpenseReport = lazy(() => import('../../pages/reports/ExpenseReport'));
@@ -116,8 +118,18 @@ export const router = createBrowserRouter([
             { path: 'tickets', element: <AdminTicketsPage /> },
             { path: 'tickets/:id', element: <TicketDetailsPage /> },
             { path: 'discounts', element: <SuperAdminDiscounts /> },
+            { path: 'templates', element: <SuperAdminTemplatesPage /> },
             { path: 'settings/payment', element: <PaymentSettingsPage isSuperAdmin /> },
         ],
+    },
+    // ─── Onboarding ───────────────────────────────────────────────────────────
+    {
+        path: '/onboarding',
+        element: (
+            <ProtectedRoute>
+                <OnboardingPage />
+            </ProtectedRoute>
+        ),
     },
     // ─── Landing Page ─────────────────────────────────────────────────────────
     { path: '/', element: <LandingPage /> },

@@ -276,6 +276,8 @@ export interface Plan {
   max_categories: number;
   max_ingredients: number;
   max_modifiers: number;
+  max_customers: number;
+  max_tables: number;
   trial_days: number;
   is_active: boolean;
   description?: string;
@@ -458,6 +460,36 @@ export interface TenantDetail extends Tenant {
   users_count: number;
   subscription?: Subscription;
   users?: User[];
+}
+
+export interface ProductTemplate {
+  id: string;
+  name: string;
+  category_type: string;
+  image?: string;
+  description?: string;
+  is_active: boolean;
+  data: {
+    categories: {
+      name: string;
+      products: {
+        name: string;
+        price: number;
+        modifier_groups?: {
+          name: string;
+          required?: boolean;
+          min_select?: number;
+          max_select?: number;
+          modifiers: {
+            name: string;
+            price: number;
+          }[];
+        }[];
+      }[];
+    }[];
+  };
+  created_at: string;
+  updated_at: string;
 }
 
 // ─── Bluetooth Printer ────────────────────────────────────────────────────────

@@ -258,6 +258,8 @@ export default function TenantPage() {
                                         { icon: Package, label: 'Outlet', value: sub.plan.max_outlets, bg: 'bg-emerald-50', color: 'text-emerald-600' },
                                         { icon: Beaker, label: 'Bahan Bakar', value: sub.plan.max_ingredients, bg: 'bg-amber-50', color: 'text-amber-600' },
                                         { icon: Sliders, label: 'Modifier', value: sub.plan.max_modifiers, bg: 'bg-rose-50', color: 'text-rose-600' },
+                                        { icon: Users, label: 'Pelanggan', value: sub.plan.max_customers, bg: 'bg-blue-50', color: 'text-blue-600' },
+                                        { icon: Tag, label: 'Meja Resto', value: sub.plan.max_tables, bg: 'bg-emerald-50', color: 'text-emerald-600' },
                                     ].map(item => (
                                         <div key={item.label} className="p-3 rounded-2xl bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-sm transition-all">
                                             <div className={`w-8 h-8 rounded-xl ${item.bg} ${item.color} flex items-center justify-center mb-2`}>
@@ -360,6 +362,8 @@ export default function TenantPage() {
                                             { label: 'Outlet', value: plan.max_outlets },
                                             { label: 'Bahan Bakar', value: plan.max_ingredients },
                                             { label: 'Modifier', value: plan.max_modifiers },
+                                            { label: 'Pelanggan', value: plan.max_customers },
+                                            { label: 'Meja Resto', value: plan.max_tables },
                                         ].map(item => (
                                             <div key={item.label} className="flex justify-between items-center text-sm">
                                                 <span className="text-slate-500 font-medium">{item.label}</span>

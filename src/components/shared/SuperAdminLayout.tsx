@@ -15,6 +15,7 @@ import {
     FileText,
     MessageSquare,
     Tag,
+    Layers,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -41,6 +42,7 @@ const navGroups: NavGroup[] = [
         items: [
             { name: 'Tenants', path: '/super-admin/tenants', icon: Building2 },
             { name: 'Users', path: '/super-admin/users', icon: Users },
+            { name: 'Templates', path: '/super-admin/templates', icon: Layers },
         ],
     },
     {

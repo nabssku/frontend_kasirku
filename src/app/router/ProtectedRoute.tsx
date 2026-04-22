@@ -39,6 +39,35 @@ export const ProtectedRoute = ({
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
+    // ── Onboarding Check ──────────────────────────────────────────────────────
+    const userRoles = user?.roles?.map(r => r.slug as UserRole) || [];
+    const isSuperAdmin = userRoles.includes('super_admin');
+    const isManagement = userRoles.includes('owner') || userRoles.includes('admin');
+    
+    // Check if user should be on the onboarding page or not
+    if (location.pathname === '/onboarding') {
+        const tenantSettings = (user as any)?.tenant?.settings || {};
+        const onboardingCompleted = tenantSettings.onboarding_completed ?? false;
+        
+        // Redirect AWAY from /onboarding if:
+        // 1. Super admin
+        // 2. Not a management role (cashier, kitchen, etc.)
+        // 3. Already finished onboarding
+        if (isSuperAdmin || !isManagement || onboardingCompleted) {
+            return <Navigate to={getDefaultPage(user?.roles)} replace />;
+        }
+    } else {
+        // Only enforce onboarding for management roles
+        if (isManagement && !isSuperAdmin) {
+            const tenantSettings = (user as any)?.tenant?.settings || {};
+            const onboardingCompleted = tenantSettings.onboarding_completed ?? false;
+            
+            if (!onboardingCompleted) {
+                return <Navigate to="/onboarding" replace />;
+            }
+        }
+    }
+
     // ── Role Check ─────────────────────────────────────────────────────────────
     if (allowedRoles && user) {
         const userRoles = user.roles?.map(r => r.slug as UserRole) || [];
