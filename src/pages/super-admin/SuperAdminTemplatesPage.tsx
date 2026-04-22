@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { 
   useSuperAdminTemplates, 
-  useCreateTemplate, 
   useUpdateTemplate, 
   useDeleteTemplate 
 } from '../../hooks/useSuperAdmin';
 import { 
   Search, 
   Plus, 
-  Edit2, 
   Trash2, 
   Eye, 
   X, 
@@ -22,12 +20,10 @@ import { toast } from 'sonner';
 
 export default function SuperAdminTemplatesPage() {
   const [search, setSearch] = useState('');
-  const [showModal, setShowModal] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const { data: templates, isLoading } = useSuperAdminTemplates();
-  const createTemplate = useCreateTemplate();
   const updateTemplate = useUpdateTemplate();
   const deleteTemplate = useDeleteTemplate();
 

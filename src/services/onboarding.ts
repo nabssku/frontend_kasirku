@@ -1,5 +1,5 @@
 import api from '../lib/axios';
-import type { ProductTemplate } from '../types';
+
 
 export const onboardingService = {
   getTemplates: async () => {
