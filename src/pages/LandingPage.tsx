@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import {
     LayoutDashboard,
     ShoppingCart,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { usePlans } from '../hooks/useSubscription';
 import { useAuthStore } from '../app/store/useAuthStore';
+import { getDefaultPage } from '../lib/auth';
 import type { Plan } from '../types';
 import { SEO } from '../components/SEO';
 import { formatRp } from '../lib/format';
@@ -118,7 +119,11 @@ import { PublicFooter } from '../components/shared/PublicFooter';
 
 export default function LandingPage() {
     const { data: plans, isLoading } = usePlans();
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, user } = useAuthStore();
+
+    if (isAuthenticated) {
+        return <Navigate to={getDefaultPage(user?.roles)} replace />;
+    }
 
     // Support for scrolling to section from other pages (e.g., /contact -> /#features)
     useEffect(() => {

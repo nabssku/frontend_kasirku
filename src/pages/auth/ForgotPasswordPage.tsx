@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +7,8 @@ import { KeyRound, Mail, ArrowLeft, AlertCircle, ShieldCheck, Lock, CheckCircle2
 import { useOtp } from '../../hooks/useOtp';
 import { OtpInput } from '../../components/auth/OtpInput';
 import { toast } from 'sonner';
+import { useAuthStore } from '../../app/store/useAuthStore';
+import { getDefaultPage } from '../../lib/auth';
 
 const emailSchema = z.object({
     email: z.string().email('Email tidak valid'),
@@ -23,6 +25,12 @@ const passwordSchema = z.object({
 type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 export default function ForgotPasswordPage() {
+    const { isAuthenticated, user } = useAuthStore();
+    
+    if (isAuthenticated) {
+        return <Navigate to={getDefaultPage(user?.roles)} replace />;
+    }
+
     const [step, setStep] = useState<'email' | 'otp' | 'password' | 'success'>('email');
     const [email, setEmail] = useState('');
     const [otpValue, setOtpValue] = useState('');

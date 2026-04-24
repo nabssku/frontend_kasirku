@@ -6,6 +6,7 @@ import { useProducts, useDeleteProduct } from '../../hooks/useProducts';
 import { formatRp } from '../../lib/format';
 import { useBusinessType } from '../../hooks/useBusinessType';
 import { getImageUrl } from '../../utils/url';
+import { useAuthStore } from '../../app/store/useAuthStore';
 
 export default function ProductsPage() {
     const { isFnb, outlet } = useBusinessType();
@@ -13,6 +14,8 @@ export default function ProductsPage() {
         enabled: !!outlet?.id, // Wait for outlet to load to avoid fetching all products globally
     });
     const { mutate: deleteProduct } = useDeleteProduct();
+    const { user } = useAuthStore();
+    const isCashier = user?.roles?.some(r => r.slug === 'cashier');
     const [search, setSearch] = useState('');
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -38,24 +41,26 @@ export default function ProductsPage() {
                     <h1 className="text-2xl font-bold text-slate-900">Katalog Produk</h1>
                     <p className="text-slate-500 text-sm mt-1">Kelola produk, resep, dan stok toko Anda</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    {isFnb && (
+                {!isCashier && (
+                    <div className="flex items-center gap-2">
+                        {isFnb && (
+                            <Link
+                                to="/modifiers"
+                                className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition-colors shadow-sm text-sm"
+                            >
+                                <ListTree size={18} />
+                                Kelola Modifiers
+                            </Link>
+                        )}
                         <Link
-                            to="/modifiers"
-                            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition-colors shadow-sm text-sm"
+                            to="/products/new"
+                            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm text-sm"
                         >
-                            <ListTree size={18} />
-                            Kelola Modifiers
+                            <Plus size={18} />
+                            Tambah Produk
                         </Link>
-                    )}
-                    <Link
-                        to="/products/new"
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm text-sm"
-                    >
-                        <Plus size={18} />
-                        Tambah Produk
-                    </Link>
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Search */}
@@ -93,12 +98,12 @@ export default function ProductsPage() {
                         <thead>
                             <tr className="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
                                 <th className="px-6 py-4 text-left">Produk</th>
+                                <th className="px-6 py-4 text-right">Stok</th>
                                 {isFnb && <th className="px-6 py-4 text-left hidden sm:table-cell">Resep / Mod</th>}
                                 <th className="px-6 py-4 text-left hidden md:table-cell">Kategori</th>
-                                <th className="px-6 py-4 text-right hidden xs:table-cell">Stok</th>
                                 <th className="px-6 py-4 text-right">Harga</th>
                                 <th className="px-6 py-4 text-center hidden lg:table-cell">Status</th>
-                                <th className="px-6 py-4 text-right">Aksi</th>
+                                {!isCashier && <th className="px-6 py-4 text-right">Aksi</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -113,6 +118,15 @@ export default function ProductsPage() {
                                                 <p className="font-bold text-slate-800 uppercase text-[10px] md:text-xs tracking-tight truncate">{product.name}</p>
                                                 <p className="text-[9px] md:text-[10px] text-slate-400 font-mono truncate">{product.sku || 'N/A'}</p>
                                             </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            {product.stock <= product.min_stock ? (
+                                                <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Limit: {product.stock}</span>
+                                            ) : (
+                                                <span className="text-slate-700 font-semibold">{product.stock}</span>
+                                            )}
                                         </div>
                                     </td>
                                     {isFnb && (
@@ -130,49 +144,42 @@ export default function ProductsPage() {
                                     <td className="px-6 py-4 hidden md:table-cell">
                                         <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase">{product.category?.name || '—'}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-right hidden xs:table-cell">
-                                        <div className="flex items-center justify-end gap-1.5">
-                                            {product.stock <= product.min_stock ? (
-                                                <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Limit: {product.stock}</span>
-                                            ) : (
-                                                <span className="text-slate-700 font-semibold">{product.stock}</span>
-                                            )}
-                                        </div>
-                                    </td>
                                     <td className="px-6 py-4 text-right font-bold text-slate-900 border-r-0 whitespace-nowrap">
                                         {formatRp(product.price)}
                                     </td>
                                     <td className="px-6 py-4 text-center hidden lg:table-cell">
                                         <div className={`w-2 h-2 rounded-full mx-auto ${product.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center justify-end gap-1 transition-opacity">
-                                            {isFnb && (
+                                    {!isCashier && (
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-end gap-1 transition-opacity">
+                                                {isFnb && (
+                                                    <Link
+                                                        to={`/products/${product.id}/recipe`}
+                                                        className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                        title="Kelola Resep"
+                                                    >
+                                                        <Beef size={15} />
+                                                    </Link>
+                                                )}
                                                 <Link
-                                                    to={`/products/${product.id}/recipe`}
-                                                    className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                    title="Kelola Resep"
+                                                    to={`/products/${product.id}`}
+                                                    className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    title="Edit"
                                                 >
-                                                    <Beef size={15} />
+                                                    <Edit2 size={15} />
                                                 </Link>
-                                            )}
-                                            <Link
-                                                to={`/products/${product.id}`}
-                                                className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                title="Edit"
-                                            >
-                                                <Edit2 size={15} />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(product.id, product.name)}
-                                                disabled={deletingId === product.id}
-                                                className="p-1.5 md:p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Hapus"
-                                            >
-                                                <Trash2 size={15} />
-                                            </button>
-                                        </div>
-                                    </td>
+                                                <button
+                                                    onClick={() => handleDelete(product.id, product.name)}
+                                                    disabled={deletingId === product.id}
+                                                    className="p-1.5 md:p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Hapus"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>

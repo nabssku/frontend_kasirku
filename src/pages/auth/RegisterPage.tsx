@@ -1,4 +1,4 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +8,8 @@ import api from '../../lib/axios';
 import { useOtp } from '../../hooks/useOtp';
 import { OtpInput } from '../../components/auth/OtpInput';
 import { toast } from 'sonner';
+import { useAuthStore } from '../../app/store/useAuthStore';
+import { getDefaultPage } from '../../lib/auth';
 
 const registerSchema = z.object({
     tenant_name: z.string().min(2, 'Nama toko minimal 2 karakter'),
@@ -28,6 +30,12 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
     const navigate = useNavigate();
+    const { isAuthenticated, user } = useAuthStore();
+    
+    if (isAuthenticated) {
+        return <Navigate to={getDefaultPage(user?.roles)} replace />;
+    }
+
     const [step, setStep] = useState<'form' | 'otp'>('form');
     const [otpValue, setOtpValue] = useState('');
     const [registrationPayload, setRegistrationPayload] = useState<RegisterForm | null>(null);

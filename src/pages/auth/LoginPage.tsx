@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,9 +20,13 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const { setAuth } = useAuthStore();
+    const { setAuth, isAuthenticated, user } = useAuthStore();
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+
+    if (isAuthenticated) {
+        return <Navigate to={getDefaultPage(user?.roles)} replace />;
+    }
 
     const {
         register,

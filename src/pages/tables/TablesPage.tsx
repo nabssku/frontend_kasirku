@@ -5,6 +5,7 @@ import type { RestaurantTable } from '../../types';
 import { useBusinessType } from '../../hooks/useBusinessType';
 import { useCurrentSubscription } from '../../hooks/useSubscription';
 import api from '../../lib/axios';
+import { useAuthStore } from '../../app/store/useAuthStore';
 
 const STATUS_COLORS = {
     available: { bg: 'bg-green-100', text: 'text-green-700', label: 'Tersedia' },
@@ -21,6 +22,8 @@ export default function TablesPage() {
     const deleteTable = useDeleteTable();
     const updateStatus = useUpdateTableStatus();
     const { data: subscriptionRes } = useCurrentSubscription();
+    const { user } = useAuthStore();
+    const isCashier = user?.roles?.some(r => r.slug === 'cashier');
 
     const hasQrFeature = subscriptionRes?.subscription?.plan?.features?.some(
         (f: { feature_key: string; feature_value: string }) =>
@@ -124,9 +127,11 @@ export default function TablesPage() {
                     <h1 className="text-2xl font-bold text-slate-900">Manajemen Meja</h1>
                     <p className="text-sm text-slate-500 mt-1">Pantau dan kelola status meja restoran</p>
                 </div>
-                <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors font-medium">
-                    <Plus size={18} /> Tambah Meja
-                </button>
+                {!isCashier && (
+                    <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors font-medium">
+                        <Plus size={18} /> Tambah Meja
+                    </button>
+                )}
             </div>
 
             {/* Status Legend */}
@@ -180,15 +185,16 @@ export default function TablesPage() {
                                                 </select>
                                             </div>
 
-                                            {/* Action Buttons */}
-                                            <div className="absolute top-2 right-2 flex gap-1 transition-opacity">
-                                                <button onClick={(e) => { e.stopPropagation(); openEdit(table); }} className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 shadow-sm transition-colors">
-                                                    <Pencil size={12} />
-                                                </button>
-                                                <button onClick={(e) => { e.stopPropagation(); deleteTable.mutate(table.id); }} className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-red-500 shadow-sm transition-colors">
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            </div>
+                                            {!isCashier && (
+                                                <div className="absolute top-2 right-2 flex gap-1 transition-opacity">
+                                                    <button onClick={(e) => { e.stopPropagation(); openEdit(table); }} className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 shadow-sm transition-colors">
+                                                        <Pencil size={12} />
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); deleteTable.mutate(table.id); }} className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-red-500 shadow-sm transition-colors">
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
 
                                             {/* QR Self Order Panel (admin only, feature-gated) */}
                                             {hasQrFeature && (
