@@ -4,6 +4,7 @@ import type { UserRole, PlanFeature } from '../../types';
 import { getDefaultPage } from '../../lib/auth';
 import { useCurrentSubscription } from '../../hooks/useSubscription';
 import { PremiumFeatureLock } from '../../components/shared/PremiumFeatureLock';
+import { SubscriptionExpiredBlock } from '../../components/shared/SubscriptionExpiredBlock';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -65,6 +66,16 @@ export const ProtectedRoute = ({
             if (!onboardingCompleted) {
                 return <Navigate to="/onboarding" replace />;
             }
+        }
+    }
+
+    // ── Subscription Guard ───────────────────────────────────────────────────
+    if (user && !isSuperAdmin) {
+        const subStatus = subscriptionData?.subscription?.status || (user as any)?.tenant?.status_subscription || (user as any)?.tenant?.status;
+        const isBlocked = subStatus === 'expired' || subStatus === 'cancelled' || subStatus === 'canceled';
+
+        if (isBlocked && !userRoles.includes('owner')) {
+            return <SubscriptionExpiredBlock status={subStatus} />;
         }
     }
 

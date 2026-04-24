@@ -41,6 +41,7 @@ export interface User {
   updated_at: string;
   roles?: Role[];
   outlet?: Outlet;
+  tenant?: Tenant;
 }
 
 export interface Role {

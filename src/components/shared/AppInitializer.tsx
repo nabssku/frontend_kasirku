@@ -4,6 +4,7 @@ import { useAuthStore } from '../../app/store/useAuthStore';
 import type { AppVersionInfo } from '../../services/UpdateService';
 import { UpdateService } from '../../services/UpdateService';
 import { UpdateModal } from './UpdateModal';
+import { AccountStatusOverlay } from './AccountStatusOverlay';
 import { Capacitor } from '@capacitor/core';
 import { initializeBackHandler } from '../../hooks/useBackHandler';
 import { useSyncWorker } from '../../hooks/useSyncWorker';
@@ -78,6 +79,7 @@ export const AppInitializer = ({ children }: { children: React.ReactNode }) => {
                     onClose={() => setUpdateInfo(null)}
                 />
             )}
+            <AccountStatusOverlay />
         </>
     );
 };

@@ -28,6 +28,9 @@ import {
     Info,
     MessageSquare,
     Tag,
+    AlertTriangle,
+    ArrowRight,
+    Crown,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Network } from '@capacitor/network';
@@ -189,6 +192,18 @@ export const DashboardLayout = () => {
         const features = subscriptionData?.subscription?.plan?.features || [];
         return features.some((f: PlanFeature) => f.feature_key === featureKey && f.feature_value === 'true');
     };
+
+    // Subscription status check
+    const subStatus = useMemo(() => {
+        return subscriptionData?.subscription?.status || (user as any)?.tenant?.status_subscription || (user as any)?.tenant?.status;
+    }, [subscriptionData, user]);
+
+    const isSubscriptionBlocked = useMemo(() => {
+        return subStatus === 'expired' || subStatus === 'cancelled' || subStatus === 'canceled';
+    }, [subStatus]);
+
+    const isTrial = useMemo(() => subStatus === 'trial', [subStatus]);
+    const daysRemaining = useMemo(() => subscriptionData?.subscription?.days_remaining ?? 0, [subscriptionData]);
 
     // Network status listener
     useEffect(() => {
@@ -590,6 +605,49 @@ export const DashboardLayout = () => {
                     </div>
                 </header>
                 <div className={`flex-1 overflow-y-auto safe-padding-x pb-[var(--safe-bottom)] ${location.pathname === '/pos' ? '' : 'p-4 md:p-8'}`}>
+                    {isOwner && isSubscriptionBlocked && !location.pathname.startsWith('/subscription') && (
+                        <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm animate-in slide-in-from-top-2 duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600 shrink-0">
+                                    <AlertTriangle size={24} />
+                                </div>
+                                <div>
+                                    <h4 className="text-red-900 font-bold text-sm">Paket Berlangganan Berakhir</h4>
+                                    <p className="text-red-700 text-xs font-medium">Layanan Jagokasir Anda saat ini terbatas. Silakan perbarui paket Anda untuk memulihkan akses penuh.</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => navigate('/subscription')}
+                                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-red-200 active:scale-95 shrink-0"
+                            >
+                                Perbarui Sekarang
+                                <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    )}
+
+                    {isOwner && isTrial && !location.pathname.startsWith('/subscription') && (
+                        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm animate-in slide-in-from-top-2 duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                                    <Crown size={24} />
+                                </div>
+                                <div>
+                                    <h4 className="text-amber-900 font-bold text-sm">Masa Uji Coba (Trial)</h4>
+                                    <p className="text-amber-700 text-xs font-medium">
+                                        Anda memiliki <span className="font-bold">{daysRemaining} hari</span> lagi untuk menikmati fitur premium Jagokasir secara gratis.
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => navigate('/subscription')}
+                                className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-amber-200 active:scale-95 shrink-0"
+                            >
+                                Langganan Sekarang
+                                <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    )}
                     <Outlet />
                 </div>
 

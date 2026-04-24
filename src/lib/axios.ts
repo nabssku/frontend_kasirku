@@ -112,6 +112,7 @@ api.interceptors.response.use(
     
     if (error.response?.status === 403 && !originalRequest.url?.includes('/auth/logout')) {
       toast.error(message, {
+        id: 'subscription-error',
         description: 'Batas paket tercapai atau akses ditolak',
         duration: 5000,
       });
