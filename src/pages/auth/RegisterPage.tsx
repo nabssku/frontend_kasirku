@@ -169,7 +169,7 @@ export default function RegisterPage() {
     return (
         <div>
             <h2 className="text-2xl font-bold mb-2 text-slate-900">Daftar Toko Baru</h2>
-            <p className="text-slate-500 mb-8 text-sm">Mulai trial gratis 14 hari, tidak perlu kartu kredit.</p>
+            <p className="text-slate-500 mb-6 text-sm">Mulai trial gratis 14 hari, tidak perlu kartu kredit.</p>
 
             {errorMessage && (
                 <div className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600 animate-in slide-in-from-top-2">

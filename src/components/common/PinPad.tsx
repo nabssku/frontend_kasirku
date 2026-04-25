@@ -55,7 +55,7 @@ export const PinPad: React.FC<PinPadProps> = ({
     }, [pin]);
 
     return (
-        <div className="flex flex-col items-center w-full max-w-sm mx-auto p-6 bg-white rounded-3xl shadow-xl border border-slate-100">
+        <div className="flex flex-col items-center w-full max-w-sm mx-auto p-5 md:p-6 bg-white rounded-3xl shadow-xl border border-slate-100">
             {onCancel && (
                 <button 
                     onClick={onCancel}
@@ -65,13 +65,13 @@ export const PinPad: React.FC<PinPadProps> = ({
                 </button>
             )}
 
-            <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">{title}</h3>
-                <p className="text-slate-500 text-sm">{description}</p>
+            <div className="text-center mb-6 md:mb-8">
+                <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-1 md:mb-2">{title}</h3>
+                <p className="text-slate-500 text-xs md:text-sm">{description}</p>
             </div>
 
             {/* PIN Dots */}
-            <div className="flex gap-4 mb-10">
+            <div className="flex gap-3 md:gap-4 mb-6 md:mb-10">
                 {Array.from({ length }).map((_, i) => (
                     <div
                         key={i}

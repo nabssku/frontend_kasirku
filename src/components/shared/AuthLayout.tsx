@@ -10,32 +10,32 @@ export const AuthLayout = () => {
     }
 
     return (
-        <div className="min-h-full h-full bg-slate-50 flex items-center justify-center px-4 py-8 overflow-hidden safe-padding">
+        <div className="min-h-full bg-slate-50 flex flex-col items-center px-4 overflow-y-auto pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))]">
             {/* Decorative background elements */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-indigo-50 rounded-full blur-3xl opacity-60" />
                 <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[500px] h-[500px] bg-amber-50 rounded-full blur-3xl opacity-60" />
             </div>
 
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full max-w-md my-auto">
                 {/* Logo */}
-                <div className="text-center mb-10">
+                <div className="text-center mb-8">
                     <div className="inline-flex items-center gap-3 mb-2">
-                        <img src="/JagoKasir.png" alt="JagoKasir Logo" className="w-12 h-12 object-contain" />
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                        <img src="/JagoKasir.png" alt="JagoKasir Logo" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
+                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
                             JagoKasir <span className="text-indigo-600 italic">POS</span>
                         </h1>
                     </div>
-                    <p className="text-slate-400 text-sm font-medium">Sistem Kasir Modern untuk Bisnis Anda</p>
+                    <p className="text-slate-400 text-xs md:text-sm font-medium">Sistem Kasir Modern untuk Bisnis Anda</p>
                 </div>
 
                 {/* Card */}
-                <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 md:p-10 relative z-10">
+                <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-6 md:p-10 relative z-10">
                     <Outlet />
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-xs text-slate-400 mt-6">
+                <p className="text-center text-[10px] md:text-xs text-slate-400 mt-6">
                     &copy; {new Date().getFullYear()} JagoKasir. All rights reserved.
                 </p>
             </div>

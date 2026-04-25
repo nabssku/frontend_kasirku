@@ -750,9 +750,9 @@ export const DashboardLayout = () => {
 
                 {/* --- Switch User Modal --- */}
                 {showSwitchUser && (
-                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex flex-col items-center justify-center z-[100] px-4 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] overflow-y-auto">
                         {!showSwitchPinPad ? (
-                            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 space-y-6 animate-in zoom-in-95 duration-200">
+                            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 space-y-6 animate-in zoom-in-95 duration-200 my-auto">
                                 <div className="text-center">
                                     <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                         <UserSquare2 size={32} />
@@ -824,17 +824,20 @@ export const DashboardLayout = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="animate-in zoom-in-95 duration-200 relative">
+                            <div className="animate-in zoom-in-95 duration-200 relative my-auto">
                                 <button 
                                     onClick={() => setShowSwitchPinPad(false)}
-                                    className="absolute -top-12 left-0 flex items-center gap-2 text-white/80 hover:text-white transition-colors"
+                                    className="absolute -top-14 left-0 flex items-center gap-2 text-white/90 hover:text-white transition-colors"
                                 >
-                                    <ChevronLeft size={16} />
-                                    <span className="text-sm font-medium">Kembali</span>
+                                    <ChevronLeft size={20} />
+                                    <span className="font-semibold">Kembali</span>
                                 </button>
                                 <PinPad 
                                     onComplete={onSwitchPinComplete}
-                                    onCancel={() => setShowSwitchUser(false)}
+                                    onCancel={() => {
+                                        setShowSwitchUser(false);
+                                        setShowSwitchPinPad(false);
+                                    }}
                                     title={selectedSwitchUser ? selectedSwitchUser.name : "Pindah Akun"}
                                     description={selectedSwitchUser ? `Masukkan PIN untuk ${selectedSwitchUser.role}` : `Masukkan PIN untuk ${switchEmail}`}
                                     error={switchError}
