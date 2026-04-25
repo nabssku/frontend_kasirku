@@ -39,7 +39,25 @@ export default defineConfig({
             purpose: 'maskable'
           }
         ]
-      }
+      },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.jagokasir\.store\/storage\/.*$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'product-images',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
+      },
     })
   ],
 })

@@ -48,3 +48,14 @@ export const useDeleteUser = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   });
 };
+
+export const useUpdateUserPin = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, pin, pin_enabled }: { id: string; pin: string | null; pin_enabled: boolean }) => {
+      const { data } = await api.put(`/users/${id}/pin`, { pin, pin_enabled });
+      return data.data as User;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+  });
+};

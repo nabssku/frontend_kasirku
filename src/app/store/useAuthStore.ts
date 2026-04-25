@@ -11,6 +11,7 @@ interface AuthState {
   isInitializing: boolean;
   isOnline: boolean;
   lastLogin: number | null;
+  lastTenant: { id: string; name: string } | null;
   setAuth: (response: AuthResponse) => void;
   setOnline: (status: boolean) => void;
   logout: () => Promise<void>;
@@ -26,6 +27,7 @@ export const useAuthStore = create<AuthState>()(
       isInitializing: true,
       isOnline: true,
       lastLogin: null,
+      lastTenant: null,
       
       setOnline: (status) => set({ isOnline: status }),
 
@@ -36,6 +38,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           isInitializing: false,
           lastLogin: Date.now(),
+          lastTenant: response.user.tenant ? { id: response.user.tenant_id, name: response.user.tenant.name } : get().lastTenant,
         }),
 
       logout: async () => {
@@ -48,6 +51,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isInitializing: false,
           lastLogin: null,
+          // lastTenant is preserved
         });
 
         if (token) {

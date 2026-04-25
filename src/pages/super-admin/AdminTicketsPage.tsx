@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTickets, useUpdateTicketStatus } from '../../hooks/useTickets';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -17,11 +17,37 @@ import {
 import { useSuperAdminTenants, useSuperAdminUsers } from '../../hooks/useSuperAdmin';
 import { toast } from 'sonner';
 import { useCreateTicket } from '../../hooks/useTickets';
+import { useQueryClient } from '@tanstack/react-query';
+import echo from '../../lib/echo';
 
 export default function AdminTicketsPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+
+    // Real-time Listener for Super Admin
+    useEffect(() => {
+        const channel = echo.private('super-admin')
+            .listen('.ticket.updated', (e: any) => {
+                console.log('Ticket real-time update received:', e);
+                // Invalidate tickets list to fetch fresh data
+                queryClient.invalidateQueries({ queryKey: ['tickets'] });
+                
+                // If it's a new ticket, maybe show a toast
+                if (e.type === 'created') {
+                    toast.info(`Tiket Baru: ${e.ticket.subject}`, {
+                        description: `Dari ${e.ticket.tenant?.name || 'User'}`
+                    });
+                }
+            });
+
+        return () => {
+            channel.stopListening('.ticket.updated');
+            echo.leave('super-admin');
+        };
+    }, [queryClient]);
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newTicket, setNewTicket] = useState({
         tenant_id: '',

@@ -1,12 +1,30 @@
 import { useSuperAdminStats, useSuperAdminPaymentStats } from '../../hooks/useSuperAdmin';
 import { Building2, Users, CreditCard, DollarSign, Clock, Activity, TrendingUp, BarChart3 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatRp } from '../../lib/format';
+import echo from '../../lib/echo';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function SuperAdminDashboard() {
     const [period, setPeriod] = useState('month');
+    const queryClient = useQueryClient();
     const { data: stats, isLoading } = useSuperAdminStats();
     const { data: paymentStats } = useSuperAdminPaymentStats(period);
+
+    // Real-time Listener for Dashboard Stats
+    useEffect(() => {
+        const channel = echo.private('super-admin')
+            .listen('.platform.stats_updated', () => {
+                console.log('Platform stats real-time update received');
+                queryClient.invalidateQueries({ queryKey: ['super-admin', 'stats'] });
+                queryClient.invalidateQueries({ queryKey: ['super-admin', 'payment-stats'] });
+            });
+
+        return () => {
+            channel.stopListening('.platform.stats_updated');
+            echo.leave('super-admin');
+        };
+    }, [queryClient]);
 
     if (isLoading) {
         return (

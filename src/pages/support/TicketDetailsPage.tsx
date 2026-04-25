@@ -5,6 +5,8 @@ import { useTicket, useSendMessage, useUpdateTicketStatus } from '../../hooks/us
 import { useAuthStore } from '../../app/store/useAuthStore';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import echo from '../../lib/echo';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function TicketDetailsPage() {
     const { id } = useParams();
@@ -13,6 +15,7 @@ export default function TicketDetailsPage() {
     const { user: currentUser } = useAuthStore();
     const [message, setMessage] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
+    const queryClient = useQueryClient();
 
     const isDarkMode = location.pathname.startsWith('/super-admin');
 
@@ -21,6 +24,36 @@ export default function TicketDetailsPage() {
     const updateStatus = useUpdateTicketStatus();
 
     const isSuperAdmin = currentUser?.roles?.some((r: any) => r.slug === 'super_admin');
+
+    // Realtime Listener
+    useEffect(() => {
+        if (!id) return;
+
+        const channel = echo.private(`ticket.${id}`)
+            .listen('.message.sent', (e: { message: any }) => {
+                // Update React Query cache
+                queryClient.setQueryData(['ticket', id.toString()], (oldData: any) => {
+                    if (!oldData) return oldData;
+                    
+                    // Check if message already exists to avoid duplicates
+                    const messageExists = oldData.messages?.some((m: any) => m.id === e.message.id);
+                    if (messageExists) return oldData;
+
+                    return {
+                        ...oldData,
+                        messages: [...(oldData.messages || []), e.message]
+                    };
+                });
+                
+                // Invalidate tickets list to update last message etc
+                queryClient.invalidateQueries({ queryKey: ['tickets'] });
+            });
+
+        return () => {
+            channel.stopListening('.message.sent');
+            echo.leave(`ticket.${id}`);
+        };
+    }, [id, queryClient]);
 
     useEffect(() => {
         if (scrollRef.current) {

@@ -31,6 +31,8 @@ import {
     AlertTriangle,
     ArrowRight,
     Crown,
+    UserSquare2,
+    ChevronLeft,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Network } from '@capacitor/network';
@@ -45,6 +47,10 @@ import { usePrinters } from '../../hooks/usePrinters';
 import { toast } from 'sonner';
 import { NetworkStatusIndicator } from '../../features/shared/components/NetworkStatusIndicator';
 import { useProductSync } from '../../hooks/useProductSync';
+import { PinPad } from '../common/PinPad';
+import api from '../../lib/axios';
+import { getDefaultPage } from '../../lib/auth';
+import type { AuthResponse } from '../../types';
 
 interface NavItem {
     name: string;
@@ -167,7 +173,15 @@ export const DashboardLayout = () => {
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
     const [networkStatus, setNetworkStatus] = useState<ConnectionStatus | null>(null);
     const [isAiOpen, setIsAiOpen] = useState(false);
+    const [showSwitchUser, setShowSwitchUser] = useState(false);
+    const [switchEmail, setSwitchEmail] = useState('');
+    const [showSwitchPinPad, setShowSwitchPinPad] = useState(false);
+    const [switchError, setSwitchError] = useState('');
+    const [switchStaffList, setSwitchStaffList] = useState<any[]>([]);
+    const [selectedSwitchUser, setSelectedSwitchUser] = useState<any>(null);
+    const [isLoadingSwitchStaff, setIsLoadingSwitchStaff] = useState(false);
     const { isRetail } = useBusinessType();
+    const { setAuth } = useAuthStore();
 
     const { isConnected: isPrinterConnected, isConnecting: isPrinterConnecting, autoConnect: autoConnectPrinter } = useBluetoothPrint();
     const { data: printers = [] } = usePrinters();
@@ -246,11 +260,46 @@ export const DashboardLayout = () => {
         });
     };
 
+    const fetchSwitchStaff = async () => {
+        if (!user?.tenant_id) return;
+        setIsLoadingSwitchStaff(true);
+        try {
+            const { data } = await api.get(`/public/tenants/${user.tenant_id}/staff`);
+            setSwitchStaffList(data.data);
+        } catch (err) {
+            console.error('Failed to fetch staff list', err);
+        } finally {
+            setIsLoadingSwitchStaff(false);
+        }
+    };
+
     const handleLogout = async () => {
         setIsMobileMenuOpen(false);
         setIsSidebarOpen(false);
         await logout();
         navigate('/login');
+    };
+
+    const onSwitchPinComplete = async (pin: string) => {
+        setSwitchError('');
+        try {
+            const { data } = await api.post<{ data: AuthResponse }>('/auth/login-pin', {
+                email: selectedSwitchUser?.email || switchEmail,
+                pin: pin
+            });
+            setAuth(data.data);
+            setShowSwitchUser(false);
+            setShowSwitchPinPad(false);
+            setSwitchEmail('');
+            toast.success(`Berhasil beralih ke akun ${data.data.user.name}`);
+            
+            // Redirect to their default page
+            const redirect = getDefaultPage(data.data.user.roles);
+            navigate(redirect, { replace: true });
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || 'PIN salah atau akun tidak ditemukan.';
+            setSwitchError(msg);
+        }
     };
 
     // Auto-expand parent if child is active
@@ -534,6 +583,23 @@ export const DashboardLayout = () => {
                         </div>
                     )}
                     <button
+                        onClick={() => {
+                            setSwitchEmail('');
+                            setSwitchError('');
+                            setSelectedSwitchUser(null);
+                            setShowSwitchPinPad(false);
+                            setShowSwitchUser(true);
+                            fetchSwitchStaff();
+                        }}
+                        className={`
+                            w-full flex items-center p-2.5 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors text-sm font-medium mb-1
+                            ${!isSidebarOpen ? 'justify-center' : ''}
+                        `}
+                    >
+                        <UserSquare2 size={20} />
+                        {isSidebarOpen && <span className="ml-3">Pindah Akun</span>}
+                    </button>
+                    <button
                         onClick={handleLogout}
                         className={`
               w-full flex items-center p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-medium
@@ -680,6 +746,102 @@ export const DashboardLayout = () => {
 
                         {isAiOpen && <AiChat onClose={() => setIsAiOpen(false)} />}
                     </>
+                )}
+
+                {/* --- Switch User Modal --- */}
+                {showSwitchUser && (
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                        {!showSwitchPinPad ? (
+                            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 space-y-6 animate-in zoom-in-95 duration-200">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <UserSquare2 size={32} />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-slate-900">Pindah Akun</h2>
+                                    <p className="text-slate-500 text-sm mt-1">Pilih staf untuk melanjutkan</p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {isLoadingSwitchStaff ? (
+                                        <div className="flex justify-center py-8">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                                        </div>
+                                    ) : switchStaffList.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {switchStaffList
+                                                .filter(staf => staf.id !== user?.id)
+                                                .map((staf) => (
+                                                <button
+                                                    key={staf.id}
+                                                    onClick={() => {
+                                                        setSelectedSwitchUser(staf);
+                                                        setShowSwitchPinPad(true);
+                                                    }}
+                                                    className="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-slate-50 transition-all group"
+                                                >
+                                                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-lg group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                                                        {staf.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-[10px] font-bold text-slate-900 truncate w-full max-w-[60px]">{staf.name}</p>
+                                                        <p className="text-[8px] text-slate-400 uppercase font-black">{staf.role}</p>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Staf</label>
+                                                <input 
+                                                    type="email" 
+                                                    value={switchEmail} 
+                                                    onChange={e => setSwitchEmail(e.target.value)}
+                                                    className="w-full mt-1.5 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:ring-4 focus:ring-indigo-100 border-indigo-100 outline-none transition-all" 
+                                                    placeholder="staf@toko.com" 
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="flex gap-3">
+                                        <button 
+                                            onClick={() => setShowSwitchUser(false)} 
+                                            className="flex-1 px-4 py-3.5 rounded-2xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all active:scale-95"
+                                        >
+                                            Batal
+                                        </button>
+                                        {!switchStaffList.length && (
+                                            <button 
+                                                onClick={() => switchEmail && setShowSwitchPinPad(true)}
+                                                disabled={!switchEmail}
+                                                className="flex-[1.5] px-4 py-3.5 rounded-2xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
+                                            >
+                                                Lanjut ke PIN
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="animate-in zoom-in-95 duration-200 relative">
+                                <button 
+                                    onClick={() => setShowSwitchPinPad(false)}
+                                    className="absolute -top-12 left-0 flex items-center gap-2 text-white/80 hover:text-white transition-colors"
+                                >
+                                    <ChevronLeft size={16} />
+                                    <span className="text-sm font-medium">Kembali</span>
+                                </button>
+                                <PinPad 
+                                    onComplete={onSwitchPinComplete}
+                                    onCancel={() => setShowSwitchUser(false)}
+                                    title={selectedSwitchUser ? selectedSwitchUser.name : "Pindah Akun"}
+                                    description={selectedSwitchUser ? `Masukkan PIN untuk ${selectedSwitchUser.role}` : `Masukkan PIN untuk ${switchEmail}`}
+                                    error={switchError}
+                                />
+                            </div>
+                        )}
+                    </div>
                 )}
             </main>
         </div >

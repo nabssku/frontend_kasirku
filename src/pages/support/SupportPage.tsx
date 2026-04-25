@@ -4,11 +4,40 @@ import { useTickets, useCreateTicket } from '../../hooks/useTickets';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
+import echo from '../../lib/echo';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../../app/store/useAuthStore';
 
 export default function SupportPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const { user: currentUser } = useAuthStore();
     const [showNewTicket, setShowNewTicket] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Real-time Listener for User
+    useEffect(() => {
+        if (!currentUser?.id) return;
+
+        const channel = echo.private(`App.Models.User.${currentUser.id}`)
+            .listen('.ticket.updated', (e: any) => {
+                console.log('User Ticket real-time update:', e);
+                queryClient.invalidateQueries({ queryKey: ['tickets'] });
+                
+                if (e.type === 'updated') {
+                    toast.info(`Tiket Diperbarui`, {
+                        description: `Status tiket "${e.ticket.subject}" telah diubah menjadi ${e.ticket.status}`
+                    });
+                }
+            });
+
+        return () => {
+            channel.stopListening('.ticket.updated');
+            echo.leave(`App.Models.User.${currentUser.id}`);
+        };
+    }, [currentUser?.id, queryClient]);
+
     const [newTicket, setNewTicket] = useState({ subject: '', message: '', priority: 'medium' });
 
     const { data: ticketsResponse, isLoading } = useTickets();

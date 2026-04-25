@@ -274,7 +274,13 @@ export default function MenuPage() {
                                     onClick={() => { setSelectedProduct(product); setQty(1); setSelectedMods([]); }}
                                 >
                                     {product.image && (
-                                        <img src={getImageUrl(product.image)} alt={product.name} className="menu-card-img" />
+                                        <img 
+                                            src={getImageUrl(product.image)} 
+                                            alt={product.name} 
+                                            className="menu-card-img" 
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
                                     )}
                                     <div className="menu-card-body">
                                         <span className="menu-card-name">{product.name}</span>
@@ -307,7 +313,12 @@ export default function MenuPage() {
                     <div className="menu-sheet" onClick={e => e.stopPropagation()}>
                         <div className="menu-sheet-drag" />
                         {selectedProduct.image && (
-                            <img src={getImageUrl(selectedProduct.image)} alt={selectedProduct.name} className="menu-sheet-img" />
+                            <img 
+                                src={getImageUrl(selectedProduct.image)} 
+                                alt={selectedProduct.name} 
+                                className="menu-sheet-img" 
+                                decoding="async"
+                            />
                         )}
                         <h3 className="menu-sheet-title">{selectedProduct.name}</h3>
                         {selectedProduct.description && <p className="menu-sheet-desc">{selectedProduct.description}</p>}

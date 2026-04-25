@@ -1,6 +1,6 @@
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
-import api from '../lib/axios';
+
 
 const IMAGE_DIR = 'products';
 const MAX_CACHE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -58,8 +58,9 @@ export class ImageCacheService {
             }
 
             // 2. Download as blob
-            const response = await api.get(url, { responseType: 'blob' });
-            const blob = response.data;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const blob = await response.blob();
 
             // 3. Convert blob to base64 for Capacitor Filesystem
             const base64Data = await this.blobToBase64(blob);

@@ -36,6 +36,7 @@ export interface User {
   email: string;
   image?: string | null;
   is_active: boolean;
+  pin_enabled?: boolean;
   email_verified_at?: string;
   created_at: string;
   updated_at: string;

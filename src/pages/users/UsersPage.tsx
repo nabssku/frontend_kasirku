@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Users, X, ShieldCheck } from 'lucide-react';
-import { useUsers, useInviteUser, useUpdateUser, useDeleteUser } from '../../hooks/useUsers';
+import { Plus, Pencil, Trash2, Users, X, ShieldCheck, Key, Eye, EyeOff } from 'lucide-react';
+import { useUsers, useInviteUser, useUpdateUser, useDeleteUser, useUpdateUserPin } from '../../hooks/useUsers';
 import { useOutlets } from '../../hooks/useOutlets';
 import type { User } from '../../types';
 
@@ -16,16 +16,22 @@ function roleBadge(slug: string) {
     return r ? <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${r.color}`}>{r.label}</span> : null;
 }
 
+
 export default function UsersPage() {
     const { data: users = [], isLoading } = useUsers();
     const { data: outlets = [] } = useOutlets();
     const inviteUser = useInviteUser();
     const updateUser = useUpdateUser();
     const deleteUser = useDeleteUser();
+    const updateUserPin = useUpdateUserPin();
 
     const [showForm, setShowForm] = useState(false);
+    const [showPinModal, setShowPinModal] = useState(false);
+    const [pinUser, setPinUser] = useState<User | null>(null);
     const [editItem, setEditItem] = useState<User | null>(null);
+    const [showNewPin, setShowNewPin] = useState(false);
     const [form, setForm] = useState({ name: '', email: '', password: '', role_slug: 'cashier', outlet_id: '', is_active: true });
+    const [pinForm, setPinForm] = useState({ pin: '', pin_enabled: false });
 
     const resetForm = () => { setForm({ name: '', email: '', password: '', role_slug: 'cashier', outlet_id: '', is_active: true }); setEditItem(null); };
 
@@ -79,6 +85,7 @@ export default function UsersPage() {
                                 <th className="text-left px-6 py-3">Pengguna</th>
                                 <th className="text-left px-6 py-3">Peran</th>
                                 <th className="text-left px-6 py-3">Outlet</th>
+                                <th className="text-center px-6 py-3">PIN</th>
                                 <th className="text-center px-6 py-3">Status</th>
                                 <th className="text-right px-6 py-3">Aksi</th>
                             </tr>
@@ -105,12 +112,32 @@ export default function UsersPage() {
                                     </td>
                                     <td className="px-6 py-4 text-slate-600">{user.outlet?.name ?? <span className="text-slate-300">—</span>}</td>
                                     <td className="px-6 py-4 text-center">
+                                        {user.pin_enabled ? (
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest border border-amber-100 shadow-sm">
+                                                <Key size={10} /> Aktif
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-300 text-xs">—</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
                                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                                             <ShieldCheck size={11} /> {user.is_active ? 'Aktif' : 'Nonaktif'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-end gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    setPinUser(user);
+                                                    setPinForm({ pin: '', pin_enabled: user.pin_enabled ?? false });
+                                                    setShowPinModal(true);
+                                                }} 
+                                                title="Kelola PIN"
+                                                className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                            >
+                                                <Key size={15} />
+                                            </button>
                                             <button onClick={() => openEdit(user)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Pencil size={15} /></button>
                                             <button onClick={() => deleteUser.mutate(user.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                                         </div>
@@ -193,6 +220,77 @@ export default function UsersPage() {
                             <button onClick={() => { setShowForm(false); resetForm(); }} className="flex-1 border border-slate-200 text-slate-600 py-2 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">Batal</button>
                             <button onClick={handleSubmit} disabled={inviteUser.isPending || updateUser.isPending} className="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-60">
                                 {inviteUser.isPending || updateUser.isPending ? 'Menyimpan...' : editItem ? 'Simpan' : 'Undang'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* --- PIN Management Modal --- */}
+            {showPinModal && pinUser && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-slate-900">Kelola PIN: {pinUser.name}</h2>
+                            <button onClick={() => setShowPinModal(false)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
+                                <p className="text-xs text-amber-700 leading-relaxed">
+                                    PIN digunakan untuk login cepat dan berpindah akun staf. Pastikan PIN bersifat rahasia.
+                                </p>
+                            </div>
+
+                            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                                <input 
+                                    type="checkbox" 
+                                    checked={pinForm.pin_enabled} 
+                                    onChange={e => setPinForm(f => ({ ...f, pin_enabled: e.target.checked }))} 
+                                    className="w-4 h-4 rounded text-amber-600" 
+                                />
+                                <span className="text-sm font-medium text-slate-700">Aktifkan Login PIN</span>
+                            </label>
+
+                            {pinForm.pin_enabled && (
+                                <div className="animate-fade-in">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">PIN Baru (4-10 Digit)</label>
+                                    <div className="relative">
+                                        <input 
+                                            type={showNewPin ? "text" : "password"} 
+                                            value={pinForm.pin} 
+                                            onChange={e => setPinForm(f => ({ ...f, pin: e.target.value.replace(/\D/g, '') }))} 
+                                            maxLength={4}
+                                            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-3 text-lg font-mono tracking-widest text-center focus:ring-2 focus:ring-amber-300 outline-none pr-12" 
+                                            placeholder="••••" 
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setShowNewPin(!showNewPin)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                                        >
+                                            {showNewPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1 text-center">PIN harus terdiri dari tepat 4 angka</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button onClick={() => setShowPinModal(false)} className="flex-1 border border-slate-200 text-slate-600 py-2 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">Batal</button>
+                            <button 
+                                onClick={async () => {
+                                    await updateUserPin.mutateAsync({
+                                        id: pinUser.id,
+                                        pin: pinForm.pin || null,
+                                        pin_enabled: pinForm.pin_enabled
+                                    });
+                                    setShowPinModal(false);
+                                }} 
+                                disabled={updateUserPin.isPending}
+                                className="flex-1 bg-amber-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors disabled:opacity-60"
+                            >
+                                {updateUserPin.isPending ? 'Menyimpan...' : 'Simpan PIN'}
                             </button>
                         </div>
                     </div>
