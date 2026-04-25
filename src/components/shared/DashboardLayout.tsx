@@ -32,7 +32,6 @@ import {
     ArrowRight,
     Crown,
     UserSquare2,
-    ChevronLeft,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Network } from '@capacitor/network';

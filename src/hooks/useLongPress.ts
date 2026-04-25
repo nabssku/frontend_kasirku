@@ -37,7 +37,7 @@ export const useLongPress = (
     );
 
     const clear = useCallback(
-        (event: any, shouldTriggerClick = true) => {
+        (_event: any, shouldTriggerClick = true) => {
             if (timeout.current) clearTimeout(timeout.current);
             if (shouldTriggerClick && !longPressTriggered && onClick) {
                 onClick();

@@ -11,7 +11,6 @@ import {
     KeyRound, 
     Mail,  
     Store, 
-    ChevronLeft 
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuthStore } from '../../app/store/useAuthStore';

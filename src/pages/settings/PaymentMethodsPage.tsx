@@ -5,7 +5,6 @@ import {
     ChevronRight, 
     Loader2, 
     AlertCircle, 
-    Check, 
     Save,
     ChevronLeft,
     Plus,

@@ -7,7 +7,7 @@ import { formatRp } from '../../lib/format';
 import reportService from '../../services/reportService';
 import { useExportTransactions } from '../../hooks/useReports';
 import { useLongPress } from '../../hooks/useLongPress';
-import { X, Receipt, User, Clock, ChevronRight } from 'lucide-react';
+import { X, Receipt, User, Clock } from 'lucide-react';
 
 export default function IncomeReport() {
     const getLocalDateString = (date: Date) => {
