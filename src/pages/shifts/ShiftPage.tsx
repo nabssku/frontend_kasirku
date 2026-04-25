@@ -128,7 +128,7 @@ function ShiftSummaryCard({ shift }: { shift: Shift }) {
                             <div className="grid grid-cols-2 gap-3">
                                 {Object.entries(report.payment_breakdown).map(([method, amount]) => (
                                     <div key={method} className="flex justify-between items-center p-2 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors">
-                                        <span className="text-xs font-medium text-slate-600 capitalize">{method.replace('_', ' ')}</span>
+                                        <span className="text-xs font-medium text-slate-600">{method}</span>
                                         <span className="text-sm font-bold text-slate-900">{formatRp(amount)}</span>
                                     </div>
                                 ))}
@@ -277,7 +277,7 @@ function ShiftSummaryCard({ shift }: { shift: Shift }) {
                     <div className="grid grid-cols-2 gap-4">
                         {Object.entries(report.payment_breakdown).map(([m, a]) => (
                             <div key={m} className="flex justify-between border-b pb-1 text-sm border-slate-100">
-                                <span className="capitalize">{m}</span>
+                                <span className="">{m}</span>
                                 <span className="font-bold">{formatRp(a)}</span>
                             </div>
                         ))}

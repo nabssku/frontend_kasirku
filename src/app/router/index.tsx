@@ -40,6 +40,7 @@ import DynamicPublicPage from '../../pages/public/DynamicPublicPage';
 import AuditLogPage from '../../pages/settings/AuditLogPage';
 import AppInformationPage from '../../pages/settings/AppInformationPage';
 import PaymentSettingsPage from '../../pages/settings/PaymentSettingsPage';
+import PaymentMethodsPage from '../../pages/settings/PaymentMethodsPage';
 import SupportPage from '../../pages/support/SupportPage';
 import TicketDetailsPage from '../../pages/support/TicketDetailsPage';
 import AdminTicketsPage from '../../pages/super-admin/AdminTicketsPage';
@@ -47,6 +48,7 @@ import SuperAdminDiscounts from '../../pages/super-admin/SuperAdminDiscounts';
 import CheckoutPage from '../../pages/subscriptions/CheckoutPage';
 import OnboardingPage from '../../pages/onboarding/OnboardingPage';
 import SuperAdminTemplatesPage from '../../pages/super-admin/SuperAdminTemplatesPage';
+import MasterPaymentMethodsPage from '../../pages/super-admin/MasterPaymentMethodsPage';
 
 const IncomeReport = lazy(() => import('../../pages/reports/IncomeReport'));
 const ExpenseReport = lazy(() => import('../../pages/reports/ExpenseReport'));
@@ -119,6 +121,7 @@ export const router = createBrowserRouter([
             { path: 'tickets/:id', element: <TicketDetailsPage /> },
             { path: 'discounts', element: <SuperAdminDiscounts /> },
             { path: 'templates', element: <SuperAdminTemplatesPage /> },
+            { path: 'payment-methods', element: <MasterPaymentMethodsPage /> },
             { path: 'settings/payment', element: <PaymentSettingsPage isSuperAdmin /> },
         ],
     },
@@ -274,6 +277,7 @@ export const router = createBrowserRouter([
             },
             { path: 'settings/info', element: <ProtectedRoute><AppInformationPage /></ProtectedRoute> },
             { path: 'settings/payment', element: <ProtectedRoute allowedRoles={OWNER_ROLES}><PaymentSettingsPage /></ProtectedRoute> },
+            { path: 'settings/payment-methods', element: <ProtectedRoute allowedRoles={ADMIN_ONLY_ROLES}><PaymentMethodsPage /></ProtectedRoute> },
             { path: 'support', element: <ProtectedRoute><SupportPage /></ProtectedRoute> },
             { path: 'support/tickets/:id', element: <ProtectedRoute><TicketDetailsPage /></ProtectedRoute> },
         ],

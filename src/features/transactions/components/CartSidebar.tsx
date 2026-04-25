@@ -13,6 +13,8 @@ import { CartHeader } from './CartHeader';
 import { useBusinessType } from '../../../hooks/useBusinessType';
 import { toast } from 'sonner';
 import { useOverlayStore } from '../../../app/store/useOverlayStore';
+import { useAuthStore } from '../../../app/store/useAuthStore';
+import { useActivePaymentMethods } from '../../../hooks/useOutletPaymentMethods';
 
 interface CartSidebarProps {
     isOpen?: boolean;
@@ -25,6 +27,9 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const { data: customersData } = useCustomers(1, '');
     const { data: tables = [] } = useTables();
     const { isFnb, isRetail } = useBusinessType();
+    const { user } = useAuthStore();
+    const { data: activePaymentMethods = [] } = useActivePaymentMethods(user?.outlet_id);
+
 
     // Set a sensible default orderType when switching business mode
     useEffect(() => {
@@ -45,7 +50,7 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const [selectedProductItem, setSelectedProductItem] = useState<any>(null);
 
     const {
-        paymentMethod, setPaymentMethod, paidAmount, setPaidAmount,
+        paymentMethod, setPaymentMethod, setPaymentMethodName, paidAmount, setPaidAmount,
         customerId, setCustomerId, discount, setDiscount, discountType, setDiscountType,
         notes, setNotes,
         lastChangeAmount, activeTransactionId, printTransactionId, setPrintTransactionId,
@@ -225,10 +230,12 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                 grandTotal={grandTotal} 
                 paymentMethod={paymentMethod} 
                 setPaymentMethod={setPaymentMethod}
+                setPaymentMethodName={setPaymentMethodName}
                 paidAmount={paidAmount} 
                 setPaidAmount={setPaidAmount}
                 onConfirm={() => handleCheckout({ onSuccess: () => setShowPaymentModal(false) })}
                 isPending={isPending}
+                activePaymentMethods={activePaymentMethods}
             />
 
             {printTransactionId && receiptData && (

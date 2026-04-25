@@ -38,6 +38,7 @@ export const useCartActions = () => {
     const { printKitchenOrder, printReceipt } = useBluetoothPrint();
 
     const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [paymentMethodName, setPaymentMethodName] = useState('Tunai');
     const [paidAmount, setPaidAmount] = useState<number>(0);
     const [lastChangeAmount, setLastChangeAmount] = useState(0);
     const [printTransactionId, setPrintTransactionId] = useState<string | null>(null);
@@ -67,6 +68,7 @@ export const useCartActions = () => {
         clearCart();
         setPaidAmount(0);
         setPaymentMethod('cash');
+        setPaymentMethodName('Tunai');
     };
 
     const handleCheckout = (options?: { onSuccess?: () => void }) => {
@@ -96,6 +98,7 @@ export const useCartActions = () => {
             })),
             paid_amount: paidAmount,
             payment_method: paymentMethod,
+            payment_method_name: paymentMethodName,
             customer_id: customerId || undefined,
             discount: calculatedDiscount || 0,
             notes: notes,
@@ -193,6 +196,7 @@ export const useCartActions = () => {
             status: 'pending',
             paid_amount: 0,
             payment_method: 'cash', // Default for pending
+            payment_method_name: 'Tunai',
             service_charge: service_charge,
             tax: tax,
             tax_rate: (outlet?.tax_rate || 0).toString()
@@ -324,6 +328,7 @@ export const useCartActions = () => {
 
     return {
         paymentMethod, setPaymentMethod,
+        paymentMethodName, setPaymentMethodName,
         paidAmount, setPaidAmount,
         customerId, setCustomerId,
         discount, setDiscount,

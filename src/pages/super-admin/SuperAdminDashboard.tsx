@@ -1,5 +1,5 @@
 import { useSuperAdminStats, useSuperAdminPaymentStats } from '../../hooks/useSuperAdmin';
-import { Building2, Users, CreditCard, DollarSign, Clock, Activity, TrendingUp, BarChart3 } from 'lucide-react';
+import { Building2, Users, CreditCard, DollarSign, Clock, Activity, TrendingUp, BarChart3, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatRp } from '../../lib/format';
 import echo from '../../lib/echo';
@@ -39,6 +39,7 @@ export default function SuperAdminDashboard() {
         { label: 'Active Tenants', value: stats?.active_tenants ?? 0, icon: Activity, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
         { label: 'Total Users', value: stats?.total_users ?? 0, icon: Users, color: 'text-violet-400', bg: 'bg-violet-500/10' },
         { label: 'Active Subscriptions', value: stats?.active_subscriptions ?? 0, icon: CreditCard, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+        { label: 'Total Plans', value: stats?.total_plans ?? 0, icon: Package, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
         { label: 'Trial Subscriptions', value: stats?.trial_subscriptions ?? 0, icon: Clock, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
         { label: 'Est. Monthly Revenue', value: formatRp(stats?.total_revenue ?? 0), icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10' },
     ];

@@ -21,6 +21,7 @@ const PaymentLabel: Record<string, string> = {
     'e-wallet': 'E-Wallet',
     qrish: 'QRIS',
     edc: 'EDC',
+    custom: 'Lainnya',
 };
 
 const TypeLabel: Record<string, string> = {

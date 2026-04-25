@@ -46,6 +46,11 @@ const reportService = {
     getProfitLossSummary: async (params: { start_date: string; end_date: string; outlet_id?: string }) => {
         const { data } = await api.get('/reports/profit-loss', { params });
         return data.data as ProfitLossSummary;
+    },
+
+    getTransactionsByDate: async (params: { date: string; outlet_id?: string }) => {
+        const { data } = await api.get('/reports/income/transactions', { params });
+        return data.data;
     }
 };
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, CheckCircle2, AlertCircle, LogIn, Clock, Receipt, Loader2, Trash2, Armchair, QrCode, Percent, Gift, StickyNote } from 'lucide-react';
+import { X, Store, ChefHat, Bike, Table2, User, ChevronDown, CheckCircle2, AlertCircle, LogIn, Clock, Receipt, Loader2, Trash2, Armchair, QrCode, Percent, Gift, StickyNote, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatRp } from '../../../lib/format';
 
@@ -433,20 +433,40 @@ interface PaymentModalProps {
     grandTotal: number;
     paymentMethod: string;
     setPaymentMethod: (method: string) => void;
+    setPaymentMethodName: (name: string) => void;
     paidAmount: number;
     setPaidAmount: (amount: number | ((prev: number) => number)) => void;
     onConfirm: () => void;
     isPending?: boolean;
+    activePaymentMethods?: any[];
 }
 
 export const PaymentModal = ({
-    isOpen, onClose, grandTotal, paymentMethod, setPaymentMethod, paidAmount, setPaidAmount, onConfirm, isPending
+    isOpen, onClose, grandTotal, paymentMethod, setPaymentMethod, setPaymentMethodName, paidAmount, setPaidAmount, onConfirm, isPending, activePaymentMethods = []
 }: PaymentModalProps) => {
     if (!isOpen) return null;
 
     const handleConfirm = async () => {
         await onConfirm();
     };
+
+    // Mapping icons based on code or category
+    const getMethodConfig = (method: any) => {
+        if (method.code === 'cash' || method.category === 'cash') {
+            return { icon: Store, color: 'emerald' };
+        } else if (method.category === 'e-wallet' || method.code === 'qris') {
+            return { icon: QrCode, color: 'purple' };
+        } else if (method.category === 'bank') {
+            return { icon: Store, color: 'blue' };
+        } else {
+            return { icon: CreditCard, color: 'indigo' };
+        }
+    };
+
+    // Fallback if no payment methods are fetched
+    const methodsToRender = activePaymentMethods.length > 0 
+        ? activePaymentMethods 
+        : [{ id: 'cash', code: 'cash', name: 'Tunai', category: 'cash' }];
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-0 sm:p-4 animate-in fade-in duration-300 safe-padding">
@@ -469,30 +489,27 @@ export const PaymentModal = ({
                     <div className="space-y-3 sm:space-y-4">
                         <label className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Metode Pembayaran</label>
                         <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                            {[
-                                { id: 'cash', label: 'Tunai', icon: Store, color: 'emerald' },
-                                { id: 'e-wallet', label: 'QRIS', icon: QrCode, color: 'purple' }
-                            ].map((m) => {
-                                const Icon = m.icon;
-                                const isActive = paymentMethod === m.id;
-                                const colorClass = m.color === 'emerald' ? 'emerald' : m.color === 'blue' ? 'blue' : 'purple';
+                            {methodsToRender.map((m) => {
+                                const { icon: Icon, color: colorClass } = getMethodConfig(m);
+                                const isActive = paymentMethod === m.code;
 
                                 return (
                                     <button
                                         key={m.id}
                                         onClick={() => {
-                                            setPaymentMethod(m.id);
-                                            if (m.id !== 'cash') {
+                                            setPaymentMethod(m.code);
+                                            setPaymentMethodName(m.name);
+                                            if (m.code !== 'cash') {
                                                 setPaidAmount(grandTotal);
                                             }
                                         }}
-                                        className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-2xl border transition-all duration-300 ${isActive
+                                        className={`flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-4 rounded-2xl border transition-all duration-300 ${isActive
                                             ? `bg-${colorClass}-50 border-${colorClass}-200 text-${colorClass}-600 shadow-sm scale-[1.02]`
                                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600'
                                             }`}
                                     >
-                                        <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">{m.label}</span>
+                                        <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-center leading-tight">{m.name}</span>
                                     </button>
                                 );
                             })}

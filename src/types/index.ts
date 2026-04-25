@@ -426,6 +426,7 @@ export interface SuperAdminStats {
   total_paid_revenue: number;
   total_orders: number;
   pending_orders: number;
+  total_plans: number;
   recent_tenants: Tenant[];
 }
 

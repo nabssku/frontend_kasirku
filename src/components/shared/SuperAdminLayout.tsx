@@ -16,6 +16,7 @@ import {
     MessageSquare,
     Tag,
     Layers,
+    Wallet,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -54,6 +55,7 @@ const navGroups: NavGroup[] = [
             { name: 'Orders', path: '/super-admin/orders', icon: Receipt },
             { name: 'App Versions', path: '/super-admin/app-versions', icon: ExternalLink },
              { name: 'Payment Settings', path: '/super-admin/settings/payment', icon: Shield },
+             { name: 'Payment Methods', path: '/super-admin/payment-methods', icon: Wallet },
             { name: 'Page Builder', path: '/super-admin/page-builder', icon: FileText },
             { name: 'Support Tickets', path: '/super-admin/tickets', icon: MessageSquare },
         ],

@@ -38,6 +38,7 @@ interface PlanForm {
     description: string;
     is_active: boolean;
     max_qr_tables: number;
+    max_payment_methods: number;
 }
 
 const defaultForm: PlanForm = {
@@ -47,6 +48,7 @@ const defaultForm: PlanForm = {
     max_customers: 100, max_tables: 10, trial_days: 14,
     description: '', is_active: true,
     max_qr_tables: 0,
+    max_payment_methods: 2,
 };
 
 // Helper: convert PlanFeature[] → enabled keys Set
@@ -62,6 +64,7 @@ function toFeaturesPayload(enabled: Set<string>, form: PlanForm): Record<string,
     });
     // Add value-based features
     payload['max_qr_tables'] = form.max_qr_tables.toString();
+    payload['max_payment_methods'] = form.max_payment_methods.toString();
     return payload;
 }
 
@@ -105,6 +108,7 @@ export default function SuperAdminPlans() {
             description: plan.description ?? '',
             is_active: plan.is_active ?? true,
             max_qr_tables: parseInt(plan.features?.find(f => f.feature_key === 'max_qr_tables')?.feature_value ?? '0'),
+            max_payment_methods: parseInt(plan.features?.find(f => f.feature_key === 'max_payment_methods')?.feature_value ?? '2'),
         });
         setEnabledFeatures(toEnabledSet(plan.features ?? []));
         setEditingId(plan.id);
@@ -259,6 +263,7 @@ export default function SuperAdminPlans() {
                                             { label: 'Max Customers', key: 'max_customers' },
                                             { label: 'Max Tables', key: 'max_tables' },
                                             { label: 'Max QR Tables', key: 'max_qr_tables' },
+                                            { label: 'Max Payment Methods', key: 'max_payment_methods' },
                                         ].map(({ label, key }) => (
                                             <div key={key}>
                                                 <label className={labelCls}>{label}</label>
@@ -437,6 +442,7 @@ export default function SuperAdminPlans() {
                                         ['Customers', plan.max_customers],
                                         ['Tables', plan.max_tables],
                                         ['QR Tables', plan.features?.find(f => f.feature_key === 'max_qr_tables')?.feature_value ?? '0'],
+                                        ['Payment Methods', plan.features?.find(f => f.feature_key === 'max_payment_methods')?.feature_value ?? '2'],
                                         ['Trial Days', plan.trial_days],
                                     ].map(([label, val]) => (
                                         <div key={label as string} className="flex justify-between text-slate-400">

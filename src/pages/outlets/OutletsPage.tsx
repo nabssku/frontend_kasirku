@@ -1,8 +1,111 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Store, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store, X, CreditCard, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOutlets, useCreateOutlet, useUpdateOutlet, useDeleteOutlet } from '../../hooks/useOutlets';
-import type { Outlet } from '../../types';
+import { useOutletPaymentMethods, useUpdateOutletPaymentMethods } from '../../hooks/useOutletPaymentMethods';
+import { useCurrentSubscription } from '../../hooks/useSubscription';
+import type { Outlet, PlanFeature } from '../../types';
+
+function PaymentMethodsModal({ outlet, onClose }: { outlet: Outlet; onClose: () => void }) {
+    const { data, isLoading } = useOutletPaymentMethods(outlet.id);
+    const updateMethods = useUpdateOutletPaymentMethods(outlet.id);
+    const { data: subscriptionData } = useCurrentSubscription();
+    const [localState, setLocalState] = useState<Record<string, boolean>>({});
+
+    const maxAllowed = (() => {
+        const features = subscriptionData?.subscription?.plan?.features || [];
+        const feature = features.find((f: PlanFeature) => f.feature_key === 'max_payment_methods');
+        return feature ? parseInt(feature.feature_value) : 2;
+    })();
+
+    const enabledCount = Object.values(localState).filter(Boolean).length;
+    const isOverLimit = enabledCount > maxAllowed;
+
+    // Initialize local state when data loads
+    if (data && Object.keys(localState).length === 0) {
+        const initialState: Record<string, boolean> = {};
+        data.master_methods.forEach(master => {
+            // Wait, the API returns the master methods and the relationship.
+            // Let's use the master method ID to find if it's enabled in pivot.
+            const pivotData = data.outlet_methods.find((om: any) => om.id === master.id)?.pivot;
+            initialState[master.id] = pivotData?.is_enabled ?? false;
+        });
+        setLocalState(initialState);
+    }
+
+    const handleSave = async () => {
+        if (!data) return;
+
+        if (isOverLimit) {
+            toast.error(`Paket Anda hanya memperbolehkan maksimal ${maxAllowed} metode pembayaran.`);
+            return;
+        }
+
+        const payload = {
+            payment_methods: data.master_methods.map(master => ({
+                payment_method_id: master.id,
+                is_enabled: localState[master.id] ?? false,
+            }))
+        };
+
+        try {
+            await updateMethods.mutateAsync(payload);
+            toast.success('Metode pembayaran berhasil disimpan');
+            onClose();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-900">Metode Pembayaran - {outlet.name}</h2>
+                        <p className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${isOverLimit ? 'text-red-500' : 'text-indigo-500'}`}>
+                            Limit Paket: {enabledCount} / {maxAllowed}
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+                </div>
+                
+                {isLoading ? (
+                    <div className="flex justify-center py-8"><Loader2 className="animate-spin text-indigo-500" size={32} /></div>
+                ) : (
+                    <div className="space-y-3">
+                        {data?.master_methods.map(master => (
+                            <label key={master.id} className="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600">
+                                        <CreditCard size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm text-slate-900">{master.name}</p>
+                                        <p className="text-xs text-slate-500 capitalize">{master.category}</p>
+                                    </div>
+                                </div>
+                                <input 
+                                    type="checkbox" 
+                                    className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500"
+                                    checked={localState[master.id] || false}
+                                    onChange={(e) => setLocalState(prev => ({ ...prev, [master.id]: e.target.checked }))}
+                                />
+                            </label>
+                        ))}
+                    </div>
+                )}
+                
+                <div className="flex gap-3 pt-2">
+                    <button onClick={onClose} className="flex-1 border border-slate-200 text-slate-600 py-2 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">Batal</button>
+                    <button onClick={handleSave} disabled={updateMethods.isPending || isLoading} className="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-60">
+                        {updateMethods.isPending ? 'Menyimpan...' : 'Simpan'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function OutletsPage() {
 
@@ -13,6 +116,7 @@ export default function OutletsPage() {
 
     const [showForm, setShowForm] = useState(false);
     const [editItem, setEditItem] = useState<Outlet | null>(null);
+    const [paymentOutlet, setPaymentOutlet] = useState<Outlet | null>(null);
     const [form, setForm] = useState({
         name: '', address: '', phone: '', email: '',
         tax_rate: 11, service_charge: 0, is_active: true, business_type: 'fnb' as 'fnb' | 'retail',
@@ -65,6 +169,7 @@ export default function OutletsPage() {
                     {outlets.map(outlet => (
                         <div key={outlet.id} className={`bg-white rounded-2xl border shadow-sm p-6 relative transition-all ${outlet.is_active ? 'border-slate-100 hover:shadow-md' : 'border-red-100 opacity-60'}`}>
                             <div className="absolute top-4 right-4 flex gap-1">
+                                <button onClick={() => setPaymentOutlet(outlet)} title="Metode Pembayaran" className="p-1.5 text-slate-300 hover:text-green-500 rounded-lg transition-colors"><CreditCard size={14} /></button>
                                 <button onClick={() => openEdit(outlet)} className="p-1.5 text-slate-300 hover:text-indigo-500 rounded-lg transition-colors"><Pencil size={14} /></button>
                                 <button onClick={() => deleteOutlet.mutate(outlet.id)} className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={14} /></button>
                             </div>
@@ -185,7 +290,12 @@ export default function OutletsPage() {
                     </div>
                 </div>
             )}
+
+            {paymentOutlet && (
+                <PaymentMethodsModal outlet={paymentOutlet} onClose={() => setPaymentOutlet(null)} />
+            )}
         </div>
     );
 }
+
 

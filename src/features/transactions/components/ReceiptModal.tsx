@@ -17,6 +17,7 @@ const PaymentLabel: Record<string, string> = {
     cash: 'Tunai',
     bank_transfer: 'Transfer Bank',
     'e-wallet': 'E-Wallet',
+    custom: 'Lainnya',
 };
 
 const TypeLabel: Record<string, string> = {

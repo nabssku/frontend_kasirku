@@ -293,19 +293,7 @@ export default function LoginPage() {
                         </div>
                     ) : (
                         <div className="animate-fade-in">
-                            <button 
-                                onClick={() => {
-                                    setShowPinPad(false);
-                                    setSelectedUser(null);
-                                    setErrorMessage('');
-                                }}
-                                className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-4 transition-colors group"
-                            >
-                                <div className="p-1.5 rounded-full group-hover:bg-slate-100">
-                                    <ChevronLeft size={16} />
-                                </div>
-                                <span className="text-xs font-medium">Kembali</span>
-                            </button>
+
                             <PinPad 
                                 onComplete={onPinComplete}
                                 onCancel={() => {
@@ -315,6 +303,7 @@ export default function LoginPage() {
                                 title={selectedUser ? selectedUser.name : "Login PIN"}
                                 description={selectedUser ? `Masukkan PIN untuk ${selectedUser.role}` : `Masukkan PIN untuk ${emailForPin}`}
                                 error={errorMessage}
+                                variant="simple"
                             />
                         </div>
                     )}

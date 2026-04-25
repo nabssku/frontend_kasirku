@@ -150,6 +150,7 @@ const allNavGroups: NavGroup[] = [
             { name: 'Pengaturan Struk', path: '/settings/receipt', icon: FileText, roles: CONFIG_ROLES },
             { name: 'Informasi Aplikasi', path: '/settings/info', icon: Info, roles: [...ADMIN_ROLES, 'cashier'] },
             { name: 'Payment Gateway', path: '/settings/payment', icon: CreditCard, roles: OWNER_ROLES },
+            { name: 'Metode Pembayaran', path: '/settings/payment-methods', icon: CreditCard, roles: ADMIN_ONLY_ROLES, feature: 'max_payment_methods' },
             { name: 'Audit Log', path: '/settings/audit-log', icon: ShieldAlert, roles: OWNER_ROLES, feature: 'audit_log' },
         ],
     },
@@ -204,7 +205,7 @@ export const DashboardLayout = () => {
         if (isSuperAdmin) return true;
 
         const features = subscriptionData?.subscription?.plan?.features || [];
-        return features.some((f: PlanFeature) => f.feature_key === featureKey && f.feature_value === 'true');
+        return features.some((f: PlanFeature) => f.feature_key === featureKey && (f.feature_value === 'true' || !isNaN(Number(f.feature_value))));
     };
 
     // Subscription status check
@@ -230,7 +231,7 @@ export const DashboardLayout = () => {
 
         const listener = Network.addListener('networkStatusChange', (status) => {
             setNetworkStatus(status);
-            
+
             // Trigger image sync when coming back online
             if (status.connected) {
                 syncImages({ silent: true });
@@ -252,7 +253,7 @@ export const DashboardLayout = () => {
     const handleNavigate = (path: string) => {
         setIsMobileMenuOpen(false);
         setIsSidebarOpen(false);
-        
+
         // Use requestAnimationFrame to ensure the sidebar closes before navigating
         // which helps preventing the "stuck blur" issue on Android
         requestAnimationFrame(() => {
@@ -292,7 +293,7 @@ export const DashboardLayout = () => {
             setShowSwitchPinPad(false);
             setSwitchEmail('');
             toast.success(`Berhasil beralih ke akun ${data.data.user.name}`);
-            
+
             // Redirect to their default page
             const redirect = getDefaultPage(data.data.user.roles);
             navigate(redirect, { replace: true });
@@ -771,48 +772,48 @@ export const DashboardLayout = () => {
                                             {switchStaffList
                                                 .filter(staf => staf.id !== user?.id)
                                                 .map((staf) => (
-                                                <button
-                                                    key={staf.id}
-                                                    onClick={() => {
-                                                        setSelectedSwitchUser(staf);
-                                                        setShowSwitchPinPad(true);
-                                                    }}
-                                                    className="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-slate-50 transition-all group"
-                                                >
-                                                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-lg group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                                                        {staf.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <p className="text-[10px] font-bold text-slate-900 truncate w-full max-w-[60px]">{staf.name}</p>
-                                                        <p className="text-[8px] text-slate-400 uppercase font-black">{staf.role}</p>
-                                                    </div>
-                                                </button>
-                                            ))}
+                                                    <button
+                                                        key={staf.id}
+                                                        onClick={() => {
+                                                            setSelectedSwitchUser(staf);
+                                                            setShowSwitchPinPad(true);
+                                                        }}
+                                                        className="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-slate-50 transition-all group"
+                                                    >
+                                                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-lg group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                                                            {staf.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <p className="text-[10px] font-bold text-slate-900 truncate w-full max-w-[60px]">{staf.name}</p>
+                                                            <p className="text-[8px] text-slate-400 uppercase font-black">{staf.role}</p>
+                                                        </div>
+                                                    </button>
+                                                ))}
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
                                             <div>
                                                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Staf</label>
-                                                <input 
-                                                    type="email" 
-                                                    value={switchEmail} 
+                                                <input
+                                                    type="email"
+                                                    value={switchEmail}
                                                     onChange={e => setSwitchEmail(e.target.value)}
-                                                    className="w-full mt-1.5 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:ring-4 focus:ring-indigo-100 border-indigo-100 outline-none transition-all" 
-                                                    placeholder="staf@toko.com" 
+                                                    className="w-full mt-1.5 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:ring-4 focus:ring-indigo-100 border-indigo-100 outline-none transition-all"
+                                                    placeholder="staf@toko.com"
                                                 />
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     <div className="flex gap-3">
-                                        <button 
-                                            onClick={() => setShowSwitchUser(false)} 
+                                        <button
+                                            onClick={() => setShowSwitchUser(false)}
                                             className="flex-1 px-4 py-3.5 rounded-2xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all active:scale-95"
                                         >
                                             Batal
                                         </button>
                                         {!switchStaffList.length && (
-                                            <button 
+                                            <button
                                                 onClick={() => switchEmail && setShowSwitchPinPad(true)}
                                                 disabled={!switchEmail}
                                                 className="flex-[1.5] px-4 py-3.5 rounded-2xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
@@ -825,23 +826,16 @@ export const DashboardLayout = () => {
                             </div>
                         ) : (
                             <div className="animate-in zoom-in-95 duration-200 relative my-auto">
-                                <button 
-                                    onClick={() => setShowSwitchPinPad(false)}
-                                    className="absolute -top-14 left-0 flex items-center gap-2 text-white/90 hover:text-white transition-colors"
-                                >
-                                    <ChevronLeft size={20} />
-                                    <span className="font-semibold">Kembali</span>
-                                </button>
-                                <PinPad 
+                                <PinPad
                                     onComplete={onSwitchPinComplete}
                                     onCancel={() => {
                                         setShowSwitchUser(false);
                                         setShowSwitchPinPad(false);
                                     }}
-                                    title={selectedSwitchUser ? selectedSwitchUser.name : "Pindah Akun"}
-                                    description={selectedSwitchUser ? `Masukkan PIN untuk ${selectedSwitchUser.role}` : `Masukkan PIN untuk ${switchEmail}`}
-                                    error={switchError}
-                                />
+                                        title={selectedSwitchUser ? selectedSwitchUser.name : "Pindah Akun"}
+                                        description={selectedSwitchUser ? `Masukkan PIN untuk ${selectedSwitchUser.role}` : `Masukkan PIN untuk ${switchEmail}`}
+                                        error={switchError}
+                                    />
                             </div>
                         )}
                     </div>
