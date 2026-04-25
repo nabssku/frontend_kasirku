@@ -8,6 +8,7 @@ import { useBusinessType } from '../../hooks/useBusinessType';
 import type { RecipeItem } from '../../types';
 import { toast } from 'sonner';
 import { formatRp } from '../../lib/format';
+import { useCurrentSubscription } from '../../hooks/useSubscription';
 
 export default function RecipePage() {
     const { id } = useParams<{ id: string }>();
@@ -21,6 +22,7 @@ export default function RecipePage() {
     const product = products?.find(p => p.id === id);
 
     const { isRetail } = useBusinessType();
+    const { data: subData } = useCurrentSubscription();
     const [items, setItems] = useState<Partial<RecipeItem>[]>([]);
     const [yieldQty, setYieldQty] = useState(1);
 
@@ -28,8 +30,19 @@ export default function RecipePage() {
         if (isRetail) {
             toast.error('Resep tidak tersedia untuk bisnis tipe Retail');
             navigate('/products');
+            return;
         }
-    }, [isRetail, navigate]);
+
+        if (subData) {
+            const hasRecipeFeature = subData.subscription?.plan?.features?.some(
+                f => f.feature_key === 'inventory_recipe' && f.feature_value === 'true'
+            );
+            if (!hasRecipeFeature) {
+                toast.error('Fitur Resep & HPP memerlukan paket Professional/Enterprise');
+                navigate('/products');
+            }
+        }
+    }, [isRetail, subData, navigate]);
 
     // Sync state when recipe loads
     useMemo(() => {

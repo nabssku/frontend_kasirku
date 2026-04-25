@@ -20,6 +20,7 @@ const FEATURE_MAP: Record<string, { label: string; icon: any }> = {
     'advanced_reports': { label: 'Laporan Bisnis Lengkap', icon: BarChart3 },
     'audit_log': { label: 'Audit Log & Keamanan', icon: History },
     'shift_management': { label: 'Manajemen Shift', icon: Clock },
+    'qr_self_order': { label: 'QR Self-Order (Menu Digital)', icon: Tag },
 };
 
 export default function TenantPage() {

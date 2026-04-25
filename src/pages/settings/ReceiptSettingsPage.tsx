@@ -17,7 +17,9 @@ import {
 import { useAuthStore } from '../../app/store/useAuthStore';
 import { useReceiptSettings } from '../../hooks/useReceiptSettings';
 import { useBluetoothPrint } from '../../hooks/useBluetoothPrint';
+import { useCurrentSubscription } from '../../hooks/useSubscription';
 import { toast } from 'sonner';
+import { Lock, Crown } from 'lucide-react';
 import type { ReceiptSettings } from '../../types';
 
 export default function ReceiptSettingsPage() {
@@ -25,9 +27,14 @@ export default function ReceiptSettingsPage() {
     const isOwnerOnly = user?.roles?.some(r => r.slug === 'owner') && !user?.roles?.some(r => r.slug === 'admin' || r.slug === 'super_admin');
     const outletId = user?.outlet_id;
     const { outlet, isLoading, isUpdating, updateSettings } = useReceiptSettings(outletId);
+    const { data: subData } = useCurrentSubscription();
     const [googleReviewLink, setGoogleReviewLink] = useState('');
     const { printReceipt } = useBluetoothPrint();
     const [isTestPrinting, setIsTestPrinting] = useState(false);
+
+    const hasWhiteLabel = subData?.subscription?.plan?.features?.some(
+        f => f.feature_key === 'white_label' && f.feature_value === 'true'
+    );
 
     const [form, setForm] = useState<ReceiptSettings>({
         store_name: '',
@@ -185,19 +192,26 @@ export default function ReceiptSettingsPage() {
                                 <ImageIcon size={14} /> Logo Toko (Opsional)
                             </h3>
                             <div className="flex items-center gap-4">
-                                <div className="w-20 h-20 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+                                <div className={`w-20 h-20 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group ${!hasWhiteLabel ? 'opacity-50 grayscale' : ''}`}>
                                     {logoPreview ? (
                                         <>
                                             <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
-                                            <button
-                                                onClick={removeLogo}
-                                                className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity"
-                                            >
-                                                <Trash2 size={18} className="text-white" />
-                                            </button>
+                                            {hasWhiteLabel && (
+                                                <button
+                                                    onClick={removeLogo}
+                                                    className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity"
+                                                >
+                                                    <Trash2 size={18} className="text-white" />
+                                                </button>
+                                            )}
                                         </>
                                     ) : (
                                         <ImageIcon className="text-slate-300" size={24} />
+                                    )}
+                                    {!hasWhiteLabel && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10">
+                                            <Lock size={20} className="text-slate-500" />
+                                        </div>
                                     )}
                                 </div>
                                 <div className="flex-1 space-y-2">
@@ -207,20 +221,27 @@ export default function ReceiptSettingsPage() {
                                         onChange={handleFileChange}
                                         className="hidden"
                                         accept="image/*"
+                                        disabled={!hasWhiteLabel}
                                     />
                                     <button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                                        onClick={() => hasWhiteLabel ? fileInputRef.current?.click() : toast.info('Fitur Logo memerlukan paket Premium/Enterprise')}
+                                        className={`flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 transition-colors ${!hasWhiteLabel ? 'cursor-not-allowed bg-slate-50' : 'hover:bg-slate-50'}`}
                                     >
-                                        <Upload size={14} />
+                                        {hasWhiteLabel ? <Upload size={14} /> : <Lock size={14} className="text-slate-400" />}
                                         {logoPreview ? 'Ganti Logo' : 'Unggah Logo'}
                                     </button>
-                                    <p className="text-[10px] text-slate-400">Rekomendasi: Gambar persegi, maks 2MB.</p>
+                                    {!hasWhiteLabel ? (
+                                        <p className="text-[10px] text-amber-600 font-medium flex items-center gap-1">
+                                            <Crown size={10} /> Tersedia di paket Premium
+                                        </p>
+                                    ) : (
+                                        <p className="text-[10px] text-slate-400">Rekomendasi: Gambar persegi, maks 2MB.</p>
+                                    )}
                                 </div>
                             </div>
 
                             {logoPreview && (
-                                <div className="space-y-1.5 pt-2">
+                                <div className={`space-y-1.5 pt-2 ${!hasWhiteLabel ? 'opacity-50 pointer-events-none' : ''}`}>
                                     <label className="text-xs font-semibold text-slate-700 flex justify-between">
                                         <span>Lebar Logo</span>
                                         <span className="text-indigo-600">{form.logo_width || 80}px</span>
@@ -233,6 +254,7 @@ export default function ReceiptSettingsPage() {
                                         value={form.logo_width || 80}
                                         onChange={e => setForm({ ...form, logo_width: parseInt(e.target.value) })}
                                         className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                        disabled={!hasWhiteLabel}
                                     />
                                 </div>
                             )}
@@ -261,14 +283,16 @@ export default function ReceiptSettingsPage() {
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-slate-700 text-center block">Ukuran Font</label>
+                                    <label className="text-sm font-semibold text-slate-700 text-center block flex items-center justify-center gap-1">
+                                        Ukuran Font {!hasWhiteLabel && <Lock size={12} className="text-slate-400" />}
+                                    </label>
                                     <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
                                         {(['small', 'medium', 'large'] as const).map((size) => (
                                             <button
                                                 key={size}
-                                                onClick={() => setForm({ ...form, font_size: size })}
+                                                onClick={() => hasWhiteLabel ? setForm({ ...form, font_size: size }) : toast.info('Kustomisasi Font memerlukan paket Premium')}
                                                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${form.font_size === size ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
-                                                    }`}
+                                                    } ${!hasWhiteLabel && size !== 'medium' ? 'opacity-50' : ''}`}
                                             >
                                                 {size === 'small' ? 'Kecil' : size === 'medium' ? 'Sedang' : 'Besar'}
                                             </button>
@@ -276,19 +300,21 @@ export default function ReceiptSettingsPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-slate-700 text-center block">Posisi Teks</label>
+                                    <label className="text-sm font-semibold text-slate-700 text-center block flex items-center justify-center gap-1">
+                                        Posisi Teks {!hasWhiteLabel && <Lock size={12} className="text-slate-400" />}
+                                    </label>
                                     <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
                                         <button
-                                            onClick={() => setForm({ ...form, alignment: 'left' })}
+                                            onClick={() => hasWhiteLabel ? setForm({ ...form, alignment: 'left' }) : toast.info('Kustomisasi Posisi memerlukan paket Premium')}
                                             className={`flex-1 py-2 flex justify-center rounded-lg transition-all ${form.alignment === 'left' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
-                                                }`}
+                                                } ${!hasWhiteLabel && form.alignment !== 'left' ? 'opacity-50' : ''}`}
                                         >
                                             <AlignLeft size={16} />
                                         </button>
                                         <button
-                                            onClick={() => setForm({ ...form, alignment: 'center' })}
+                                            onClick={() => hasWhiteLabel ? setForm({ ...form, alignment: 'center' }) : toast.info('Kustomisasi Posisi memerlukan paket Premium')}
                                             className={`flex-1 py-2 flex justify-center rounded-lg transition-all ${form.alignment === 'center' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
-                                                }`}
+                                                } ${!hasWhiteLabel && form.alignment !== 'center' ? 'opacity-50' : ''}`}
                                         >
                                             <AlignCenter size={16} />
                                         </button>
@@ -297,7 +323,9 @@ export default function ReceiptSettingsPage() {
                             </div>
 
                             <div className="space-y-1.5 pt-4 border-t border-slate-50">
-                                <label className="text-sm font-semibold text-slate-700">Jenis Kertas Printer</label>
+                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                                    Jenis Kertas Printer {!hasWhiteLabel && <Lock size={12} className="text-slate-400" />}
+                                </label>
                                 <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
                                     {[
                                         { label: '58mm (32 Karakter)', value: 32 },
@@ -305,9 +333,9 @@ export default function ReceiptSettingsPage() {
                                     ].map((p) => (
                                         <button
                                             key={p.value}
-                                            onClick={() => setForm({ ...form, paper_width: p.value })}
+                                            onClick={() => hasWhiteLabel ? setForm({ ...form, paper_width: p.value }) : toast.info('Kustomisasi Kertas memerlukan paket Premium')}
                                             className={`flex-1 py-2 text-[10px] font-bold rounded-lg transition-all ${form.paper_width === p.value ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
-                                                }`}
+                                                } ${!hasWhiteLabel && p.value !== 32 ? 'opacity-50' : ''}`}
                                         >
                                             {p.label}
                                         </button>

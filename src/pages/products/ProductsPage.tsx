@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Package, Beef, ListTree } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, Beef, ListTree, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts, useDeleteProduct } from '../../hooks/useProducts';
 import { formatRp } from '../../lib/format';
 import { useBusinessType } from '../../hooks/useBusinessType';
 import { getImageUrl } from '../../utils/url';
 import { useAuthStore } from '../../app/store/useAuthStore';
+import { useCurrentSubscription } from '../../hooks/useSubscription';
 
 export default function ProductsPage() {
     const { isFnb, outlet } = useBusinessType();
@@ -15,13 +16,22 @@ export default function ProductsPage() {
     });
     const { mutate: deleteProduct } = useDeleteProduct();
     const { user } = useAuthStore();
+    const { data: subData } = useCurrentSubscription();
     const isCashier = user?.roles?.some(r => r.slug === 'cashier');
     const [search, setSearch] = useState('');
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
+    const hasRecipeFeature = subData?.subscription?.plan?.features?.some(
+        f => f.feature_key === 'inventory_recipe' && f.feature_value === 'true'
+    );
+
     const filtered = products?.filter((p) =>
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         (p.sku?.toLowerCase().includes(search.toLowerCase()))
+    );
+
+    const hasModifierFeature = subData?.subscription?.plan?.features?.some(
+        f => f.feature_key === 'modifiers' && f.feature_value === 'true'
     );
 
     const handleDelete = (id: string, name: string) => {
@@ -44,13 +54,24 @@ export default function ProductsPage() {
                 {!isCashier && (
                     <div className="flex items-center gap-2">
                         {isFnb && (
-                            <Link
-                                to="/modifiers"
-                                className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition-colors shadow-sm text-sm"
-                            >
-                                <ListTree size={18} />
-                                Kelola Modifiers
-                            </Link>
+                            hasModifierFeature ? (
+                                <Link
+                                    to="/modifiers"
+                                    className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition-colors shadow-sm text-sm"
+                                >
+                                    <ListTree size={18} />
+                                    Kelola Modifiers
+                                </Link>
+                            ) : (
+                                <button
+                                    onClick={() => toast.info('Fitur Modifiers memerlukan paket Professional/Enterprise')}
+                                    className="flex items-center gap-2 bg-slate-50 border border-slate-100 text-slate-400 px-4 py-2.5 rounded-xl font-semibold cursor-not-allowed shadow-sm text-sm"
+                                >
+                                    <ListTree size={18} className="opacity-50" />
+                                    Kelola Modifiers
+                                    <Lock size={12} />
+                                </button>
+                            )
                         )}
                         <Link
                             to="/products/new"
@@ -164,13 +185,24 @@ export default function ProductsPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-1 transition-opacity">
                                                 {isFnb && (
-                                                    <Link
-                                                        to={`/products/${product.id}/recipe`}
-                                                        className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                        title="Kelola Resep"
-                                                    >
-                                                        <Beef size={15} />
-                                                    </Link>
+                                                    hasRecipeFeature ? (
+                                                        <Link
+                                                            to={`/products/${product.id}/recipe`}
+                                                            className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                            title="Kelola Resep"
+                                                        >
+                                                            <Beef size={15} />
+                                                        </Link>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => toast.info('Fitur Resep & HPP memerlukan paket Professional/Enterprise')}
+                                                            className="p-1.5 md:p-2 text-slate-300 cursor-not-allowed hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1"
+                                                            title="Fitur Terkunci (Butuh Upgrade)"
+                                                        >
+                                                            <Beef size={15} className="grayscale opacity-50" />
+                                                            <Lock size={10} className="text-slate-400" />
+                                                        </button>
+                                                    )
                                                 )}
                                                 <Link
                                                     to={`/products/${product.id}`}

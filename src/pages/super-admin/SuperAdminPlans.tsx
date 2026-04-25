@@ -37,6 +37,7 @@ interface PlanForm {
     trial_days: number;
     description: string;
     is_active: boolean;
+    max_qr_tables: number;
 }
 
 const defaultForm: PlanForm = {
@@ -45,6 +46,7 @@ const defaultForm: PlanForm = {
     max_categories: 10, max_ingredients: 25, max_modifiers: 10, 
     max_customers: 100, max_tables: 10, trial_days: 14,
     description: '', is_active: true,
+    max_qr_tables: 0,
 };
 
 // Helper: convert PlanFeature[] → enabled keys Set
@@ -53,11 +55,13 @@ function toEnabledSet(features: PlanFeature[]): Set<string> {
 }
 
 // Helper: convert enabled keys Set → features record for API
-function toFeaturesPayload(enabled: Set<string>): Record<string, string> {
+function toFeaturesPayload(enabled: Set<string>, form: PlanForm): Record<string, string> {
     const payload: Record<string, string> = {};
     AVAILABLE_FEATURES.forEach(f => {
         payload[f.key] = enabled.has(f.key) ? 'true' : 'false';
     });
+    // Add value-based features
+    payload['max_qr_tables'] = form.max_qr_tables.toString();
     return payload;
 }
 
@@ -100,6 +104,7 @@ export default function SuperAdminPlans() {
             trial_days: plan.trial_days ?? 14,
             description: plan.description ?? '',
             is_active: plan.is_active ?? true,
+            max_qr_tables: parseInt(plan.features?.find(f => f.feature_key === 'max_qr_tables')?.feature_value ?? '0'),
         });
         setEnabledFeatures(toEnabledSet(plan.features ?? []));
         setEditingId(plan.id);
@@ -117,7 +122,7 @@ export default function SuperAdminPlans() {
     };
 
     const handleSubmit = () => {
-        const payload = { ...form, features: toFeaturesPayload(enabledFeatures) };
+        const payload = { ...form, features: toFeaturesPayload(enabledFeatures, form) };
         if (editingId) {
             updatePlan.mutate({ id: editingId, ...payload } as any, {
                 onSuccess: () => { setShowForm(false); setEditingId(null); },
@@ -253,6 +258,7 @@ export default function SuperAdminPlans() {
                                             { label: 'Max Modifiers', key: 'max_modifiers' },
                                             { label: 'Max Customers', key: 'max_customers' },
                                             { label: 'Max Tables', key: 'max_tables' },
+                                            { label: 'Max QR Tables', key: 'max_qr_tables' },
                                         ].map(({ label, key }) => (
                                             <div key={key}>
                                                 <label className={labelCls}>{label}</label>
@@ -430,6 +436,7 @@ export default function SuperAdminPlans() {
                                         ['Categories', plan.max_categories],
                                         ['Customers', plan.max_customers],
                                         ['Tables', plan.max_tables],
+                                        ['QR Tables', plan.features?.find(f => f.feature_key === 'max_qr_tables')?.feature_value ?? '0'],
                                         ['Trial Days', plan.trial_days],
                                     ].map(([label, val]) => (
                                         <div key={label as string} className="flex justify-between text-slate-400">
