@@ -62,6 +62,16 @@ export default function MasterPaymentMethodsPage() {
         }
     });
 
+    const toggleMutation = useMutation({
+        mutationFn: async ({ id, is_active }: { id: string, is_active: boolean }) => {
+            return api.put(`/super-admin/payment-methods/${id}`, { is_active });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['master-payment-methods'] });
+            toast.success('Status metode pembayaran berhasil diubah');
+        }
+    });
+
     const handleEdit = (item: MasterPaymentMethod) => {
         setEditingItem(item);
         setForm({
@@ -79,6 +89,10 @@ export default function MasterPaymentMethodsPage() {
         }
     };
 
+    const handleToggle = (item: MasterPaymentMethod) => {
+        toggleMutation.mutate({ id: item.id, is_active: !item.is_active });
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         mutation.mutate(form);
@@ -88,8 +102,8 @@ export default function MasterPaymentMethodsPage() {
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Master Metode Pembayaran</h1>
-                    <p className="text-slate-500 font-medium mt-1">Kelola daftar metode pembayaran yang tersedia untuk seluruh tenant.</p>
+                    <h1 className="text-3xl font-black text-white tracking-tight">Master Metode Pembayaran</h1>
+                    <p className="text-slate-400 font-medium mt-1">Kelola daftar metode pembayaran yang tersedia untuk seluruh tenant.</p>
                 </div>
                 <button 
                     onClick={() => {
@@ -111,33 +125,46 @@ export default function MasterPaymentMethodsPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {methods.map(item => (
-                        <div key={item.id} className={`bg-white rounded-[32px] border-2 shadow-sm p-8 relative transition-all group hover:shadow-xl hover:scale-[1.02] ${item.is_active ? 'border-slate-100' : 'border-red-100 opacity-60'}`}>
+                        <div key={item.id} className={`bg-slate-900 rounded-[32px] border shadow-sm p-8 relative transition-all group hover:border-slate-700 ${item.is_active ? 'border-slate-800' : 'border-red-900/50 opacity-60'}`}>
                             <div className="absolute top-6 right-6 flex gap-2">
-                                <button onClick={() => handleEdit(item)} className="p-2 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"><Pencil size={18} /></button>
-                                <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                                <button onClick={() => handleEdit(item)} className="p-2 text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-xl transition-all"><Pencil size={18} /></button>
+                                <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"><Trash2 size={18} /></button>
                             </div>
 
                             <div className="flex items-center gap-5 mb-6">
-                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${item.is_active ? 'bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${item.is_active ? 'bg-amber-500/10 text-amber-500 group-hover:bg-amber-500 group-hover:text-white' : 'bg-slate-800 text-slate-500'}`}>
                                     <CreditCard size={32} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-slate-900 text-lg leading-tight">{item.name}</h3>
+                                    <h3 className="font-black text-white text-lg leading-tight">{item.name}</h3>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider ${item.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider ${item.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
                                             {item.is_active ? 'Aktif' : 'Nonaktif'}
                                         </span>
-                                        <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg uppercase tracking-wider">
+                                        <span className="text-[10px] font-black bg-slate-800 text-slate-400 px-2 py-0.5 rounded-lg uppercase tracking-wider">
                                             {item.code}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4 pt-4 border-t border-slate-50">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori</span>
-                                    <span className="text-xs font-bold text-slate-700 uppercase">{item.category.replace('_', ' ')}</span>
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-800 mt-6">
+                                <div>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Kategori</span>
+                                    <span className="text-xs font-bold text-slate-300 uppercase">{item.category.replace('_', ' ')}</span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Status</span>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            className="sr-only peer" 
+                                            checked={item.is_active} 
+                                            onChange={() => handleToggle(item)} 
+                                            disabled={toggleMutation.isPending} 
+                                        />
+                                        <div className={`w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 ${toggleMutation.isPending ? 'opacity-50' : ''}`}></div>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -146,14 +173,14 @@ export default function MasterPaymentMethodsPage() {
             )}
 
             {isModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md p-10 space-y-8 animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-slate-900 border border-slate-800 rounded-[40px] shadow-2xl w-full max-w-md p-10 space-y-8 animate-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">{editingItem ? 'Edit Metode' : 'Tambah Metode'}</h2>
-                                <p className="text-sm text-slate-500 font-medium">Master Konfigurasi Pembayaran</p>
+                                <h2 className="text-2xl font-black text-white tracking-tight">{editingItem ? 'Edit Metode' : 'Tambah Metode'}</h2>
+                                <p className="text-sm text-slate-400 font-medium">Master Konfigurasi Pembayaran</p>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"><X size={24} /></button>
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"><X size={24} /></button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -164,7 +191,7 @@ export default function MasterPaymentMethodsPage() {
                                         required
                                         value={form.name} 
                                         onChange={e => setForm(f => ({ ...f, name: e.target.value }))} 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 focus:bg-white outline-none transition-all" 
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all placeholder:text-slate-500" 
                                         placeholder="Contoh: QRIS" 
                                     />
                                 </div>
@@ -175,7 +202,7 @@ export default function MasterPaymentMethodsPage() {
                                         required
                                         value={form.code} 
                                         onChange={e => setForm(f => ({ ...f, code: e.target.value.toLowerCase().replace(/\s/g, '_') }))} 
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 focus:bg-white outline-none transition-all" 
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all placeholder:text-slate-500 disabled:opacity-50" 
                                         placeholder="Contoh: qris_merchant" 
                                         disabled={!!editingItem}
                                     />
@@ -186,7 +213,7 @@ export default function MasterPaymentMethodsPage() {
                                     <select 
                                         value={form.category} 
                                         onChange={e => setForm(f => ({ ...f, category: e.target.value as any }))}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 focus:bg-white outline-none transition-all appearance-none"
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all appearance-none"
                                     >
                                         <option value="cash">Cash / Tunai</option>
                                         <option value="e-wallet">E-Wallet / QRIS</option>
@@ -196,32 +223,32 @@ export default function MasterPaymentMethodsPage() {
                                     </select>
                                 </div>
 
-                                <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <div className="relative inline-flex items-center cursor-pointer">
+                                <label className="flex items-center gap-4 p-5 bg-slate-800/50 rounded-2xl border border-slate-700/50 cursor-pointer hover:bg-slate-800 transition-colors">
+                                    <div className="relative inline-flex items-center">
                                         <input 
                                             type="checkbox" 
                                             className="sr-only peer"
                                             checked={form.is_active}
                                             onChange={(e) => setForm(f => ({ ...f, is_active: e.target.checked }))}
                                         />
-                                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                     </div>
-                                    <span className="text-sm font-bold text-slate-700">Aktifkan Metode Ini</span>
-                                </div>
+                                    <span className="text-sm font-bold text-slate-300">Aktifkan Metode Ini</span>
+                                </label>
                             </div>
 
                             <div className="flex gap-4 pt-4">
                                 <button 
                                     type="button"
                                     onClick={() => setIsModalOpen(false)} 
-                                    className="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl text-sm font-black hover:bg-slate-200 transition-all active:scale-95"
+                                    className="flex-1 bg-slate-800 text-slate-300 py-4 rounded-2xl text-sm font-black hover:bg-slate-700 hover:text-white transition-all active:scale-95"
                                 >
                                     Batal
                                 </button>
                                 <button 
                                     type="submit" 
                                     disabled={mutation.isPending} 
-                                    className="flex-1 bg-amber-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-amber-700 transition-all shadow-xl shadow-amber-100 disabled:opacity-50 active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex-1 bg-amber-600 text-white py-4 rounded-2xl text-sm font-black hover:bg-amber-700 transition-all shadow-xl shadow-amber-900/20 disabled:opacity-50 active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     {mutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                                     Simpan Metode
