@@ -174,8 +174,8 @@ export default function MasterPaymentMethodsPage() {
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-                    <div className="bg-slate-900 border border-slate-800 rounded-[40px] shadow-2xl w-full max-w-md p-10 space-y-8 animate-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between">
+                    <div className="bg-slate-900 border border-slate-800 rounded-[40px] shadow-2xl w-full max-w-md p-10 space-y-8 animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between shrink-0">
                             <div>
                                 <h2 className="text-2xl font-black text-white tracking-tight">{editingItem ? 'Edit Metode' : 'Tambah Metode'}</h2>
                                 <p className="text-sm text-slate-400 font-medium">Master Konfigurasi Pembayaran</p>
@@ -183,7 +183,7 @@ export default function MasterPaymentMethodsPage() {
                             <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"><X size={24} /></button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto pr-2">
                             <div className="space-y-5">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Metode</label>
@@ -237,7 +237,7 @@ export default function MasterPaymentMethodsPage() {
                                 </label>
                             </div>
 
-                            <div className="flex gap-4 pt-4">
+                            <div className="flex gap-4 pt-4 shrink-0">
                                 <button 
                                     type="button"
                                     onClick={() => setIsModalOpen(false)} 

@@ -263,7 +263,7 @@ export default function TablesPage() {
             {/* --- QR Code Modal --- */}
             {qrModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setQrModal(null)}>
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xs p-6 text-center" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xs p-6 text-center max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-bold mb-1">{qrModal.tableNm}</h3>
                         <p className="text-xs text-slate-400 mb-4">Scan QR untuk membuka menu</p>
                         <div className="flex justify-center">
@@ -293,13 +293,13 @@ export default function TablesPage() {
             {/* --- Form Modal --- */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
-                        <div className="p-6 pb-0">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 pb-0 shrink-0">
                             <h2 className="text-xl font-bold text-slate-900">{editItem ? 'Edit Meja' : 'Tambah Meja'}</h2>
                             <p className="text-sm text-slate-500 mt-1">Lengkapi informasi detail meja di bawah ini.</p>
                         </div>
 
-                        <div className="p-6 space-y-4">
+                        <div className="p-6 space-y-4 overflow-y-auto">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Meja</label>
                                 <input
@@ -353,7 +353,7 @@ export default function TablesPage() {
                             </div>
                         </div>
 
-                        <div className="p-6 bg-slate-50 flex gap-3">
+                        <div className="p-6 bg-slate-50 flex gap-3 shrink-0">
                             <button
                                 onClick={() => { setShowForm(false); resetForm(); }}
                                 className="flex-1 bg-white border border-slate-200 text-slate-600 py-3 rounded-2xl text-sm font-bold hover:bg-slate-100 transition-all active:scale-95"

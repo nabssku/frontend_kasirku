@@ -115,117 +115,119 @@ export default function ProductsPage() {
                         <p className="text-sm mt-1">Klik "Tambah Produk" untuk memulai</p>
                     </div>
                 ) : (
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
-                                <th className="px-6 py-4 text-left">Produk</th>
-                                <th className="px-6 py-4 text-right">Stok</th>
-                                {isFnb && <th className="px-6 py-4 text-left hidden sm:table-cell">Resep / Mod</th>}
-                                <th className="px-6 py-4 text-left hidden md:table-cell">Kategori</th>
-                                <th className="px-6 py-4 text-right">Harga</th>
-                                <th className="px-6 py-4 text-center hidden lg:table-cell">Status</th>
-                                {!isCashier && <th className="px-6 py-4 text-right">Aksi</th>}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {filtered?.map((product) => (
-                                <tr key={product.id} className="hover:bg-slate-50 transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2 md:gap-3">
-                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                                                {product.image ? (
-                                                    <img 
-                                                        src={getImageUrl(product.image)} 
-                                                        className="w-full h-full object-cover rounded-xl" 
-                                                        loading="lazy" 
-                                                        decoding="async"
-                                                        alt={product.name}
-                                                    />
-                                                ) : (
-                                                    <Package size={16} className="text-indigo-400" />
-                                                )}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="font-bold text-slate-800 uppercase text-[10px] md:text-xs tracking-tight truncate">{product.name}</p>
-                                                <p className="text-[9px] md:text-[10px] text-slate-400 font-mono truncate">{product.sku || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-1.5">
-                                            {product.stock <= product.min_stock ? (
-                                                <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Limit: {product.stock}</span>
-                                            ) : (
-                                                <span className="text-slate-700 font-semibold">{product.stock}</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    {isFnb && (
-                                        <td className="px-6 py-4 hidden sm:table-cell">
-                                            <div className="flex items-center gap-2">
-                                                {product.has_recipe && (
-                                                    <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600" title="Ada Resep"><Beef size={14} /></span>
-                                                )}
-                                                {product.modifier_groups && product.modifier_groups.length > 0 && (
-                                                    <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600" title="Ada Modifiers"><ListTree size={14} /></span>
-                                                )}
-                                            </div>
-                                        </td>
-                                    )}
-                                    <td className="px-6 py-4 hidden md:table-cell">
-                                        <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase">{product.category?.name || '—'}</span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-bold text-slate-900 border-r-0 whitespace-nowrap">
-                                        {formatRp(product.price)}
-                                    </td>
-                                    <td className="px-6 py-4 text-center hidden lg:table-cell">
-                                        <div className={`w-2 h-2 rounded-full mx-auto ${product.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                                    </td>
-                                    {!isCashier && (
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-end gap-1 transition-opacity">
-                                                {isFnb && (
-                                                    hasRecipeFeature ? (
-                                                        <Link
-                                                            to={`/products/${product.id}/recipe`}
-                                                            className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                            title="Kelola Resep"
-                                                        >
-                                                            <Beef size={15} />
-                                                        </Link>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => toast.info('Fitur Resep & HPP memerlukan paket Professional/Enterprise')}
-                                                            className="p-1.5 md:p-2 text-slate-300 cursor-not-allowed hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1"
-                                                            title="Fitur Terkunci (Butuh Upgrade)"
-                                                        >
-                                                            <Beef size={15} className="grayscale opacity-50" />
-                                                            <Lock size={10} className="text-slate-400" />
-                                                        </button>
-                                                    )
-                                                )}
-                                                <Link
-                                                    to={`/products/${product.id}`}
-                                                    className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <Edit2 size={15} />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(product.id, product.name)}
-                                                    disabled={deletingId === product.id}
-                                                    className="p-1.5 md:p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Hapus"
-                                                >
-                                                    <Trash2 size={15} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    )}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
+                                    <th className="px-6 py-4 text-left">Produk</th>
+                                    <th className="px-6 py-4 text-right">Stok</th>
+                                    {isFnb && <th className="px-6 py-4 text-left hidden sm:table-cell">Resep / Mod</th>}
+                                    <th className="px-6 py-4 text-left hidden md:table-cell">Kategori</th>
+                                    <th className="px-6 py-4 text-right">Harga</th>
+                                    <th className="px-6 py-4 text-center hidden lg:table-cell">Status</th>
+                                    {!isCashier && <th className="px-6 py-4 text-right">Aksi</th>}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {filtered?.map((product) => (
+                                    <tr key={product.id} className="hover:bg-slate-50 transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 md:gap-3">
+                                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                                    {product.image ? (
+                                                        <img 
+                                                            src={getImageUrl(product.image)} 
+                                                            className="w-full h-full object-cover rounded-xl" 
+                                                            loading="lazy" 
+                                                            decoding="async"
+                                                            alt={product.name}
+                                                        />
+                                                    ) : (
+                                                        <Package size={16} className="text-indigo-400" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-slate-800 uppercase text-[10px] md:text-xs tracking-tight truncate">{product.name}</p>
+                                                    <p className="text-[9px] md:text-[10px] text-slate-400 font-mono truncate">{product.sku || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                {product.stock <= product.min_stock ? (
+                                                    <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Limit: {product.stock}</span>
+                                                ) : (
+                                                    <span className="text-slate-700 font-semibold">{product.stock}</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        {isFnb && (
+                                            <td className="px-6 py-4 hidden sm:table-cell">
+                                                <div className="flex items-center gap-2">
+                                                    {product.has_recipe && (
+                                                        <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600" title="Ada Resep"><Beef size={14} /></span>
+                                                    )}
+                                                    {product.modifier_groups && product.modifier_groups.length > 0 && (
+                                                        <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600" title="Ada Modifiers"><ListTree size={14} /></span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
+                                        <td className="px-6 py-4 hidden md:table-cell">
+                                            <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase">{product.category?.name || '—'}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right font-bold text-slate-900 border-r-0 whitespace-nowrap">
+                                            {formatRp(product.price)}
+                                        </td>
+                                        <td className="px-6 py-4 text-center hidden lg:table-cell">
+                                            <div className={`w-2 h-2 rounded-full mx-auto ${product.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                        </td>
+                                        {!isCashier && (
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center justify-end gap-1 transition-opacity">
+                                                    {isFnb && (
+                                                        hasRecipeFeature ? (
+                                                            <Link
+                                                                to={`/products/${product.id}/recipe`}
+                                                                className="p-1.5 md:p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                                title="Kelola Resep"
+                                                            >
+                                                                <Beef size={15} />
+                                                            </Link>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => toast.info('Fitur Resep & HPP memerlukan paket Professional/Enterprise')}
+                                                                className="p-1.5 md:p-2 text-slate-300 cursor-not-allowed hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1"
+                                                                title="Fitur Terkunci (Butuh Upgrade)"
+                                                            >
+                                                                <Beef size={15} className="grayscale opacity-50" />
+                                                                <Lock size={10} className="text-slate-400" />
+                                                            </button>
+                                                        )
+                                                    )}
+                                                    <Link
+                                                        to={`/products/${product.id}`}
+                                                        className="p-1.5 md:p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit2 size={15} />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(product.id, product.name)}
+                                                        disabled={deletingId === product.id}
+                                                        className="p-1.5 md:p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Hapus"
+                                                    >
+                                                        <Trash2 size={15} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
         </div>
