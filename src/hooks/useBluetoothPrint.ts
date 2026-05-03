@@ -126,7 +126,7 @@ async function buildEscPosData(receipt: PrinterReceiptData): Promise<Uint8Array>
     const separator = textToBytes('-'.repeat(paperWidth) + '\n');
 
     const paymentLabel: Record<string, string> = {
-        cash: 'Tunai', bank_transfer: 'Transfer', 'e-wallet': 'E-Wallet',
+        cash: 'Cash', bank_transfer: 'Transfer', 'e-wallet': 'E-Wallet',
     };
 
     const typeLabel: Record<string, string> = {

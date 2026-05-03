@@ -466,7 +466,7 @@ export const PaymentModal = ({
     // Fallback if no payment methods are fetched
     const methodsToRender = activePaymentMethods.length > 0 
         ? activePaymentMethods 
-        : [{ id: 'cash', code: 'cash', name: 'Tunai', category: 'cash' }];
+        : [{ id: 'cash', code: 'cash', name: 'Cash', category: 'cash' }];
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-0 sm:p-4 animate-in fade-in duration-300 safe-padding">

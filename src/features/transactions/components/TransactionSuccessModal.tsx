@@ -16,7 +16,7 @@ interface TransactionSuccessModalProps {
 }
 
 const PaymentLabel: Record<string, string> = {
-    cash: 'Tunai',
+    cash: 'Cash',
     bank_transfer: 'Transfer Bank',
     'e-wallet': 'E-Wallet',
     qrish: 'QRIS',
