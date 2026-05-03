@@ -2,6 +2,23 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../lib/axios';
 import type { DailyReport, MonthlyReport, TopProduct } from '../types';
 
+export interface DashboardSummary {
+  top_products: TopProduct[];
+  least_products: { product_id: string; product_name: string; total_quantity: number }[];
+  payment_methods: { payment_method: string; total_transactions: number; total_revenue: number }[];
+  peak_hours: { hour: string; count: number }[];
+  recent_activities: {
+    id: string;
+    invoice_number: string;
+    cashier_name: string;
+    grand_total: number;
+    status: string;
+    cancel_reason?: string;
+    time: string;
+    created_at: string;
+  }[];
+}
+
 export const useDailyReport = (date?: string, outletId?: string) => {
   return useQuery({
     queryKey: ['reports', 'daily', date, outletId],
@@ -32,6 +49,23 @@ export const useTopProducts = (outletId?: string) => {
     queryFn: async () => {
       const { data } = await api.get<{ data: TopProduct[] }>('/reports/top-products', {
         params: { outlet_id: outletId },
+      });
+      return data.data;
+    },
+  });
+};
+
+export const useDashboardSummary = (outletId?: string, date?: string, paymentStartDate?: string, paymentEndDate?: string) => {
+  return useQuery({
+    queryKey: ['reports', 'dashboard-summary', outletId, date, paymentStartDate, paymentEndDate],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: DashboardSummary }>('/reports/dashboard-summary', {
+        params: { 
+          outlet_id: outletId, 
+          date,
+          payment_start_date: paymentStartDate,
+          payment_end_date: paymentEndDate
+        },
       });
       return data.data;
     },
