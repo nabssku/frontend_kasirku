@@ -1,6 +1,6 @@
 import {
-    TrendingUp, ShoppingCart, DollarSign, BarChart2, Package, Store,
-    ArrowUpRight, ArrowDownRight, Plus, Clock, User,
+    TrendingUp, ShoppingCart, DollarSign, Store,
+    ArrowUpRight, ArrowDownRight, Clock, User,
     CreditCard, LayoutDashboard, History, Zap
 } from 'lucide-react';
 import { formatRp } from '../../lib/format';
@@ -326,12 +326,12 @@ export default function DashboardPage() {
                                         paddingAngle={2}
                                         dataKey="value"
                                     >
-                                        {paymentData.map((entry, index) => (
+                                        {paymentData.map((_, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
                                     <Tooltip
-                                        formatter={(value: number) => formatRp(value)}
+                                        formatter={(value: any) => formatRp(Number(value) || 0)}
                                         contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                                     />
                                 </PieChart>

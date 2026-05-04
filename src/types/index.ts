@@ -379,6 +379,8 @@ export interface DailyReport {
   total_sales: number;
   total_revenue: number;
   total_discount: number;
+  gross_sales: number;
+  refund_amount: number;
   average_transaction: number;
 }
 
