@@ -5,6 +5,18 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['lucide-react', 'framer-motion', 'sonner'],
+          'vendor-charts': ['recharts'],
+          'vendor-utils': ['axios', 'date-fns', 'zod', 'zustand', '@tanstack/react-query'],
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -41,6 +53,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 4000000, // 4MB
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.jagokasir\.store\/storage\/.*$/i,
