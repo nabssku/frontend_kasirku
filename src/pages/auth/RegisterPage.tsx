@@ -83,6 +83,7 @@ export default function RegisterPage() {
             const payload = {
                 ...registrationPayload,
                 domain: registrationPayload.domain || undefined,
+                code: otpValue, // Include the OTP code
             };
             await api.post('/auth/register', payload);
             
