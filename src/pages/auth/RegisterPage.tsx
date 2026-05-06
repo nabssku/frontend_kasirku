@@ -67,24 +67,30 @@ export default function RegisterPage() {
         }
     };
 
-    const handleVerifyAndRegister = async () => {
-        if (!registrationPayload || otpValue.length !== 6) return;
+    const handleVerifyAndRegister = async (value?: string) => {
+        const code = typeof value === 'string' ? value : otpValue;
+        if (!registrationPayload || code.length !== 6) return;
         
         setErrorMessage('');
         try {
             // 1. Verify OTP first
             await verifyOtp.mutateAsync({ 
                 email: registrationPayload.email, 
-                code: otpValue, 
+                code, 
                 type: 'registration' 
             });
 
             // 2. Complete Registration
             const payload = {
-                ...registrationPayload,
+                tenant_name: registrationPayload.tenant_name,
+                owner_name: registrationPayload.owner_name,
+                email: registrationPayload.email,
+                password: registrationPayload.password,
+                password_confirmation: registrationPayload.password_confirmation,
                 domain: registrationPayload.domain || undefined,
-                code: otpValue, // Include the OTP code
+                code, // Explicitly include the OTP code
             };
+
             await api.post('/auth/register', payload);
             
             toast.success('Pendaftaran berhasil! Silakan masuk.');
@@ -136,12 +142,12 @@ export default function RegisterPage() {
                         value={otpValue} 
                         onChange={setOtpValue} 
                         disabled={isVerifying}
-                        onComplete={() => {}} 
+                        onComplete={handleVerifyAndRegister} 
                     />
                 </div>
 
                 <button
-                    onClick={handleVerifyAndRegister}
+                    onClick={() => handleVerifyAndRegister()}
                     disabled={otpValue.length !== 6 || isVerifying}
                     className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-xl py-4 font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:grayscale"
                 >

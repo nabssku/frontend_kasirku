@@ -58,10 +58,13 @@ export default function ForgotPasswordPage() {
         }
     };
 
-    const onOtpVerify = async () => {
+    const onOtpVerify = async (value?: string) => {
+        const code = typeof value === 'string' ? value : otpValue;
+        if (code.length !== 6) return;
+
         setErrorMessage('');
         try {
-            await verifyOtp.mutateAsync({ email, code: otpValue, type: 'reset_password' });
+            await verifyOtp.mutateAsync({ email, code, type: 'reset_password' });
             setStep('password');
         } catch (err: any) {
             setErrorMessage(err?.response?.data?.message || 'Kode OTP salah atau kedaluwarsa.');
@@ -180,7 +183,7 @@ export default function ForgotPasswordPage() {
                     />
 
                     <button
-                        onClick={onOtpVerify}
+                        onClick={() => onOtpVerify()}
                         disabled={otpValue.length !== 6 || isVerifying}
                         className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-xl py-4 font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
                     >
